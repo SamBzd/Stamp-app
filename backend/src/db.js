@@ -4,9 +4,129 @@ const Database = require('better-sqlite3');
 const dbPath = path.join(__dirname, '../../db/app.db');
 const db = new Database(dbPath);
 
+// READ - Récupérer tous les clients
+function getAllClients() {
+  const stmt = db.prepare('SELECT * FROM clients ORDER BY nom, prenom');
+  return stmt.all();
+}
+
+// READ - Récupérer un client par son ID
+function getClientById(id) {
+  const stmt = db.prepare('SELECT * FROM clients WHERE id = ?');
+  return stmt.get(id);
+}
+
+// CREATE - Créer un nouveau client
+function createClient(clientData) {
+  const {
+    nom,
+    prenom,
+    date_naissance = null,
+    adresse = null,
+    code_postal = null,
+    ville = null,
+    email = null,
+    telephone_raw = null,
+    relais_prefere = null,
+    contacter = 0,
+    derniere_commande = null
+  } = clientData;
+
+  const stmt = db.prepare(`
+    INSERT INTO clients 
+    (nom, prenom, date_naissance, adresse, code_postal, ville, email, telephone_raw, relais_prefere, contacter, derniere_commande)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const result = stmt.run(
+    nom,
+    prenom,
+    date_naissance,
+    adresse,
+    code_postal,
+    ville,
+    email,
+    telephone_raw,
+    relais_prefere,
+    contacter,
+    derniere_commande
+  );
+
+  return getClientById(result.lastInsertRowid);
+}
+
+// UPDATE - Mettre à jour un client
+function updateClient(id, clientData) {
+  const {
+    nom,
+    prenom,
+    date_naissance,
+    adresse,
+    code_postal,
+    ville,
+    email,
+    telephone_raw,
+    relais_prefere,
+    contacter,
+    derniere_commande
+  } = clientData;
+
+  const stmt = db.prepare(`
+    UPDATE clients 
+    SET nom = ?,
+        prenom = ?,
+        date_naissance = ?,
+        adresse = ?,
+        code_postal = ?,
+        ville = ?,
+        email = ?,
+        telephone_raw = ?,
+        relais_prefere = ?,
+        contacter = ?,
+        derniere_commande = ?
+    WHERE id = ?
+  `);
+
+  const result = stmt.run(
+    nom,
+    prenom,
+    date_naissance,
+    adresse,
+    code_postal,
+    ville,
+    email,
+    telephone_raw,
+    relais_prefere,
+    contacter,
+    derniere_commande,
+    id
+  );
+
+  if (result.changes === 0) {
+    return null; // Client non trouvé
+  }
+
+  return getClientById(id);
+}
+
+// DELETE - Supprimer un client
+function deleteClient(id) {
+  const stmt = db.prepare('DELETE FROM clients WHERE id = ?');
+  const result = stmt.run(id);
+  return result.changes > 0;
+}
+
+// Fonction legacy pour compatibilité
 function getAllClientsNames() {
   const stmt = db.prepare('SELECT nom, prenom FROM clients');
   return stmt.all();
 }
 
-module.exports = { getAllClientsNames };
+module.exports = {
+  getAllClients,
+  getClientById,
+  createClient,
+  updateClient,
+  deleteClient,
+  getAllClientsNames
+};
