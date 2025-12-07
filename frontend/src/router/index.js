@@ -3,6 +3,15 @@ import { createRouter, createWebHistory } from 'vue-router'
 export default createRouter({
   history: createWebHistory(),
   routes: [
-    { path: '/', name: 'home', component: () => import('../views/HomeView.vue') }
+    { 
+      path: '/', 
+      name: 'dashboard', 
+      component: () => import('../views/DashboardView.vue') 
+    },
+    { 
+      path: '/clients', 
+      name: 'clients', 
+      component: () => import('../views/ClientsListView.vue') 
+    }
   ]
 })
