@@ -1,0 +1,89 @@
+### Fichier de test HTTP pour le CRUD des clients
+### Vous pouvez utiliser ce fichier avec l'extension REST Client dans VS Code
+### Ou copier les commandes curl dans votre terminal
+
+@baseUrl = http://localhost:3000
+
+### 1. Test de santé du serveur
+GET {{baseUrl}}/api/health
+
+### 2. READ - Récupérer tous les clients
+GET {{baseUrl}}/api/clients
+
+### 3. READ - Récupérer un client par ID (remplacez 1 par un ID existant)
+GET {{baseUrl}}/api/clients/1
+
+### 4. READ - Test avec ID invalide
+GET {{baseUrl}}/api/clients/abc
+
+### 5. READ - Test avec ID inexistant
+GET {{baseUrl}}/api/clients/99999
+
+### 6. CREATE - Créer un nouveau client
+POST {{baseUrl}}/api/clients
+Content-Type: application/json
+
+{
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "date_naissance": "15 mars 1990",
+  "adresse": "123 rue de la Paix",
+  "code_postal": "75001",
+  "ville": "Paris",
+  "email": "jean.dupont@example.com",
+  "telephone_raw": "06 12 34 56 78",
+  "relais_prefere": "Relais Colis Paris",
+  "contacter": 1,
+  "derniere_commande": "2024-01-15"
+}
+
+### 7. CREATE - Test avec données minimales (nom et prénom seulement)
+POST {{baseUrl}}/api/clients
+Content-Type: application/json
+
+{
+  "nom": "Martin",
+  "prenom": "Sophie"
+}
+
+### 8. CREATE - Test avec erreur (nom manquant)
+POST {{baseUrl}}/api/clients
+Content-Type: application/json
+
+{
+  "prenom": "Pierre"
+}
+
+### 9. UPDATE - Mettre à jour un client (remplacez 1 par un ID existant)
+PUT {{baseUrl}}/api/clients/1
+Content-Type: application/json
+
+{
+  "nom": "Dupont",
+  "prenom": "Jean-Michel",
+  "date_naissance": "15 mars 1990",
+  "adresse": "456 avenue des Champs",
+  "code_postal": "75008",
+  "ville": "Paris",
+  "email": "jean-michel.dupont@example.com",
+  "telephone_raw": "06 98 76 54 32",
+  "relais_prefere": "Nouveau Relais",
+  "contacter": 1,
+  "derniere_commande": "2024-02-20"
+}
+
+### 10. UPDATE - Test avec ID inexistant
+PUT {{baseUrl}}/api/clients/99999
+Content-Type: application/json
+
+{
+  "nom": "Test",
+  "prenom": "Test"
+}
+
+### 11. DELETE - Supprimer un client (remplacez 1 par un ID existant)
+DELETE {{baseUrl}}/api/clients/1
+
+### 12. DELETE - Test avec ID inexistant
+DELETE {{baseUrl}}/api/clients/99999
+
