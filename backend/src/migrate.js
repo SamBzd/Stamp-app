@@ -45,21 +45,42 @@ try {
     process.exit(1);
   }
 
+  // Supprimer les anciennes tables si elles existent (pour éviter les conflits de schéma)
+  console.log('🗑️  Suppression des anciennes tables si elles existent...');
+  db.exec(`
+    DROP TABLE IF EXISTS commande_collections;
+    DROP TABLE IF EXISTS commandes;
+    DROP TABLE IF EXISTS groupe_collections;
+    DROP TABLE IF EXISTS groupes_collections;
+    DROP TABLE IF EXISTS collections;
+  `);
+
+  // Supprimer les anciens triggers
+  db.exec(`
+    DROP TRIGGER IF EXISTS check_format_c_collections;
+    DROP TRIGGER IF EXISTS check_format_c_max_collections;
+    DROP TRIGGER IF EXISTS check_collection_exists_in_groupe;
+    DROP TRIGGER IF EXISTS check_groupe_3_collections;
+    DROP TRIGGER IF EXISTS check_commande_collections_same_groupe;
+  `);
+
   // Exécuter le schéma des commandes
   console.log('📝 Application du schéma des commandes...');
   db.exec(commandesSchema);
   
   console.log('✅ Migration terminée avec succès!');
   console.log('\n📊 Tables créées:');
-  console.log('   - commandes');
   console.log('   - collections');
+  console.log('   - groupes_collections');
+  console.log('   - groupe_collections');
+  console.log('   - commandes');
   console.log('   - commande_collections');
   console.log('\n🔍 Vérification des tables...');
   
   // Vérifier que les tables existent
   const tables = db.prepare(`
     SELECT name FROM sqlite_master 
-    WHERE type='table' AND name IN ('commandes', 'collections', 'commande_collections')
+    WHERE type='table' AND name IN ('collections', 'groupes_collections', 'groupe_collections', 'commandes', 'commande_collections')
     ORDER BY name
   `).all();
   

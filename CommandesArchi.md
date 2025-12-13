@@ -58,24 +58,26 @@ Le système utilise **5 tables principales** organisées en 3 niveaux :
 │  NIVEAU 1 : Collections individuelles                   │
 │  ┌──────────────────────────────────────────────────┐   │
 │  │ collections                                      │   │
-│  │ - id, nom (unique), created_at                   │   │
+│  │ - id, nom, created_at                           │   │
 │  └──────────────────────────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
                         ▲
                         │ (référencée par)
                         │
 ┌─────────────────────────────────────────────────────────┐
-│  NIVEAU 2 : Groupes de 3 collections                    │
+│  NIVEAU 2 : Groupes de collections (nombre variable)     │
 │  ┌──────────────────────────┐  ┌──────────────────────┐ │
 │  │ groupes_collections      │  │ groupe_collections   │ │
-│  │ - id, nom, description   │  │ - groupe_id          │ │
-│  │                          │  │ - collection_id      │ │
-│  │                          │  │ - ordre (1,2,3)      │ │
+│  │ - id, nom                │  │ - groupe_id          │ │
+│  │ - format_type (A/B/C)    │  │ - collection_id      │ │
+│  │ - format_prix            │  │ - ordre              │ │
+│  │ - format_taille          │  │                      │ │
+│  │ - description            │  │                      │ │
 │  └──────────────────────────┘  └──────────────────────┘ │
 │         ▲                              ▲                │
 │         │                              │                │
 │         └──────────┬───────────────────┘                │
-│                    │ (exactement 3 collections)         │
+│                    │ (1 à N collections)                 │
 └─────────────────────────────────────────────────────────┘
                      ▲
                      │ (utilisé dans)
@@ -85,12 +87,11 @@ Le système utilise **5 tables principales** organisées en 3 niveaux :
 │  ┌───────────────────────────┐  ┌──────────────────────┐ │
 │  │ commandes                 │  │ commande_collections │ │
 │  │ - id, client_id           │  │ - commande_id        │ │
-│  │ - format_type (A/B/C)     │  │ - groupe_id          │ │
-│  │ - papier_supplementaire   │  │ - ordre_collection   │ │
-│  │ - format_description      │  │   (1,2,3)            │ │
-│  │ - format_prix             │  │ - ordre_commande     │ │
-│  │ - articles_supplementaires│  │   (1,2)              │ │
+│  │ - groupe_id               │  │ - collection_id      │ │
+│  │ - papier_supplementaire   │  │                      │ │
+│  │ - articles_supplementaires│  │                      │ │
 │  │ - methode_paiement        │  │                      │ │
+│  │ - reglee                  │  │                      │ │
 │  └───────────────────────────┘  └──────────────────────┘ │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -101,12 +102,12 @@ Le système utilise **5 tables principales** organisées en 3 niveaux :
 
 **Structure** :
 - `id` : Identifiant unique (INTEGER PRIMARY KEY AUTOINCREMENT)
-- `nom` : Nom de la collection (TEXT NOT NULL UNIQUE)
+- `nom` : Nom de la collection (TEXT NOT NULL)
 - `created_at` : Date de création (TEXT DEFAULT datetime('now'))
 
 **Caractéristiques** :
 - Une collection peut être utilisée dans **plusieurs groupes**
-- Le nom est **unique** pour éviter les doublons
+- Le nom n'est pas unique (une collection peut avoir le même nom dans différents groupes)
 - Collections réutilisables dans différentes combinaisons
 
 **Exemple** :
@@ -119,39 +120,44 @@ INSERT INTO collections (nom) VALUES
 
 ### Table 2 : `groupes_collections`
 
-**Rôle** : Représente un groupe de 3 collections qui seront toujours utilisées ensemble.
+**Rôle** : Représente un groupe de collections avec un format associé (A, B ou C) incluant prix et taille.
 
 **Structure** :
 - `id` : Identifiant unique
 - `nom` : Nom du groupe (UNIQUE)
+- `format_type` : Format du groupe - **A, B ou C** (CHECK constraint)
+- `format_prix` : Prix du format (REAL NOT NULL DEFAULT 0)
+- `format_taille` : Taille du format (TEXT)
 - `description` : Description optionnelle du groupe
 - `created_at` : Date de création
+- `updated_at` : Date de mise à jour
 
 **Caractéristiques** :
-- Un groupe contient **exactement 3 collections** (garanti par la table de liaison)
+- Un groupe peut contenir **un nombre variable de collections** (1 à N)
+- Chaque groupe a un **format** (A, B ou C) avec son **prix** et sa **taille**
 - Les groupes sont créés une fois puis réutilisés dans plusieurs commandes
 - Le nom est unique pour faciliter la recherche
+- Le format est lié au groupe, pas à la commande
 
 **Exemple** :
 ```sql
-INSERT INTO groupes_collections (nom, description) VALUES 
-  ('Groupe Premium', 'Collections haut de gamme pour occasions spéciales');
+INSERT INTO groupes_collections (nom, format_type, format_prix, format_taille, description) VALUES 
+  ('Groupe Premium', 'A', 25.50, 'A4', 'Collections haut de gamme pour occasions spéciales');
 ```
 
 ### Table 3 : `groupe_collections`
 
-**Rôle** : Table de liaison qui associe un groupe à ses 3 collections.
+**Rôle** : Table de liaison qui associe un groupe à ses collections (nombre variable).
 
 **Structure** :
 - `id` : Identifiant unique
 - `groupe_id` : Référence au groupe (FOREIGN KEY)
 - `collection_id` : Référence à une collection (FOREIGN KEY)
-- `ordre` : Position dans le groupe (1, 2 ou 3) - CHECK constraint
+- `ordre` : Position dans le groupe (INTEGER)
 
 **Contraintes importantes** :
-- `UNIQUE(groupe_id, ordre)` : Garantit qu'il n'y a qu'une collection par position
 - `UNIQUE(groupe_id, collection_id)` : Empêche d'ajouter la même collection deux fois dans un groupe
-- `CHECK (ordre IN (1,2,3))` : Limite à 3 collections maximum
+- Pas de limite sur le nombre de collections (peut être 1, 2, 3 ou plus)
 
 **Exemple** :
 ```sql
@@ -160,6 +166,11 @@ INSERT INTO groupe_collections (groupe_id, collection_id, ordre) VALUES
   (1, 1, 1),  -- Collection 1 en position 1
   (1, 2, 2),  -- Collection 2 en position 2
   (1, 3, 3);  -- Collection 3 en position 3
+
+-- Un autre groupe peut avoir seulement 2 collections
+INSERT INTO groupe_collections (groupe_id, collection_id, ordre) VALUES
+  (2, 4, 1),  -- Collection 4 en position 1
+  (2, 5, 2);  -- Collection 5 en position 2
 ```
 
 ### Table 4 : `commandes`
@@ -169,137 +180,133 @@ INSERT INTO groupe_collections (groupe_id, collection_id, ordre) VALUES
 **Structure** :
 - `id` : Identifiant unique
 - `client_id` : Référence au client (FOREIGN KEY vers `clients`)
-- `format_type` : Type de format - **A, B ou C** (CHECK constraint)
+- `groupe_id` : Référence au groupe de collections (FOREIGN KEY vers `groupes_collections`)
 - `papier_supplementaire` : Option papier supplémentaire (BOOLEAN, stocké comme INTEGER 0/1)
-- `format_description` : Description du format choisi
-- `format_prix` : Prix du format (REAL)
 - `articles_supplementaires` : Champ libre pour articles supplémentaires (TEXT)
 - `methode_paiement` : Méthode de paiement - **Paypal, chèque ou virement** (CHECK constraint)
+- `reglee` : Indique si la commande est réglée (BOOLEAN, stocké comme INTEGER 0/1)
 - `created_at` : Date de création
 - `updated_at` : Date de mise à jour
 
 **Contraintes importantes** :
-- `format_type` : Doit être 'A', 'B' ou 'C'
 - `methode_paiement` : Doit être 'Paypal', 'chèque' ou 'virement'
 - `papier_supplementaire` : Doit être 0 ou 1
+- `reglee` : Doit être 0 ou 1
+- Le format vient du groupe référencé (via `groupe_id`)
+- Une commande ne peut contenir que des collections du groupe référencé
 
 **Exemple** :
 ```sql
 INSERT INTO commandes (
-  client_id, format_type, papier_supplementaire, 
-  format_description, format_prix, methode_paiement
+  client_id, groupe_id, papier_supplementaire, 
+  articles_supplementaires, methode_paiement, reglee
 ) VALUES (
-  1, 'A', 1, 'Format A4 Premium', 25.50, 'Paypal'
+  1, 1, 1, 'Articles personnalisés', 'Paypal', 0
 );
 ```
 
 ### Table 5 : `commande_collections`
 
-**Rôle** : Table de liaison qui associe une commande à un groupe de collections, en spécifiant quelle(s) collection(s) du groupe utiliser.
+**Rôle** : Table de liaison qui associe une commande à ses collections. Une commande peut contenir 1 ou plusieurs collections du même groupe.
 
 **Structure** :
 - `id` : Identifiant unique
 - `commande_id` : Référence à la commande (FOREIGN KEY)
-- `groupe_id` : Référence au groupe de collections (FOREIGN KEY)
-- `ordre_collection` : Quelle collection du groupe utiliser (1, 2 ou 3)
-- `ordre_commande` : Position dans la commande (1 ou 2)
+- `collection_id` : Référence à une collection (FOREIGN KEY)
 
 **Contraintes importantes** :
-- `UNIQUE(commande_id, ordre_commande)` : Garantit qu'il n'y a qu'une collection par position dans la commande
-- `CHECK (ordre_collection IN (1,2,3))` : Doit référencer une collection existante dans le groupe
-- `CHECK (ordre_commande IN (1,2))` : Maximum 2 collections par commande
+- `UNIQUE(commande_id, collection_id)` : Empêche d'ajouter la même collection deux fois dans une commande
+- Une commande ne peut contenir que des collections du groupe référencé dans la table `commandes` (vérifié par trigger)
+- Pas de limite sur le nombre de collections par commande (peut être 1 ou plus)
 
 **Exemple** :
 ```sql
--- Commande ID 1 utilise le groupe ID 1
--- Format A : utilise les collections 1 et 2 du groupe
-INSERT INTO commande_collections (commande_id, groupe_id, ordre_collection, ordre_commande) VALUES
-  (1, 1, 1, 1),  -- Première collection de la commande = collection 1 du groupe
-  (1, 1, 2, 2);  -- Deuxième collection de la commande = collection 2 du groupe
+-- Commande ID 1 référence le groupe ID 1
+-- La commande utilise les collections 1 et 2 du groupe
+INSERT INTO commande_collections (commande_id, collection_id) VALUES
+  (1, 1),  -- Collection 1 du groupe
+  (1, 2);  -- Collection 2 du groupe
+
+-- Une commande peut aussi n'avoir qu'une seule collection
+INSERT INTO commande_collections (commande_id, collection_id) VALUES
+  (2, 1);  -- Collection 1 uniquement
 ```
 
 ---
 
 ## 🔑 Concepts clés {#concepts-cles}
 
-### 1. Groupes de 3 collections
+### 1. Groupes de collections (nombre variable)
 
-**Principe** : Les collections sont organisées en **groupes de 3** qui sont créés ensemble et utilisés ensemble.
+**Principe** : Les collections sont organisées en **groupes** qui peuvent contenir un nombre variable de collections (1 à N).
 
 **Pourquoi cette approche ?**
-- **Cohérence** : Les 3 collections d'un groupe sont conçues pour fonctionner ensemble
+- **Flexibilité** : Permet de créer des groupes avec le nombre de collections nécessaire
+- **Cohérence** : Les collections d'un groupe sont conçues pour fonctionner ensemble
 - **Réutilisabilité** : Un groupe peut être utilisé dans plusieurs commandes
-- **Simplicité** : Lors de la création d'une commande, on choisit un groupe plutôt que 3 collections individuelles
+- **Simplicité** : Lors de la création d'une commande, on choisit un groupe plutôt que plusieurs collections individuelles
 
 **Workflow** :
 ```
-1. Créer 3 collections individuelles
+1. Créer les collections individuelles
    ↓
-2. Créer un groupe et y associer les 3 collections
+2. Créer un groupe avec un format (A, B ou C) et y associer les collections
    ↓
 3. Utiliser le groupe dans les commandes
 ```
 
-### 2. Formats de commande (A, B, C)
+### 2. Formats liés aux groupes (A, B, C)
 
-Chaque commande a un **format_type** qui détermine le nombre maximum de collections :
+Chaque groupe a un **format_type** (A, B ou C) avec son prix et sa taille. Le format est défini au niveau du groupe, pas de la commande.
 
-| Format | Collections max | Ordre commande autorisé |
-|--------|-----------------|-------------------------|
-| **A**  | 2               | 1, 2                    |
-| **B**  | 2               | 1, 2                    |
-| **C**  | 1               | 1 uniquement            |
+**Caractéristiques des formats** :
+- **Format A** : Format avec ses caractéristiques (prix, taille)
+- **Format B** : Format avec ses caractéristiques (prix, taille)
+- **Format C** : Format avec ses caractéristiques (prix, taille)
 
 **Règles métier** :
-- Format **A ou B** : La commande peut utiliser jusqu'à 2 collections du groupe (ordre_collection 1 et/ou 2)
-- Format **C** : La commande ne peut utiliser qu'1 collection du groupe (ordre_collection 1 uniquement)
+- Une commande référence un groupe et hérite de son format
+- Une commande peut contenir 1 ou plusieurs collections du groupe référencé
+- Une commande ne peut pas contenir des collections de groupes différents
 
 **Exemple concret** :
 ```
-Groupe "Premium" contient :
+Groupe "Premium" (Format A, 25.50€, A4) contient :
   - Collection 1 : "Printemps"
   - Collection 2 : "Été"
   - Collection 3 : "Automne"
 
-Commande Format A :
+Commande utilisant le groupe "Premium" :
   → Utilise Collection 1 et Collection 2 du groupe
-
-Commande Format C :
-  → Utilise uniquement Collection 1 du groupe
+  → Format A hérité du groupe (25.50€, A4)
 ```
 
-### 3. Ordre dans les groupes vs Ordre dans les commandes
+### 3. Structure simplifiée des commandes
 
-**Deux notions d'ordre différentes** :
+**Principe** : Une commande référence un groupe et sélectionne les collections de ce groupe à inclure.
 
-1. **`ordre` dans `groupe_collections`** (1, 2, 3)
-   - Position de la collection **dans le groupe**
-   - Fixe : défini lors de la création du groupe
-   - Exemple : Collection "Printemps" est toujours en position 1 du groupe "Premium"
-
-2. **`ordre_commande` dans `commande_collections`** (1, 2)
-   - Position de la collection **dans la commande**
-   - Variable : dépend de la commande
-   - Exemple : Dans une commande Format A, on peut utiliser la collection 1 du groupe en position 1 de la commande, et la collection 2 du groupe en position 2
-
-**`ordre_collection`** : Indique quelle collection du groupe utiliser (1, 2 ou 3)
+**Caractéristiques** :
+- Une commande référence **un seul groupe** (via `groupe_id`)
+- Une commande peut contenir **1 ou plusieurs collections** de ce groupe
+- Les collections sont directement référencées dans `commande_collections`
+- Pas de notion d'ordre dans la commande (simplifié)
 
 **Schéma visuel** :
 ```
-Groupe "Premium" :
+Groupe "Premium" (Format A) :
   ┌─────────────────────────────────┐
   │ ordre=1 : Collection "Printemps"│
   │ ordre=2 : Collection "Été"      │
   │ ordre=3 : Collection "Automne"  │
   └─────────────────────────────────┘
 
-Commande Format A :
+Commande :
   ┌─────────────────────────────────────────────┐
-  │ ordre_commande=1                            │
-  │   → utilise ordre_collection=1 (Printemps)  │
+  │ groupe_id = 1 (Groupe Premium)              │
   │                                             │
-  │ ordre_commande=2                            │
-  │   → utilise ordre_collection=2 (Été)        │
+  │ Collections sélectionnées :                 │
+  │   - Collection "Printemps"                  │
+  │   - Collection "Été"                        │
   └─────────────────────────────────────────────┘
 ```
 
@@ -315,11 +322,6 @@ clients (1) ──────< (N) commandes
                            │ (1)
                            │
                            ▼
-                    commande_collections (N)
-                           │
-                           │ (N)
-                           │
-                           ▼
                     groupes_collections (1)
                            │
                            │ (1)
@@ -331,6 +333,15 @@ clients (1) ──────< (N) commandes
                            │
                            ▼
                     collections (1)
+                           ▲
+                           │ (N)
+                           │
+                    commande_collections
+                           │
+                           │ (1)
+                           │
+                           ▼
+                    commandes (1)
 ```
 
 ### Relations détaillées
@@ -340,24 +351,30 @@ clients (1) ──────< (N) commandes
 - Une commande appartient à **un seul client**
 - **CASCADE DELETE** : Si un client est supprimé, ses commandes sont supprimées automatiquement
 
-#### 2. commandes → commande_collections (1:N)
-- Une commande peut avoir **1 ou 2 collections** (selon le format)
+#### 2. commandes → groupes_collections (N:1)
+- Une commande référence **un seul groupe**
+- Un groupe peut être utilisé dans **plusieurs commandes**
+- Le format vient du groupe référencé
+
+#### 3. commandes → commande_collections (1:N)
+- Une commande peut avoir **1 ou plusieurs collections**
 - Une entrée `commande_collections` appartient à **une seule commande**
 - **CASCADE DELETE** : Si une commande est supprimée, ses associations sont supprimées
 
-#### 3. groupes_collections → groupe_collections (1:N)
-- Un groupe contient **exactement 3 collections**
+#### 4. groupes_collections → groupe_collections (1:N)
+- Un groupe peut contenir **un nombre variable de collections** (1 à N)
 - Une entrée `groupe_collections` appartient à **un seul groupe**
 - **CASCADE DELETE** : Si un groupe est supprimé, ses associations sont supprimées
 
-#### 4. collections → groupe_collections (1:N)
+#### 5. collections → groupe_collections (1:N)
 - Une collection peut être dans **plusieurs groupes**
 - Une entrée `groupe_collections` référence **une seule collection**
 - **CASCADE DELETE** : Si une collection est supprimée, elle est retirée de tous les groupes
 
-#### 5. groupes_collections → commande_collections (1:N)
-- Un groupe peut être utilisé dans **plusieurs commandes**
-- Une entrée `commande_collections` référence **un seul groupe**
+#### 6. collections → commande_collections (1:N)
+- Une collection peut être utilisée dans **plusieurs commandes**
+- Une entrée `commande_collections` référence **une seule collection**
+- Les collections doivent appartenir au groupe référencé par la commande
 
 ---
 
@@ -382,18 +399,14 @@ CHECK (methode_paiement IN ('Paypal', 'chèque', 'virement'))
 - Facilite la validation côté application
 
 **Ordre dans les groupes** :
-```sql
-CHECK (ordre IN (1,2,3))
-```
-- Garantit exactement 3 collections par groupe
-- Empêche d'ajouter une 4ème collection
+- Pas de contrainte CHECK sur l'ordre
+- Permet un nombre variable de collections (1 à N)
+- L'ordre est utilisé uniquement pour l'affichage/organisation
 
-**Ordre dans les commandes** :
-```sql
-CHECK (ordre_commande IN (1,2))
-```
-- Limite à 2 collections maximum par commande
-- Format C ne peut utiliser que l'ordre 1 (vérifié par trigger)
+**Collections dans les commandes** :
+- Pas de limite sur le nombre de collections par commande
+- Une commande peut contenir 1 ou plusieurs collections du groupe référencé
+- Validation par trigger que les collections appartiennent au groupe
 
 #### 2. Contraintes UNIQUE
 
@@ -411,112 +424,61 @@ UNIQUE(nom) -- dans groupes_collections
 
 **Groupes-Collections** :
 ```sql
-UNIQUE(groupe_id, ordre)        -- Une seule collection par position
 UNIQUE(groupe_id, collection_id) -- Une collection ne peut être 2 fois dans un groupe
 ```
 - Garantit l'intégrité des groupes
+- Permet un nombre variable de collections
 
 **Commandes-Collections** :
 ```sql
-UNIQUE(commande_id, ordre_commande)
+UNIQUE(commande_id, collection_id)
 ```
-- Garantit qu'il n'y a qu'une collection par position dans une commande
+- Empêche d'ajouter la même collection deux fois dans une commande
 
 ### Triggers de validation
 
-#### Trigger 1 : Validation format C - Ordre
+#### Trigger : Validation collections du même groupe
 
-**Nom** : `check_format_c_collections`
+**Nom** : `check_commande_collections_same_groupe`
 
-**Rôle** : Empêche d'ajouter une collection avec `ordre_commande != 1` si le format est C.
-
-**Code** :
-```sql
-CREATE TRIGGER check_format_c_collections
-BEFORE INSERT ON commande_collections
-FOR EACH ROW
-WHEN (
-  (SELECT format_type FROM commandes WHERE id = NEW.commande_id) = 'C'
-  AND NEW.ordre_commande != 1
-)
-BEGIN
-  SELECT RAISE(ABORT, 'Le format C ne peut avoir qu''une seule collection (ordre_commande = 1)');
-END;
-```
-
-**Exemple d'erreur** :
-```sql
--- Commande avec format_type = 'C'
--- Tentative d'ajouter une collection avec ordre_commande = 2
--- ❌ ERREUR : "Le format C ne peut avoir qu'une seule collection (ordre_commande = 1)"
-```
-
-#### Trigger 2 : Validation format C - Nombre maximum
-
-**Nom** : `check_format_c_max_collections`
-
-**Rôle** : Empêche d'ajouter une deuxième collection si le format est C.
+**Rôle** : Vérifie qu'une commande ne contient que des collections appartenant au groupe référencé.
 
 **Code** :
 ```sql
-CREATE TRIGGER check_format_c_max_collections
-BEFORE INSERT ON commande_collections
-FOR EACH ROW
-WHEN (
-  (SELECT format_type FROM commandes WHERE id = NEW.commande_id) = 'C'
-  AND EXISTS (SELECT 1 FROM commande_collections WHERE commande_id = NEW.commande_id)
-)
-BEGIN
-  SELECT RAISE(ABORT, 'Le format C ne peut avoir qu''une seule collection');
-END;
-```
-
-**Exemple d'erreur** :
-```sql
--- Commande Format C avec déjà 1 collection
--- Tentative d'ajouter une deuxième collection
--- ❌ ERREUR : "Le format C ne peut avoir qu'une seule collection"
-```
-
-#### Trigger 3 : Validation existence collection dans groupe
-
-**Nom** : `check_collection_exists_in_groupe`
-
-**Rôle** : Vérifie que la collection référencée (`ordre_collection`) existe bien dans le groupe.
-
-**Code** :
-```sql
-CREATE TRIGGER check_collection_exists_in_groupe
+CREATE TRIGGER check_commande_collections_same_groupe
 BEFORE INSERT ON commande_collections
 FOR EACH ROW
 WHEN (
   NOT EXISTS (
-    SELECT 1 FROM groupe_collections 
-    WHERE groupe_id = NEW.groupe_id 
-    AND ordre = NEW.ordre_collection
+    SELECT 1 FROM groupe_collections gc
+    INNER JOIN commandes c ON c.groupe_id = gc.groupe_id
+    WHERE gc.collection_id = NEW.collection_id
+    AND c.id = NEW.commande_id
   )
 )
 BEGIN
-  SELECT RAISE(ABORT, 'La collection à l''ordre spécifié n''existe pas dans ce groupe');
+  SELECT RAISE(ABORT, 'Une commande ne peut contenir que des collections du groupe référencé');
 END;
 ```
 
 **Exemple d'erreur** :
 ```sql
--- Groupe qui n'a que les collections 1 et 2
--- Tentative d'utiliser ordre_collection = 3
--- ❌ ERREUR : "La collection à l'ordre spécifié n'existe pas dans ce groupe"
+-- Commande référence le groupe ID 1
+-- Tentative d'ajouter une collection du groupe ID 2
+-- ❌ ERREUR : "Une commande ne peut contenir que des collections du groupe référencé"
 ```
 
 ### Règles métier résumées
 
 | Règle | Description | Validation |
 |-------|-------------|------------|
-| **Groupes** | Un groupe contient exactement 3 collections | UNIQUE(groupe_id, ordre) + CHECK(ordre IN (1,2,3)) |
-| **Format A/B** | Maximum 2 collections par commande | CHECK(ordre_commande IN (1,2)) |
-| **Format C** | Maximum 1 collection par commande | Triggers + CHECK(ordre_commande IN (1,2)) |
+| **Groupes** | Un groupe peut contenir un nombre variable de collections (1 à N) | UNIQUE(groupe_id, collection_id) |
+| **Format** | Le format (A, B ou C) est lié au groupe avec prix et taille | CHECK(format_type IN ('A', 'B', 'C')) dans groupes_collections |
+| **Commandes** | Une commande référence un seul groupe | FOREIGN KEY (groupe_id) |
+| **Collections dans commandes** | Une commande peut contenir 1 ou plusieurs collections du groupe | Trigger de validation |
 | **Collections** | Une collection peut être dans plusieurs groupes | Pas de contrainte (relation N:N) |
 | **Groupes** | Un groupe peut être utilisé dans plusieurs commandes | Pas de contrainte (relation N:N) |
+| **Règlement** | Une commande peut être marquée comme réglée ou non | CHECK(reglee IN (0,1)) |
 
 ---
 
@@ -561,16 +523,17 @@ npm run migrate
 
 ### Script de migration groupes (`migrate-groupes.js`)
 
-**Rôle** : Met à jour la structure pour ajouter les groupes de collections.
+**Rôle** : Crée la structure complète pour les groupes de collections et commandes.
 
 **Fonctionnement** :
-1. Supprime l'ancienne table `commande_collections` (si elle existe)
-2. Crée les nouvelles tables :
-   - `groupes_collections`
+1. Crée les tables :
+   - `collections`
+   - `groupes_collections` (avec format_type, format_prix, format_taille)
    - `groupe_collections`
-   - `commande_collections` (nouvelle structure)
-3. Crée les index et triggers
-4. Vérifie que tout est en place
+   - `commandes` (avec groupe_id et reglee)
+   - `commande_collections` (structure simplifiée)
+2. Crée les index et triggers
+3. Vérifie que tout est en place
 
 **Utilisation** :
 ```bash
@@ -578,9 +541,9 @@ npm run migrate:groupes
 ```
 
 **Caractéristiques** :
-- **Destructif** : Supprime l'ancienne table (à utiliser avec précaution)
+- Utilise `CREATE TABLE IF NOT EXISTS` : **idempotent** (peut être exécuté plusieurs fois)
 - Crée les triggers de validation
-- Idempotent pour les nouvelles tables
+- Structure conforme au cahier des charges
 
 ### Bonnes pratiques
 
@@ -687,81 +650,79 @@ INSERT INTO collections (nom) VALUES
   ('Collection Été'),
   ('Collection Automne');
 
--- 2. Créer le groupe
-INSERT INTO groupes_collections (nom, description) VALUES 
-  ('Groupe Saisons', 'Collections saisonnières complètes');
+-- 2. Créer le groupe avec format, prix et taille
+INSERT INTO groupes_collections (nom, format_type, format_prix, format_taille, description) VALUES 
+  ('Groupe Saisons', 'A', 25.50, 'A4', 'Collections saisonnières complètes');
 
--- 3. Associer les 3 collections au groupe
+-- 3. Associer les collections au groupe
 INSERT INTO groupe_collections (groupe_id, collection_id, ordre) VALUES
   (1, 1, 1),  -- Printemps en position 1
   (1, 2, 2),  -- Été en position 2
   (1, 3, 3);  -- Automne en position 3
 ```
 
-### Scénario 2 : Créer une commande Format A
+### Scénario 2 : Créer une commande
+
+```sql
+-- 1. Créer la commande (le format vient du groupe)
+INSERT INTO commandes (
+  client_id, groupe_id, papier_supplementaire,
+  articles_supplementaires, methode_paiement, reglee
+) VALUES (
+  1, 1, 1, 'Articles personnalisés', 'Paypal', 0
+);
+
+-- 2. Associer les collections au groupe (utilise collections 1 et 2)
+INSERT INTO commande_collections (commande_id, collection_id) VALUES
+  (1, 1),  -- Collection Printemps
+  (1, 2);  -- Collection Été
+```
+
+### Scénario 3 : Créer une commande avec une seule collection
 
 ```sql
 -- 1. Créer la commande
 INSERT INTO commandes (
-  client_id, format_type, papier_supplementaire,
-  format_description, format_prix, methode_paiement
+  client_id, groupe_id, papier_supplementaire,
+  articles_supplementaires, methode_paiement, reglee
 ) VALUES (
-  1, 'A', 1, 'Format A4 Premium', 25.50, 'Paypal'
+  2, 1, 0, NULL, 'chèque', 0
 );
 
--- 2. Associer le groupe à la commande (utilise collections 1 et 2)
-INSERT INTO commande_collections (commande_id, groupe_id, ordre_collection, ordre_commande) VALUES
-  (1, 1, 1, 1),  -- Collection 1 du groupe en position 1 de la commande
-  (1, 1, 2, 2);  -- Collection 2 du groupe en position 2 de la commande
-```
-
-### Scénario 3 : Créer une commande Format C
-
-```sql
--- 1. Créer la commande Format C
-INSERT INTO commandes (
-  client_id, format_type, papier_supplementaire,
-  format_description, format_prix, methode_paiement
-) VALUES (
-  2, 'C', 0, 'Format C Standard', 15.00, 'chèque'
-);
-
--- 2. Associer le groupe (utilise uniquement collection 1)
-INSERT INTO commande_collections (commande_id, groupe_id, ordre_collection, ordre_commande) VALUES
-  (2, 1, 1, 1);  -- Collection 1 du groupe en position 1 de la commande
-
--- ❌ Tentative d'ajouter une deuxième collection (sera bloquée par le trigger)
--- INSERT INTO commande_collections (commande_id, groupe_id, ordre_collection, ordre_commande) VALUES
---   (2, 1, 2, 2);  -- ERREUR : Format C ne peut avoir qu'une seule collection
+-- 2. Associer une seule collection
+INSERT INTO commande_collections (commande_id, collection_id) VALUES
+  (2, 1);  -- Collection Printemps uniquement
 ```
 
 ### Scénario 4 : Requête pour récupérer une commande complète
 
 ```sql
--- Récupérer une commande avec ses collections
+-- Récupérer une commande avec ses collections et le format du groupe
 SELECT 
   c.id AS commande_id,
-  c.format_type,
-  c.methode_paiement,
+  c.client_id,
   gc.nom AS groupe_nom,
+  gc.format_type,
+  gc.format_prix,
+  gc.format_taille,
   col.nom AS collection_nom,
-  cc.ordre_collection,
-  cc.ordre_commande
+  c.papier_supplementaire,
+  c.articles_supplementaires,
+  c.methode_paiement,
+  c.reglee
 FROM commandes c
+JOIN groupes_collections gc ON c.groupe_id = gc.id
 JOIN commande_collections cc ON c.id = cc.commande_id
-JOIN groupes_collections gc ON cc.groupe_id = gc.id
-JOIN groupe_collections gcol ON gc.id = gcol.groupe_id AND gcol.ordre = cc.ordre_collection
-JOIN collections col ON gcol.collection_id = col.id
-WHERE c.id = 1
-ORDER BY cc.ordre_commande;
+JOIN collections col ON cc.collection_id = col.id
+WHERE c.id = 1;
 ```
 
 **Résultat** :
 
-commande_id | format_type | methode_paiement | groupe_nom    | collection_nom      | ordre_collection | ordre_commande
-------------|-------------|------------------|---------------|---------------------|------------------|---------------
-1           | A           | Paypal           | Groupe Saisons| Collection Printemps| 1                | 1
-1           | A           | Paypal           | Groupe Saisons| Collection Été      | 2                | 2
+commande_id | client_id | groupe_nom    | format_type | format_prix | format_taille | collection_nom      | papier_supplementaire | methode_paiement | reglee
+------------|-----------|---------------|-------------|--------------|---------------|---------------------|----------------------|------------------|--------
+1           | 1         | Groupe Saisons| A           | 25.50        | A4            | Collection Printemps| 1                     | Paypal           | 0
+1           | 1         | Groupe Saisons| A           | 25.50        | A4            | Collection Été      | 1                     | Paypal           | 0
 
 
 ---
@@ -770,8 +731,8 @@ commande_id | format_type | methode_paiement | groupe_nom    | collection_nom   
 
 ### Architecture
 - **3 niveaux** : Collections → Groupes → Commandes
-- **Groupes de 3** : Collections toujours utilisées ensemble
-- **Formats** : A/B (max 2 collections) vs C (max 1 collection)
+- **Groupes flexibles** : Nombre variable de collections (1 à N)
+- **Formats liés aux groupes** : Format (A, B ou C) avec prix et taille au niveau du groupe
 
 ### Base de données
 - **Triggers** : Validation automatique des règles métier
