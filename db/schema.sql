@@ -86,14 +86,14 @@ CREATE TABLE IF NOT EXISTS collections (
 );
 
 -- Table des groupes de collections
--- Chaque groupe a un format (A, B, C) avec prix et taille
+-- Chaque groupe a trois formats (A, B, C) avec chacun un prix (INTEGER)
 -- Un groupe peut contenir un nombre variable de collections (1 à +)
 CREATE TABLE IF NOT EXISTS groupes_collections (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
   nom                   TEXT NOT NULL UNIQUE,
-  format_type           TEXT NOT NULL CHECK (format_type IN ('A', 'B', 'C')),
-  format_prix           REAL NOT NULL DEFAULT 0,
-  format_taille         TEXT,
+  format_A_prix         INTEGER NOT NULL DEFAULT 0,
+  format_B_prix         INTEGER NOT NULL DEFAULT 0,
+  format_C_prix         INTEGER NOT NULL DEFAULT 0,
   description           TEXT,
   created_at            TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at            TEXT NOT NULL DEFAULT (datetime('now'))
@@ -113,12 +113,13 @@ CREATE TABLE IF NOT EXISTS groupe_collections (
 
 -- Table principale des commandes
 -- Une commande est liée à une cliente
--- Une commande référence un groupe et contient 1 ou + collections de ce groupe
+-- Une commande référence un groupe et un format (A, B ou C) et contient 1 ou + collections de ce groupe
 -- Une commande ne peut pas avoir des collections de groupes différents
 CREATE TABLE IF NOT EXISTS commandes (
   id                    INTEGER PRIMARY KEY AUTOINCREMENT,
   client_id             INTEGER NOT NULL,
   groupe_id             INTEGER NOT NULL,
+  format_type           TEXT NOT NULL CHECK (format_type IN ('A', 'B', 'C')),
   papier_supplementaire INTEGER NOT NULL DEFAULT 0 CHECK (papier_supplementaire IN (0,1)),
   articles_supplementaires TEXT,
   methode_paiement      TEXT NOT NULL CHECK (methode_paiement IN ('Paypal', 'chèque', 'virement')),
@@ -145,7 +146,6 @@ CREATE INDEX IF NOT EXISTS ix_commandes_client_id ON commandes(client_id);
 CREATE INDEX IF NOT EXISTS ix_commandes_groupe_id ON commandes(groupe_id);
 CREATE INDEX IF NOT EXISTS ix_commandes_reglee ON commandes(reglee);
 CREATE INDEX IF NOT EXISTS ix_groupes_collections_nom ON groupes_collections(nom);
-CREATE INDEX IF NOT EXISTS ix_groupes_collections_format ON groupes_collections(format_type);
 CREATE INDEX IF NOT EXISTS ix_groupe_collections_groupe_id ON groupe_collections(groupe_id);
 CREATE INDEX IF NOT EXISTS ix_groupe_collections_collection_id ON groupe_collections(collection_id);
 CREATE INDEX IF NOT EXISTS ix_commande_collections_commande_id ON commande_collections(commande_id);
