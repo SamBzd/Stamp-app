@@ -1,0 +1,20 @@
+meta {
+  name: CreateClient
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/clients
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nom": "Dupont",
+    "prenom": "Marie",
+    "email": "marie.dupont@example.com",
+    "telephone_raw": "06 12 34 56 78"
+  }
+}

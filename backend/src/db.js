@@ -57,18 +57,25 @@ function createClient(clientData) {
 
 // UPDATE - Mettre à jour un client
 function updateClient(id, clientData) {
+  // Récupérer le client existant pour préserver les valeurs non fournies
+  const existingClient = getClientById(id);
+  if (!existingClient) {
+    return null; // Client non trouvé
+  }
+
+  // Fusionner les données : nouvelles valeurs si fournies, sinon garder les existantes
   const {
-    nom,
-    prenom,
-    date_naissance,
-    adresse,
-    code_postal,
-    ville,
-    email,
-    telephone_raw,
-    relais_prefere,
-    contacter,
-    derniere_commande
+    nom = existingClient.nom,
+    prenom = existingClient.prenom,
+    date_naissance = existingClient.date_naissance,
+    adresse = existingClient.adresse,
+    code_postal = existingClient.code_postal,
+    ville = existingClient.ville,
+    email = existingClient.email,
+    telephone_raw = existingClient.telephone_raw,
+    relais_prefere = existingClient.relais_prefere,
+    contacter = existingClient.contacter,
+    derniere_commande = existingClient.derniere_commande
   } = clientData;
 
   const stmt = db.prepare(`
