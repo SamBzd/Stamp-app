@@ -117,4 +117,27 @@ router.delete('/:id', (req, res) => {
   }
 });
 
+// READ - Récupérer les commandes d'une cliente
+router.get('/:id/commandes', (req, res) => {
+  try {
+    const clientId = parseInt(req.params.id);
+    if (isNaN(clientId)) {
+      return res.status(400).json({ error: 'ID client invalide' });
+    }
+
+    // Vérifier que le client existe
+    const client = getClientById(clientId);
+    if (!client) {
+      return res.status(404).json({ error: 'Client non trouvé' });
+    }
+
+    const { getCommandesByClientId } = require('../db/commandes');
+    const commandes = getCommandesByClientId(clientId);
+    res.json(commandes);
+  } catch (err) {
+    console.error('Erreur lecture commandes client SQLite:', err);
+    res.status(500).json({ error: 'Erreur interne serveur' });
+  }
+});
+
 module.exports = router;
