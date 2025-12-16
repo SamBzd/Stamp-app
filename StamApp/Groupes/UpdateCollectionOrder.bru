@@ -1,0 +1,17 @@
+meta {
+  name: UpdateCollectionOrder
+  type: http
+  seq: 8
+}
+
+put {
+  url: http://localhost:3000/api/groupes/1/collections/1/ordre
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "ordre": 2
+  }
+}

@@ -1,0 +1,21 @@
+meta {
+  name: CreateGroupe
+  type: http
+  seq: 4
+}
+
+post {
+  url: http://localhost:3000/api/groupes
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nom": "Groupe Test",
+    "format_A_prix": 1000,
+    "format_B_prix": 1500,
+    "format_C_prix": 2000,
+    "description": "Description du groupe test"
+  }
+}

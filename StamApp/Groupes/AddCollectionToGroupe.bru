@@ -1,0 +1,18 @@
+meta {
+  name: AddCollectionToGroupe
+  type: http
+  seq: 6
+}
+
+post {
+  url: http://localhost:3000/api/groupes/1/collections
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "collection_id": 1,
+    "ordre": 1
+  }
+}

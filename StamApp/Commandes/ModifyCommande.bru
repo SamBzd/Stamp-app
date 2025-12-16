@@ -1,0 +1,21 @@
+meta {
+  name: ModifyCommande
+  type: http
+  seq: 8
+}
+
+put {
+  url: http://localhost:3000/api/commandes/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "format_type": "B",
+    "papier_supplementaire": 1,
+    "articles_supplementaires": "Papier premium",
+    "methode_paiement": "chèque",
+    "reglee": 1
+  }
+}

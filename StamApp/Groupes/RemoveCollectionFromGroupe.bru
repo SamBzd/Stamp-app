@@ -1,0 +1,11 @@
+meta {
+  name: RemoveCollectionFromGroupe
+  type: http
+  seq: 7
+}
+
+delete {
+  url: http://localhost:3000/api/groupes/1/collections/1
+  body: none
+  auth: inherit
+}
