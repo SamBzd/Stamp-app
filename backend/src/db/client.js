@@ -1,8 +1,4 @@
-const path = require('path');
-const Database = require('better-sqlite3');
-
-const dbPath = path.join(__dirname, '../../db/app.db');
-const db = new Database(dbPath);
+const db = require('./connection');
 
 // READ - Récupérer tous les clients
 function getAllClients() {
@@ -123,17 +119,10 @@ function deleteClient(id) {
   return result.changes > 0;
 }
 
-// Fonction legacy pour compatibilité
-function getAllClientsNames() {
-  const stmt = db.prepare('SELECT nom, prenom FROM clients');
-  return stmt.all();
-}
-
 module.exports = {
   getAllClients,
   getClientById,
   createClient,
   updateClient,
-  deleteClient,
-  getAllClientsNames
+  deleteClient
 };

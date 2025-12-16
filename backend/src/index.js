@@ -10,8 +10,7 @@ const {
   createClient,
   updateClient,
   deleteClient,
-  getAllClientsNames
-} = require('./db');
+} = require('./db/client');
 
 app.use(cors())
 app.use(express.json())
