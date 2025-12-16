@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000
 
 // Import des routes
 const clientsRoutes = require('./routes/client')
+const collectionsRoutes = require('./routes/collection')
 
 app.use(cors())
 app.use(express.json())
@@ -17,6 +18,9 @@ app.get('/api/health', (req, res) => {
 
 // Routes pour les clients
 app.use('/api/clients', clientsRoutes)
+
+// Routes pour les collections
+app.use('/api/collections', collectionsRoutes)
 
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`)
