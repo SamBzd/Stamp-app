@@ -3,7 +3,7 @@ const db = require('./connection');
 // READ - Récupérer toutes les collections
 function getAllCollections() {
     const stmt = db.prepare('SELECT * FROM collections ORDER BY nom');
-    return stmt.all;
+    return stmt.all();
 }
 
 // READ - Récupérer une collection par son ID
@@ -32,8 +32,8 @@ function updateCollection(id, collectionData) {
         nom
     } = collectionData;
 
-    const stmt = db.preprare('UPDATE collections SET nom = ? WHERE id = ?');
-    const result = stmt.run(nom);
+    const stmt = db.prepare('UPDATE collections SET nom = ? WHERE id = ?');
+    const result = stmt.run(nom, id);
 
     if (result.changes === 0) return null;
 
