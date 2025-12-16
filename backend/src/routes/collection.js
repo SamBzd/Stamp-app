@@ -97,13 +97,30 @@ router.delete('/:id', (req, res) => {
         }
 
         const deleted = deleteCollection(id);
+        if (deleted === null) {
+            return res.status(404).json({ error: 'Collection non trouvée' });
+        }
         if (!deleted){
-            return res.status(404).json({ error: 'Collection non trouvé' });
+            return res.status(404).json({ error: 'Collection non trouvée' });
         }
 
         res.status(204).send();
     } catch (err) {
         console.error('Erreur suppression collection SQLite:', err);
+        
+        // Gestion des erreurs de dépendances
+        if (err.message && (
+            err.message.includes('utilisée dans un ou plusieurs groupes') ||
+            err.message.includes('utilisée dans une ou plusieurs commandes')
+        )) {
+            return res.status(409).json({ error: err.message });
+        }
+        
+        // Gestion des erreurs de contrainte FOREIGN KEY (fallback)
+        if (err.message && err.message.includes('FOREIGN KEY constraint')) {
+            return res.status(409).json({ error: 'Cette collection est utilisée et ne peut pas être supprimée' });
+        }
+        
         res.status(500).json({ error: 'Erreur interne serveur' });
     }
 });

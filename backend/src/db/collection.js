@@ -40,8 +40,46 @@ function updateCollection(id, collectionData) {
     return getCollectionById(id);
 }
 
+// READ - Vérifier si une collection est utilisée dans un groupe
+function isCollectionUsedInGroupes(collectionId) {
+    const stmt = db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM groupe_collections 
+        WHERE collection_id = ?
+    `);
+    const result = stmt.get(collectionId);
+    return result.count > 0;
+}
+
+// READ - Vérifier si une collection est utilisée dans une commande
+function isCollectionUsedInCommandes(collectionId) {
+    const stmt = db.prepare(`
+        SELECT COUNT(*) as count 
+        FROM commande_collections 
+        WHERE collection_id = ?
+    `);
+    const result = stmt.get(collectionId);
+    return result.count > 0;
+}
+
 // DELETE - Supprimer une collection
 function deleteCollection(id){
+    // Vérifier que la collection existe
+    const collection = getCollectionById(id);
+    if (!collection) {
+        return null; // Collection non trouvée
+    }
+
+    // Vérifier si la collection est utilisée dans un groupe
+    if (isCollectionUsedInGroupes(id)) {
+        throw new Error('Cette collection est utilisée dans un ou plusieurs groupes. Supprimez-la d\'abord des groupes.');
+    }
+
+    // Vérifier si la collection est utilisée dans une commande
+    if (isCollectionUsedInCommandes(id)) {
+        throw new Error('Cette collection est utilisée dans une ou plusieurs commandes. Supprimez-la d\'abord des commandes.');
+    }
+
     const stmt = db.prepare('DELETE FROM collections WHERE id = ?');
     const result = stmt.run(id);
     return result.changes > 0;

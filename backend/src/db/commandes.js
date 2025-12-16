@@ -120,6 +120,10 @@ function createCommande(commandeData) {
         reglee
     );
     
+    // Mettre à jour la date de dernière commande du client
+    const { updateDerniereCommande } = require('./client');
+    updateDerniereCommande(client_id);
+    
     return getCommandeById(result.lastInsertRowid);
 }
 

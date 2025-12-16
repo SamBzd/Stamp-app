@@ -112,6 +112,17 @@ function updateClient(id, clientData) {
   return getClientById(id);
 }
 
+// UPDATE - Mettre à jour la date de dernière commande
+function updateDerniereCommande(clientId) {
+  const stmt = db.prepare(`
+    UPDATE clients 
+    SET derniere_commande = datetime('now')
+    WHERE id = ?
+  `);
+  const result = stmt.run(clientId);
+  return result.changes > 0;
+}
+
 // DELETE - Supprimer un client
 function deleteClient(id) {
   const stmt = db.prepare('DELETE FROM clients WHERE id = ?');
@@ -124,5 +135,6 @@ module.exports = {
   getClientById,
   createClient,
   updateClient,
+  updateDerniereCommande,
   deleteClient
 };
