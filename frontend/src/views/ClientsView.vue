@@ -33,7 +33,8 @@
           />
         </div>
         <div class="toolbar-info">
-          <span class="client-count">{{ filteredClients.length }} client{{ filteredClients.length > 1 ? 's' : '' }}</span>
+          <span class="count-badge">{{ filteredClients.length }}</span>
+          <span class="toolbar-label">client{{ filteredClients.length > 1 ? 's' : '' }}</span>
         </div>
       </div>
 
@@ -68,9 +69,10 @@
 
       <div v-else class="clients-grid">
         <div
-          v-for="client in filteredClients"
+          v-for="(client, index) in filteredClients"
           :key="client.id"
           class="client-card"
+          :style="{ animationDelay: `${index * 0.05}s` }"
           @click="viewClient(client)"
         >
           <div class="client-avatar">
@@ -92,7 +94,16 @@
               <span>{{ client.telephone_raw }}</span>
             </div>
           </div>
-          <div class="client-card-arrow">
+          <button 
+            :class="['favorite-btn', { 'favorite-btn-active': client.contacter }]"
+            @click.stop="toggleFavoriteFromCard(client)"
+            :title="client.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+          >
+            <svg viewBox="0 0 24 24" :fill="client.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+          <div class="arrow-indicator">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
@@ -116,13 +127,17 @@
             <div class="profile-identity">
               <h2 class="profile-name">{{ selectedClient.prenom }} {{ selectedClient.nom }}</h2>
               <div class="profile-badges">
-                <span v-if="selectedClient.contacter" class="badge badge-contact">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/>
+                <button 
+                  :class="['favorite-toggle', { 'favorite-toggle-active': selectedClient.contacter }]"
+                  @click="toggleFavorite"
+                  :title="selectedClient.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                >
+                  <svg viewBox="0 0 24 24" :fill="selectedClient.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                   </svg>
-                  À contacter
-                </span>
-                <span v-if="selectedClient.created_at" class="badge badge-member">
+                  {{ selectedClient.contacter ? 'Favori' : 'Ajouter aux favoris' }}
+                </button>
+                <span v-if="selectedClient.created_at" class="badge badge-neutral">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12 6 12 12 16 14"/>
@@ -137,7 +152,7 @@
           <div class="profile-grid">
             <!-- Section Contact -->
             <div class="profile-section">
-              <h3 class="section-label">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                 </svg>
@@ -162,7 +177,7 @@
 
             <!-- Section Adresse -->
             <div class="profile-section">
-              <h3 class="section-label">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                   <circle cx="12" cy="10" r="3"/>
@@ -184,7 +199,7 @@
 
             <!-- Section Informations personnelles -->
             <div class="profile-section">
-              <h3 class="section-label">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
@@ -211,7 +226,7 @@
 
             <!-- Section Préférences -->
             <div class="profile-section">
-              <h3 class="section-label">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
@@ -239,8 +254,8 @@
 
           <!-- Section Commandes -->
           <div class="profile-commandes">
-            <div class="commandes-header">
-              <h3 class="section-label">
+            <div class="section-header">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="9" cy="21" r="1"/>
                   <circle cx="20" cy="21" r="1"/>
@@ -248,11 +263,11 @@
                 </svg>
                 Historique des commandes
               </h3>
-              <span class="commandes-count">{{ clientCommandes.length }}</span>
+              <span class="count-badge">{{ clientCommandes.length }}</span>
             </div>
             
             <div v-if="commandesLoading" class="commandes-loading">
-              <div class="loading-spinner-small"></div>
+              <div class="loading-spinner loading-spinner-sm"></div>
               <span>Chargement...</span>
             </div>
             <div v-else-if="clientCommandes.length === 0" class="commandes-empty">
@@ -272,8 +287,8 @@
                 <div class="timeline-dot" :class="commande.reglee ? 'dot-success' : 'dot-warning'"></div>
                 <div class="timeline-content">
                   <div class="timeline-header">
-                    <span class="timeline-title">Commande #{{ commande.id }}</span>
-                    <span :class="['status-badge', commande.reglee ? 'status-success' : 'status-warning']">
+                    <span class="timeline-title">Commande n°{{ commande.id }}</span>
+                    <span :class="['badge', commande.reglee ? 'badge-success' : 'badge-warning']">
                       {{ commande.reglee ? 'Réglée' : 'En attente' }}
                     </span>
                   </div>
@@ -318,7 +333,13 @@
         <form @submit.prevent="handleSubmit" class="client-form">
           <!-- Section Identité -->
           <div class="form-section">
-            <h4 class="form-section-title">Identité</h4>
+            <h4 class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              Identité
+            </h4>
             <div class="form-row">
               <FormInput
                 v-model="formData.prenom"
@@ -345,7 +366,12 @@
 
           <!-- Section Contact -->
           <div class="form-section">
-            <h4 class="form-section-title">Contact</h4>
+            <h4 class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              Contact
+            </h4>
             <div class="form-row">
               <FormInput
                 v-model="formData.email"
@@ -365,7 +391,13 @@
 
           <!-- Section Adresse -->
           <div class="form-section">
-            <h4 class="form-section-title">Adresse</h4>
+            <h4 class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              Adresse
+            </h4>
             <FormInput
               v-model="formData.adresse"
               label="Rue"
@@ -390,7 +422,12 @@
 
           <!-- Section Préférences -->
           <div class="form-section">
-            <h4 class="form-section-title">Préférences</h4>
+            <h4 class="form-section-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Préférences
+            </h4>
             <FormInput
               v-model="formData.relais_prefere"
               label="Relais favori"
@@ -399,8 +436,8 @@
             />
             <FormCheckbox
               v-model="formData.contacter"
-              label="À contacter"
-              description="Cochez si vous devez recontacter cette cliente"
+              label="⭐ Client favori"
+              description="Marquez cette cliente comme favorite pour un accès rapide"
             />
           </div>
         </form>
@@ -550,6 +587,32 @@ const closeViewModal = () => {
   clientCommandes.value = [];
 };
 
+const toggleFavorite = async () => {
+  if (!selectedClient.value) return;
+  try {
+    const newValue = selectedClient.value.contacter === 1 ? 0 : 1;
+    await clientsStore.updateClient(selectedClient.value.id, {
+      ...selectedClient.value,
+      contacter: newValue,
+    });
+    selectedClient.value = clientsStore.getClientById(selectedClient.value.id);
+  } catch (error) {
+    console.error('Erreur lors du changement de favori:', error);
+  }
+};
+
+const toggleFavoriteFromCard = async (client) => {
+  try {
+    const newValue = client.contacter === 1 ? 0 : 1;
+    await clientsStore.updateClient(client.id, {
+      ...client,
+      contacter: newValue,
+    });
+  } catch (error) {
+    console.error('Erreur lors du changement de favori:', error);
+  }
+};
+
 const editClientFromView = () => {
   const client = selectedClient.value;
   closeViewModal();
@@ -651,82 +714,18 @@ onMounted(async () => {
 
 <style scoped>
 .clients-view {
-  max-width: 1200px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-6);
-}
-
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  letter-spacing: var(--letter-spacing-tight);
-  margin-bottom: var(--spacing-1);
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
+  max-width: var(--content-max-width);
+  animation: fadeInUp 0.4s ease-out;
 }
 
 /* === Toolbar === */
-.toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-6);
-  gap: var(--spacing-4);
-}
-
-.search-wrapper {
-  position: relative;
-  flex: 1;
-  max-width: 400px;
-}
-
-.search-icon {
-  position: absolute;
-  left: var(--spacing-4);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 18px;
-  height: 18px;
-  color: var(--text-tertiary);
-  pointer-events: none;
-}
-
-.search-input {
-  width: 100%;
-  padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) var(--spacing-12);
-  background: var(--bg-primary);
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  color: var(--text-primary);
-  transition: all var(--transition-fast);
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: var(--rose-400);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.12);
-}
-
-.search-input::placeholder {
-  color: var(--text-tertiary);
-}
-
 .toolbar-info {
-  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
 }
 
-.client-count {
+.toolbar-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
@@ -734,58 +733,47 @@ onMounted(async () => {
 /* === Clients Grid === */
 .clients-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: var(--spacing-4);
 }
 
 .client-card {
   background: var(--bg-primary);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
   border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   display: flex;
   gap: var(--spacing-4);
   transition: all var(--transition-normal);
   cursor: pointer;
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 .client-card:hover {
   border-color: var(--rose-200);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-4px);
 }
 
-.client-card:hover .client-card-arrow {
+.client-card:hover .arrow-indicator {
   opacity: 1;
   transform: translateX(4px);
 }
 
-.client-card-arrow {
-  display: flex;
-  align-items: center;
-  color: var(--text-tertiary);
-  opacity: 0.5;
-  transition: all var(--transition-normal);
-}
-
-.client-card-arrow svg {
-  width: 20px;
-  height: 20px;
-}
-
 .client-avatar {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-500) 100%);
-  border-radius: var(--border-radius);
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  border-radius: var(--border-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
   flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
 }
 
 .client-info {
@@ -822,7 +810,108 @@ onMounted(async () => {
   white-space: nowrap;
 }
 
+/* === Favorite Button === */
+.favorite-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.favorite-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.favorite-btn-active {
+  color: #f59e0b;
+}
+
+.favorite-btn:hover {
+  background: var(--warning-light);
+  color: #f59e0b;
+  transform: scale(1.1);
+}
+
+.favorite-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--gray-100);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.favorite-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.favorite-toggle:hover {
+  background: var(--warning-light);
+  border-color: #fbbf24;
+  color: #d97706;
+}
+
+.favorite-toggle-active {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+.favorite-toggle-active svg {
+  color: #f59e0b;
+}
+
 /* === Form === */
+.client-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.form-section {
+  padding-bottom: var(--spacing-5);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.form-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.form-section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--rose-600);
+  margin: 0 0 var(--spacing-4) 0;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
+}
+
+.form-section-title svg {
+  width: 16px;
+  height: 16px;
+}
+
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -856,7 +945,7 @@ onMounted(async () => {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
 }
 
 .profile-identity {
@@ -877,31 +966,6 @@ onMounted(async () => {
   gap: var(--spacing-2);
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--border-radius-full);
-}
-
-.badge svg {
-  width: 12px;
-  height: 12px;
-}
-
-.badge-contact {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.badge-member {
-  background: var(--gray-100);
-  color: var(--text-secondary);
-}
-
 /* === Profile Grid === */
 .profile-grid {
   display: grid;
@@ -913,24 +977,6 @@ onMounted(async () => {
   background: var(--gray-50);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-4);
-}
-
-.section-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin: 0 0 var(--spacing-3) 0;
-}
-
-.section-label svg {
-  width: 14px;
-  height: 14px;
-  color: var(--rose-500);
 }
 
 .info-list {
@@ -948,6 +994,8 @@ onMounted(async () => {
 .info-label {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wider);
 }
 
 .info-value {
@@ -1011,27 +1059,7 @@ onMounted(async () => {
 .profile-commandes {
   background: var(--gray-50);
   border-radius: var(--border-radius-lg);
-  padding: var(--spacing-4);
-}
-
-.commandes-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  margin-bottom: var(--spacing-4);
-}
-
-.commandes-header .section-label {
-  margin: 0;
-}
-
-.commandes-count {
-  background: var(--rose-100);
-  color: var(--rose-600);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  padding: 2px 10px;
-  border-radius: var(--border-radius-full);
+  padding: var(--spacing-5);
 }
 
 .commandes-loading {
@@ -1042,15 +1070,6 @@ onMounted(async () => {
   padding: var(--spacing-6);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-}
-
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
 }
 
 .commandes-empty {
@@ -1109,11 +1128,11 @@ onMounted(async () => {
 }
 
 .dot-success {
-  background: #059669;
+  background: var(--success);
 }
 
 .dot-warning {
-  background: #d97706;
+  background: var(--warning);
 }
 
 .timeline-header {
@@ -1134,141 +1153,8 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-/* === Form Sections === */
-.client-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
-
-.form-section {
-  padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-color-light);
-}
-
-.form-section:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.form-section-title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--rose-600);
-  margin: 0 0 var(--spacing-4) 0;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--border-radius-full);
-}
-
-.status-success {
-  background: var(--success-light);
-  color: #059669;
-}
-
-.status-warning {
-  background: var(--warning-light);
-  color: #d97706;
-}
-
-/* === Empty & Loading States === */
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-8);
-}
-
-.empty-state-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-6);
-  color: var(--text-tertiary);
-}
-
-.empty-state-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.empty-state-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
-}
-
-.empty-state-description {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-6);
-}
-
-.empty-state-mini {
-  text-align: center;
-  padding: var(--spacing-8);
-  color: var(--text-secondary);
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-16);
-  gap: var(--spacing-4);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.error-state {
-  text-align: center;
-  padding: var(--spacing-16);
-  color: var(--error);
-}
-
 /* === Responsive === */
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: var(--spacing-4);
-  }
-  
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
-  .search-wrapper {
-    max-width: none;
-  }
-  
-  .clients-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .form-row {
     grid-template-columns: 1fr;
   }
@@ -1284,6 +1170,10 @@ onMounted(async () => {
   
   .profile-badges {
     justify-content: center;
+  }
+  
+  .clients-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

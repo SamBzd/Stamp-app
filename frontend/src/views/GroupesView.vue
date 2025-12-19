@@ -44,9 +44,10 @@
 
       <div v-else class="catalogues-grid">
         <div
-          v-for="groupe in sortedGroupes"
+          v-for="(groupe, index) in sortedGroupes"
           :key="groupe.id"
           class="catalogue-card"
+          :style="{ animationDelay: `${index * 0.05}s` }"
           @click="viewCatalogue(groupe)"
         >
           <!-- Card Header -->
@@ -59,7 +60,7 @@
               </svg>
             </div>
             <h3 class="catalogue-name">{{ groupe.nom }}</h3>
-            <div class="catalogue-arrow">
+            <div class="arrow-indicator">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
@@ -68,17 +69,17 @@
 
           <!-- Formats Prix -->
           <div class="catalogue-formats">
-            <div class="format-pill format-a">
-              <span class="format-letter">A</span>
-              <span class="format-price">{{ groupe.format_A_prix }}€</span>
+            <div class="format-pill format-pill-a">
+              <span class="format-pill-letter">A</span>
+              <span class="format-pill-price">{{ groupe.format_A_prix }}€</span>
             </div>
-            <div class="format-pill format-b">
-              <span class="format-letter">B</span>
-              <span class="format-price">{{ groupe.format_B_prix }}€</span>
+            <div class="format-pill format-pill-b">
+              <span class="format-pill-letter">B</span>
+              <span class="format-pill-price">{{ groupe.format_B_prix }}€</span>
             </div>
-            <div class="format-pill format-c">
-              <span class="format-letter">C</span>
-              <span class="format-price">{{ groupe.format_C_prix }}€</span>
+            <div class="format-pill format-pill-c">
+              <span class="format-pill-letter">C</span>
+              <span class="format-pill-price">{{ groupe.format_C_prix }}€</span>
             </div>
           </div>
 
@@ -86,7 +87,7 @@
           <div class="catalogue-collections">
             <div class="collections-header">
               <span class="collections-label">Collections</span>
-              <span class="collections-count">{{ getCollectionsCount(groupe.id) }}</span>
+              <span class="count-badge">{{ getCollectionsCount(groupe.id) }}</span>
             </div>
             <div v-if="getGroupeCollections(groupe.id).length > 0" class="collections-chips">
               <span 
@@ -135,17 +136,26 @@
             <div class="view-title-group">
               <h2 class="view-title">{{ selectedGroupe.nom }}</h2>
               <div class="view-formats">
-                <span class="view-format">A: {{ selectedGroupe.format_A_prix }}€</span>
-                <span class="view-format">B: {{ selectedGroupe.format_B_prix }}€</span>
-                <span class="view-format">C: {{ selectedGroupe.format_C_prix }}€</span>
+                <span class="format-pill format-pill-a format-pill-sm">
+                  <span class="format-pill-letter">A</span>
+                  <span class="format-pill-price">{{ selectedGroupe.format_A_prix }}€</span>
+                </span>
+                <span class="format-pill format-pill-b format-pill-sm">
+                  <span class="format-pill-letter">B</span>
+                  <span class="format-pill-price">{{ selectedGroupe.format_B_prix }}€</span>
+                </span>
+                <span class="format-pill format-pill-c format-pill-sm">
+                  <span class="format-pill-letter">C</span>
+                  <span class="format-pill-price">{{ selectedGroupe.format_C_prix }}€</span>
+                </span>
               </div>
             </div>
           </div>
 
           <!-- Collections Section -->
           <div class="view-collections">
-            <div class="view-collections-header">
-              <h3 class="view-section-title">
+            <div class="section-header">
+              <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
                 </svg>
@@ -163,7 +173,7 @@
             </div>
 
             <div v-if="viewCollectionsLoading" class="view-loading">
-              <div class="loading-spinner-small"></div>
+              <div class="loading-spinner loading-spinner-sm"></div>
               <span>Chargement...</span>
             </div>
             <div v-else-if="viewCollections.length === 0" class="view-empty">
@@ -173,11 +183,11 @@
               <p>Aucune collection dans ce catalogue</p>
               <Button size="sm" @click="openAddCollectionModal">Ajouter une collection</Button>
             </div>
-            <div v-else class="collections-grid">
+            <div v-else class="collections-list">
               <div
                 v-for="(collection, index) in viewCollections"
                 :key="collection.id"
-                class="collection-card"
+                class="collection-item"
               >
                 <span class="collection-number">{{ index + 1 }}</span>
                 <span class="collection-name">{{ collection.nom }}</span>
@@ -282,7 +292,7 @@
             </div>
           </div>
 
-          <!-- Collections (visible à la création ET édition) -->
+          <!-- Collections -->
           <div class="form-section">
             <h4 class="form-section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -463,7 +473,6 @@ const formModalTitle = computed(() => isEditing.value ? 'Modifier le catalogue' 
 
 const sortedGroupes = computed(() => {
   return [...groupesStore.groupes].sort((a, b) => {
-    // Trier par ID décroissant (plus récent = ID plus grand)
     return b.id - a.id;
   });
 });
@@ -601,19 +610,16 @@ const handleSubmit = async () => {
     if (isEditing.value) {
       groupe = await groupesStore.updateGroupe(editingGroupeId.value, formData.value);
       
-      // Sync collections: remove old, add new
       const currentCollections = groupeCollectionsCache[editingGroupeId.value] || [];
       const currentIds = currentCollections.map(c => c.id);
       const newIds = formCollections.value.filter(c => c.id).map(c => c.id);
       
-      // Remove collections not in form anymore
       for (const id of currentIds) {
         if (!newIds.includes(id)) {
           await groupesStore.removeCollectionFromGroupe(editingGroupeId.value, id);
         }
       }
       
-      // Add new collections
       for (let i = 0; i < formCollections.value.length; i++) {
         const col = formCollections.value[i];
         if (col.isNew) {
@@ -626,7 +632,6 @@ const handleSubmit = async () => {
     } else {
       groupe = await groupesStore.createGroupe(formData.value);
       
-      // Add collections to new groupe
       for (let i = 0; i < formCollections.value.length; i++) {
         const col = formCollections.value[i];
         let collectionId;
@@ -640,13 +645,11 @@ const handleSubmit = async () => {
       }
     }
 
-    // Refresh
     await Promise.all([
       groupesStore.fetchGroupes(),
       collectionsStore.fetchCollections(),
     ]);
     
-    // Reload cache
     for (const g of groupesStore.groupes) {
       await loadGroupeCollections(g.id);
     }
@@ -727,7 +730,6 @@ onMounted(async () => {
     collectionsStore.fetchCollections(),
   ]);
   
-  // Load collections for each groupe
   for (const groupe of groupesStore.groupes) {
     await loadGroupeCollections(groupe.id);
   }
@@ -738,33 +740,14 @@ onMounted(async () => {
 
 <style scoped>
 .catalogues-view {
-  max-width: 1200px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-8);
-}
-
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  letter-spacing: var(--letter-spacing-tight);
-  margin-bottom: var(--spacing-1);
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
+  max-width: var(--content-max-width);
+  animation: fadeInUp 0.4s ease-out;
 }
 
 /* === Catalogues Grid === */
 .catalogues-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: var(--spacing-5);
 }
 
@@ -773,18 +756,19 @@ onMounted(async () => {
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
   border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: all var(--transition-normal);
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 .catalogue-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-card-hover);
   border-color: var(--rose-200);
 }
 
-.catalogue-card:hover .catalogue-arrow {
+.catalogue-card:hover .arrow-indicator {
   opacity: 1;
   transform: translateX(4px);
 }
@@ -798,8 +782,8 @@ onMounted(async () => {
 }
 
 .catalogue-icon {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
   border-radius: var(--border-radius-lg);
   display: flex;
@@ -811,8 +795,8 @@ onMounted(async () => {
 }
 
 .catalogue-icon svg {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
 }
 
 .catalogue-name {
@@ -823,79 +807,25 @@ onMounted(async () => {
   margin: 0;
 }
 
-.catalogue-arrow {
-  color: var(--text-tertiary);
-  opacity: 0.4;
-  transition: all var(--transition-normal);
-}
-
-.catalogue-arrow svg {
-  width: 20px;
-  height: 20px;
-}
-
-/* === Format Pills === */
+/* === Catalogue Formats === */
 .catalogue-formats {
   display: flex;
   gap: var(--spacing-2);
   margin-bottom: var(--spacing-4);
 }
 
-.format-pill {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
+.format-pill-sm {
+  padding: var(--spacing-1) var(--spacing-2);
 }
 
-.format-letter {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-bold);
+.format-pill-sm .format-pill-letter {
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+.format-pill-sm .format-pill-price {
   font-size: var(--font-size-xs);
-}
-
-.format-price {
-  font-weight: var(--font-weight-semibold);
-}
-
-.format-a {
-  background: #dbeafe;
-}
-.format-a .format-letter {
-  background: #2563eb;
-  color: white;
-}
-.format-a .format-price {
-  color: #1d4ed8;
-}
-
-.format-b {
-  background: #fce7f3;
-}
-.format-b .format-letter {
-  background: var(--rose-500);
-  color: white;
-}
-.format-b .format-price {
-  color: var(--rose-600);
-}
-
-.format-c {
-  background: #d1fae5;
-}
-.format-c .format-letter {
-  background: #059669;
-  color: white;
-}
-.format-c .format-price {
-  color: #047857;
 }
 
 /* === Catalogue Collections === */
@@ -917,16 +847,7 @@ onMounted(async () => {
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.collections-count {
-  background: var(--rose-100);
-  color: var(--rose-600);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  padding: 2px 8px;
-  border-radius: var(--border-radius-full);
+  letter-spacing: var(--letter-spacing-wider);
 }
 
 .collections-chips {
@@ -988,7 +909,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   color: white;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
 }
 
 .view-icon svg {
@@ -1009,42 +930,13 @@ onMounted(async () => {
 
 .view-formats {
   display: flex;
-  gap: var(--spacing-3);
-}
-
-.view-format {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-2);
 }
 
 .view-collections {
   background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
-}
-
-.view-collections-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--spacing-4);
-}
-
-.view-section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.view-section-title svg {
-  width: 16px;
-  height: 16px;
-  color: var(--rose-500);
 }
 
 .view-loading {
@@ -1055,15 +947,6 @@ onMounted(async () => {
   padding: var(--spacing-6);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
-}
-
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
 }
 
 .view-empty {
@@ -1087,13 +970,13 @@ onMounted(async () => {
   margin: 0;
 }
 
-.collections-grid {
+.collections-list {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
 }
 
-.collection-card {
+.collection-item {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
@@ -1104,11 +987,11 @@ onMounted(async () => {
   transition: all var(--transition-fast);
 }
 
-.collection-card:hover {
+.collection-item:hover {
   border-color: var(--rose-200);
 }
 
-.collection-card:hover .collection-remove {
+.collection-item:hover .collection-remove {
   opacity: 1;
 }
 
@@ -1184,7 +1067,7 @@ onMounted(async () => {
   color: var(--rose-600);
   margin: 0 0 var(--spacing-4) 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--letter-spacing-wider);
 }
 
 .form-section-title svg {
@@ -1219,26 +1102,14 @@ onMounted(async () => {
   color: white;
 }
 
-.format-input-a {
-  background: #dbeafe;
-}
-.format-input-a .format-input-letter {
-  background: #2563eb;
-}
+.format-input-a { background: var(--format-a-light); }
+.format-input-a .format-input-letter { background: var(--format-a); }
 
-.format-input-b {
-  background: #fce7f3;
-}
-.format-input-b .format-input-letter {
-  background: var(--rose-500);
-}
+.format-input-b { background: var(--format-b-light); }
+.format-input-b .format-input-letter { background: var(--format-b); }
 
-.format-input-c {
-  background: #d1fae5;
-}
-.format-input-c .format-input-letter {
-  background: #059669;
-}
+.format-input-c { background: var(--format-c-light); }
+.format-input-c .format-input-letter { background: var(--format-c); }
 
 /* === Form Collections === */
 .form-collections-list {
@@ -1332,97 +1203,8 @@ onMounted(async () => {
   flex-direction: column;
 }
 
-.divider {
-  display: flex;
-  align-items: center;
-  text-align: center;
-  margin: var(--spacing-4) 0;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.divider span {
-  padding: 0 var(--spacing-4);
-  color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-/* === Empty & Loading States === */
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-8);
-}
-
-.empty-state-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-6);
-  color: var(--text-tertiary);
-}
-
-.empty-state-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.empty-state-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
-}
-
-.empty-state-description {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-6);
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-16);
-  gap: var(--spacing-4);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.error-state {
-  text-align: center;
-  padding: var(--spacing-16);
-  color: var(--error);
-}
-
 /* === Responsive === */
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: var(--spacing-4);
-  }
-  
   .catalogues-grid {
     grid-template-columns: 1fr;
   }

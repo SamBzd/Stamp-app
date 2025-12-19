@@ -19,13 +19,42 @@
         </Button>
       </header>
 
+      <!-- Stats Summary -->
+      <div class="stats-summary">
+        <div class="summary-card summary-card-todo">
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <span class="summary-value">{{ todoItems.length }}</span>
+            <span class="summary-label">À traiter</span>
+          </div>
+        </div>
+        <div class="summary-card summary-card-done">
+          <div class="summary-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="summary-content">
+            <span class="summary-value">{{ doneItems.length }}</span>
+            <span class="summary-label">Traité</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Two States Toggle -->
       <div class="state-toggle">
         <button 
-          :class="['toggle-btn', 'toggle-todo', { active: currentTab === 'todo' }]"
+          :class="['toggle-btn', { active: currentTab === 'todo' }]"
           @click="currentTab = 'todo'"
         >
-          <span class="toggle-icon">
+          <span class="toggle-icon toggle-icon-todo">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
@@ -33,20 +62,20 @@
             </svg>
           </span>
           <span class="toggle-label">À traiter</span>
-          <span class="toggle-count">{{ todoItems.length }}</span>
+          <span v-if="todoItems.length > 0" class="toggle-count toggle-count-todo">{{ todoItems.length }}</span>
         </button>
         <button 
-          :class="['toggle-btn', 'toggle-done', { active: currentTab === 'done' }]"
+          :class="['toggle-btn', { active: currentTab === 'done' }]"
           @click="currentTab = 'done'"
         >
-          <span class="toggle-icon">
+          <span class="toggle-icon toggle-icon-done">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
           </span>
           <span class="toggle-label">Traité</span>
-          <span class="toggle-count">{{ doneItems.length }}</span>
+          <span v-if="doneItems.length > 0" class="toggle-count toggle-count-done">{{ doneItems.length }}</span>
         </button>
       </div>
 
@@ -66,18 +95,21 @@
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
             </div>
-            <h3>Aucun article à traiter</h3>
-            <p>Toutes les collections demandées ont été traitées</p>
+            <h3>Parfait !</h3>
+            <p>Tous les articles ont été traités</p>
           </div>
 
           <div v-else class="items-list">
             <div 
-              v-for="item in todoItems" 
+              v-for="(item, index) in todoItems" 
               :key="`${item.collection_id}-${item.format}`" 
               class="item-card item-todo"
+              :style="{ animationDelay: `${index * 0.05}s` }"
             >
               <div class="item-main">
-                <div class="item-format" :class="`format-${item.format.toLowerCase()}`">{{ item.format }}</div>
+                <div :class="['format-badge format-badge-xl', `format-badge-${item.format.toLowerCase()}`]">
+                  {{ item.format }}
+                </div>
                 <div class="item-info">
                   <h3 class="item-name">{{ item.collection_nom }}</h3>
                   <p class="item-demand">
@@ -110,21 +142,29 @@
 
           <div v-else class="items-list">
             <div 
-              v-for="item in doneItems" 
+              v-for="(item, index) in doneItems" 
               :key="`${item.collection_id}-${item.format}`" 
               class="item-card item-done"
+              :style="{ animationDelay: `${index * 0.05}s` }"
             >
               <div class="item-main">
-                <div class="item-format" :class="`format-${item.format.toLowerCase()}`">{{ item.format }}</div>
+                <div :class="['format-badge format-badge-xl', `format-badge-${item.format.toLowerCase()}`]">
+                  {{ item.format }}
+                </div>
                 <div class="item-info">
                   <h3 class="item-name">{{ item.collection_nom }}</h3>
                   <p class="item-stock" v-if="item.quantite_stock > 0">
                     <strong>{{ item.quantite_stock }}</strong> en stock
                   </p>
-                  <p class="item-stock" v-else>Traité</p>
+                  <p class="item-stock item-stock-done" v-else>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Traité
+                  </p>
                 </div>
               </div>
-              <button class="action-btn action-undo" @click="markAsTodo(item)" title="Remettre à commander">
+              <button class="action-btn action-undo" @click="markAsTodo(item)" title="Remettre à traiter">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
                   <path d="M21 3v5h-5"/>
@@ -150,10 +190,6 @@ const collectionsStore = useCollectionsStore();
 
 const currentTab = ref('todo');
 const recalculating = ref(false);
-
-// 2 états simples :
-// - À commander : gere === 0 et demande > 0
-// - C'est bon : gere === 1 ou stock > 0
 
 const todoItems = computed(() => {
   return stocksStore.stocks
@@ -209,27 +245,71 @@ onMounted(async () => {
 
 <style scoped>
 .stocks-view {
-  max-width: 800px;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeInUp 0.4s ease-out;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+/* === Stats Summary === */
+.stats-summary {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--spacing-4);
   margin-bottom: var(--spacing-6);
 }
 
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  letter-spacing: var(--letter-spacing-tight);
-  margin-bottom: var(--spacing-1);
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-5);
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-card);
 }
 
-.page-subtitle {
-  font-size: var(--font-size-md);
+.summary-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.summary-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.summary-card-todo .summary-icon {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.summary-card-done .summary-icon {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  line-height: 1;
+}
+
+.summary-label {
+  font-size: var(--font-size-sm);
   color: var(--text-secondary);
+  margin-top: var(--spacing-1);
 }
 
 /* === State Toggle === */
@@ -244,7 +324,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-3);
-  padding: var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-5);
   background: var(--bg-primary);
   border: 2px solid var(--border-color-light);
   border-radius: var(--border-radius-xl);
@@ -255,29 +335,38 @@ onMounted(async () => {
 
 .toggle-btn:hover {
   border-color: var(--gray-300);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.toggle-todo.active {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-color: #f59e0b;
-}
-
-.toggle-done.active {
-  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-  border-color: #10b981;
+.toggle-btn.active {
+  border-color: var(--rose-400);
+  background: var(--rose-50);
+  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
 }
 
 .toggle-icon {
-  width: 24px;
-  height: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .toggle-icon svg {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
+}
+
+.toggle-icon-todo {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.toggle-icon-done {
+  background: var(--success-light);
+  color: var(--success-dark);
 }
 
 .toggle-label {
@@ -289,14 +378,22 @@ onMounted(async () => {
 }
 
 .toggle-count {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.6);
   padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--border-radius-full);
-  min-width: 40px;
+  min-width: 32px;
   text-align: center;
+}
+
+.toggle-count-todo {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+
+.toggle-count-done {
+  background: var(--success-light);
+  color: var(--success-dark);
 }
 
 /* === Tab Content === */
@@ -313,26 +410,32 @@ onMounted(async () => {
 .empty-tab {
   text-align: center;
   padding: var(--spacing-16);
-  background: var(--gray-50);
+  background: linear-gradient(135deg, var(--gray-50) 0%, var(--success-light) 100%);
   border-radius: var(--border-radius-xl);
+  border: 2px dashed var(--success);
 }
 
 .empty-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto var(--spacing-4);
-  color: var(--text-tertiary);
+  width: 72px;
+  height: 72px;
+  margin: 0 auto var(--spacing-5);
+  background: var(--success-light);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--success-dark);
 }
 
 .empty-icon svg {
-  width: 100%;
-  height: 100%;
+  width: 36px;
+  height: 36px;
 }
 
 .empty-tab h3 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--success-dark);
   margin: 0 0 var(--spacing-2) 0;
 }
 
@@ -357,21 +460,23 @@ onMounted(async () => {
   background: var(--bg-primary);
   border-radius: var(--border-radius-xl);
   border-left: 4px solid;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   transition: all var(--transition-normal);
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 .item-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
 }
 
 .item-todo {
-  border-left-color: #f59e0b;
+  border-left-color: var(--warning);
 }
 
 .item-done {
-  border-left-color: #10b981;
-  opacity: 0.8;
+  border-left-color: var(--success);
+  opacity: 0.85;
 }
 
 .item-done:hover {
@@ -385,23 +490,6 @@ onMounted(async () => {
   flex: 1;
   min-width: 0;
 }
-
-.item-format {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--border-radius-lg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: white;
-  flex-shrink: 0;
-}
-
-.format-a { background: #2563eb; }
-.format-b { background: var(--rose-500); }
-.format-c { background: #059669; }
 
 .item-info {
   flex: 1;
@@ -425,7 +513,8 @@ onMounted(async () => {
 }
 
 .item-demand strong {
-  color: #f59e0b;
+  color: var(--warning-dark);
+  font-weight: var(--font-weight-bold);
 }
 
 .item-stock {
@@ -435,13 +524,26 @@ onMounted(async () => {
 }
 
 .item-stock strong {
-  color: #10b981;
+  color: var(--success-dark);
+  font-weight: var(--font-weight-bold);
+}
+
+.item-stock-done {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  color: var(--success-dark);
+}
+
+.item-stock-done svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* === Action Button === */
 .action-btn {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border: none;
   border-radius: var(--border-radius-lg);
   display: flex;
@@ -458,14 +560,15 @@ onMounted(async () => {
 }
 
 .action-done {
-  background: #d1fae5;
-  color: #059669;
+  background: var(--success-light);
+  color: var(--success-dark);
 }
 
 .action-done:hover {
-  background: #10b981;
+  background: var(--success);
   color: white;
-  transform: scale(1.05);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .action-undo {
@@ -476,41 +579,13 @@ onMounted(async () => {
 .action-undo:hover {
   background: var(--gray-200);
   color: var(--text-primary);
-}
-
-/* === Loading === */
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-16);
-  gap: var(--spacing-4);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+  transform: scale(1.05);
 }
 
 /* === Responsive === */
 @media (max-width: 640px) {
-  .page-header {
-    flex-direction: column;
-    gap: var(--spacing-4);
+  .stats-summary {
+    grid-template-columns: 1fr;
   }
   
   .state-toggle {
@@ -518,22 +593,16 @@ onMounted(async () => {
   }
   
   .toggle-label {
-    display: none;
+    flex: 1;
   }
   
   .item-card {
     padding: var(--spacing-3) var(--spacing-4);
   }
   
-  .item-format {
-    width: 36px;
-    height: 36px;
-    font-size: var(--font-size-md);
-  }
-  
   .action-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
   }
   
   .action-btn svg {

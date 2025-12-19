@@ -19,9 +19,14 @@
       </header>
 
       <!-- Filters -->
-      <div class="filters-bar">
+      <div class="toolbar">
         <div class="filter-group">
-          <label class="filter-label">Filtrer par catalogue</label>
+          <label class="filter-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            Catalogue
+          </label>
           <select v-model="selectedGroupeFilter" class="filter-select">
             <option value="">Tous les catalogues</option>
             <option 
@@ -33,16 +38,19 @@
             </option>
           </select>
         </div>
-        <div class="filter-info">
-          <span class="commande-count">
-            {{ filteredCommandes.length }} commande{{ filteredCommandes.length > 1 ? 's' : '' }}
-          </span>
+        <div class="toolbar-info">
+          <span class="count-badge">{{ filteredCommandes.length }}</span>
+          <span class="toolbar-label">commande{{ filteredCommandes.length > 1 ? 's' : '' }}</span>
           <button 
             v-if="selectedGroupeFilter" 
             class="clear-filter-btn"
             @click="selectedGroupeFilter = ''"
           >
-            Effacer le filtre
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Effacer
           </button>
         </div>
       </div>
@@ -77,16 +85,16 @@
 
       <div v-else class="commandes-grid">
         <div
-          v-for="commande in filteredCommandes"
+          v-for="(commande, index) in filteredCommandes"
           :key="commande.id"
           class="commande-card"
+          :style="{ animationDelay: `${index * 0.05}s` }"
           @click="viewCommande(commande)"
         >
           <!-- Header -->
           <div class="commande-header">
             <div class="commande-number">
-              <span class="number-label">Commande n°</span>
-              <span class="number-value">{{ commande.id }}</span>
+              <span class="number-value">Commande n°{{ commande.id }}</span>
             </div>
             <button 
               :class="['status-toggle', commande.reglee ? 'status-toggle-success' : 'status-toggle-warning']"
@@ -111,11 +119,11 @@
           </div>
 
           <!-- Details -->
-          <div class="commande-details-row">
-            <div class="detail-left">
+          <div class="commande-details">
+            <div class="details-left">
               <span class="detail-catalogue">{{ getGroupeName(commande.groupe_id) }}</span>
               <div class="detail-tags">
-                <span :class="['format-badge-small', `format-${commande.format_type.toLowerCase()}`]">
+                <span :class="['format-badge', `format-badge-${commande.format_type.toLowerCase()}`]">
                   {{ commande.format_type }}
                 </span>
                 <span v-if="commande.papier_supplementaire" class="papier-badge">
@@ -132,22 +140,15 @@
             </div>
           </div>
 
-          <!-- Collections -->
-          <div class="commande-collections-preview">
+          <!-- Collections Preview -->
+          <div v-if="getCommandeCollectionsPreview(commande.id).length > 0" class="commande-collections">
             <span 
               v-for="col in getCommandeCollectionsPreview(commande.id)" 
               :key="col"
-              class="collection-mini-chip"
+              class="collection-chip"
             >
               {{ col }}
             </span>
-          </div>
-
-          <!-- Arrow -->
-          <div class="commande-arrow">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
           </div>
         </div>
       </div>
@@ -209,14 +210,14 @@
                     :class="['format-card', `format-card-${format.toLowerCase()}`, { 'format-card-selected': formData.format_type === format }]"
                     @click="selectFormat(format)"
                   >
-                    <div class="format-card-letter">{{ format }}</div>
-                    <div class="format-card-price">{{ selectedGroupePrices[`format_${format}_prix`] }}€</div>
-                    <div class="format-card-collections">{{ format === 'C' ? '1 collection' : '2 collections' }}</div>
-                    <div v-if="formData.format_type === format" class="format-card-check">
+                    <div class="format-card-check" v-if="formData.format_type === format">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>
                     </div>
+                    <div class="format-card-letter">{{ format }}</div>
+                    <div class="format-card-price">{{ selectedGroupePrices[`format_${format}_prix`] }}€</div>
+                    <div class="format-card-info">{{ format === 'C' ? '1 collection' : '2 collections' }}</div>
                   </div>
                 </div>
                 <p v-if="errors.format_type" class="form-error">{{ errors.format_type }}</p>
@@ -350,9 +351,9 @@
         <div v-if="selectedCommande" class="commande-view">
           <div class="view-header">
             <div class="view-number">
-              <span class="view-hash">#</span>{{ selectedCommande.id }}
+              <span class="number-value">Commande n°{{ selectedCommande.id }}</span>
             </div>
-            <span :class="['status-pill status-pill-lg', selectedCommande.reglee ? 'status-success' : 'status-warning']">
+            <span :class="['badge', selectedCommande.reglee ? 'badge-success' : 'badge-warning']" style="padding: 8px 16px; font-size: 14px;">
               {{ selectedCommande.reglee ? 'Réglée' : 'En attente' }}
             </span>
           </div>
@@ -374,7 +375,7 @@
             </div>
             <div class="view-detail-row">
               <span class="view-detail-label">Format</span>
-              <span :class="['format-badge-view', `format-${selectedCommande.format_type.toLowerCase()}`]">
+              <span :class="['format-badge format-badge-lg', `format-badge-${selectedCommande.format_type.toLowerCase()}`]">
                 {{ selectedCommande.format_type }}
               </span>
             </div>
@@ -391,21 +392,21 @@
           <div v-if="viewCollections.length > 0" class="view-collections">
             <span class="view-collections-label">Collections</span>
             <div class="view-collections-list">
-              <span v-for="col in viewCollections" :key="col.id" class="view-collection-chip">
+              <span v-for="col in viewCollections" :key="col.id" class="collection-chip collection-chip-lg">
                 {{ col.nom }}
               </span>
             </div>
           </div>
 
           <div v-if="selectedCommande.papier_supplementaire || selectedCommande.articles_supplementaires" class="view-extras">
-            <span v-if="selectedCommande.papier_supplementaire" class="view-extra-badge">
+            <span v-if="selectedCommande.papier_supplementaire" class="badge badge-neutral">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
                 <polyline points="14 2 14 8 20 8"/>
               </svg>
               Papier supplémentaire
             </span>
-            <span v-if="selectedCommande.articles_supplementaires" class="view-extra-badge">
+            <span v-if="selectedCommande.articles_supplementaires" class="badge badge-neutral">
               {{ selectedCommande.articles_supplementaires }}
             </span>
           </div>
@@ -615,7 +616,6 @@ const onCatalogueChange = async () => {
 
 const selectFormat = (format) => {
   formData.value.format_type = format;
-  // Reset collections si on change de format
   selectedCollections.value = [];
 };
 
@@ -668,7 +668,6 @@ const editFromView = async () => {
     reglee: commande.reglee === 1,
   };
   
-  // Load catalogue collections
   try {
     catalogueCollections.value = await groupesStore.fetchGroupeCollections(commande.groupe_id);
   } catch (error) {
@@ -715,7 +714,6 @@ const handleSubmit = async () => {
       await commandesStore.updateCommande(editingCommandeId.value, data);
       commandeId = editingCommandeId.value;
       
-      // Remove old collections
       try {
         const oldCollections = await commandesStore.fetchCommandeCollections(commandeId);
         for (const col of oldCollections) {
@@ -729,12 +727,10 @@ const handleSubmit = async () => {
       commandeId = newCommande.id;
     }
 
-    // Add selected collections
     for (const colId of selectedCollections.value) {
       await commandesStore.addCollectionToCommande(commandeId, colId);
     }
 
-    // Refresh
     await loadCommandesCollections();
     closeModal();
   } catch (error) {
@@ -780,7 +776,6 @@ const deleteCommande = async () => {
   }
 };
 
-// Toggle reglee status
 const toggleReglee = async (commande) => {
   try {
     const newReglee = commande.reglee ? 0 : 1;
@@ -793,7 +788,6 @@ const toggleReglee = async (commande) => {
   }
 };
 
-// Load collections for display
 const loadCommandesCollections = async () => {
   for (const commande of commandesStore.commandes) {
     try {
@@ -822,94 +816,92 @@ onMounted(async () => {
 
 <style scoped>
 .commandes-view {
-  max-width: 1200px;
+  max-width: var(--content-max-width);
+  animation: fadeInUp 0.4s ease-out;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-6);
-}
-
-.page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  letter-spacing: var(--letter-spacing-tight);
-  margin-bottom: var(--spacing-1);
-}
-
-.page-subtitle {
-  font-size: var(--font-size-md);
-  color: var(--text-secondary);
-}
-
-/* === Filters === */
-.filters-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-4) var(--spacing-5);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color-light);
-}
-
+/* === Toolbar === */
 .filter-group {
   display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
+  align-items: center;
+  gap: var(--spacing-3);
 }
 
 .filter-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--text-secondary);
+}
+
+.filter-label svg {
+  width: 16px;
+  height: 16px;
 }
 
 .filter-select {
   padding: var(--spacing-2) var(--spacing-4);
-  background: var(--bg-primary);
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--border-radius);
+  background: var(--gray-50);
+  border: 1.5px solid transparent;
+  border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
   color: var(--text-primary);
   min-width: 200px;
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-select:hover {
+  background: var(--gray-100);
 }
 
 .filter-select:focus {
   outline: none;
+  background: var(--bg-primary);
   border-color: var(--rose-400);
 }
 
-.filter-info {
+.toolbar-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: var(--spacing-2);
 }
 
-.commande-count {
+.toolbar-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
 }
 
 .clear-filter-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
   font-size: var(--font-size-sm);
   color: var(--rose-600);
-  background: none;
+  background: var(--rose-50);
   border: none;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--border-radius-full);
   cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.clear-filter-btn:hover {
+  background: var(--rose-100);
+}
+
+.clear-filter-btn svg {
+  width: 14px;
+  height: 14px;
 }
 
 /* === Commandes Grid === */
 .commandes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: var(--spacing-4);
 }
 
@@ -918,21 +910,16 @@ onMounted(async () => {
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
   border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: all var(--transition-normal);
-  position: relative;
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 .commande-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-card-hover);
   border-color: var(--rose-200);
-}
-
-.commande-card:hover .commande-arrow {
-  opacity: 1;
-  transform: translateX(4px);
 }
 
 .commande-header {
@@ -945,41 +932,18 @@ onMounted(async () => {
 .commande-number {
   display: flex;
   align-items: baseline;
-  gap: var(--spacing-1);
 }
 
-.number-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  font-weight: var(--font-weight-medium);
+.number-hash {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--rose-400);
 }
 
 .number-value {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
-}
-
-.status-pill {
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-}
-
-.status-pill-lg {
-  padding: var(--spacing-2) var(--spacing-4);
-  font-size: var(--font-size-sm);
-}
-
-.status-success {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.status-warning {
-  background: #fef3c7;
-  color: #d97706;
 }
 
 /* === Status Toggle Button === */
@@ -1005,8 +969,8 @@ onMounted(async () => {
 }
 
 .status-toggle-success {
-  background: #d1fae5;
-  color: #059669;
+  background: var(--success-light);
+  color: var(--success-dark);
 }
 
 .status-toggle-success:hover {
@@ -1014,8 +978,8 @@ onMounted(async () => {
 }
 
 .status-toggle-warning {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--warning-light);
+  color: var(--warning-dark);
 }
 
 .status-toggle-warning:hover {
@@ -1034,12 +998,12 @@ onMounted(async () => {
 }
 
 .status-toggle-success .status-toggle-check {
-  background: #059669;
+  background: var(--success-dark);
 }
 
 .status-toggle-warning .status-toggle-check {
   background: transparent;
-  border: 2px solid #d97706;
+  border: 2px solid var(--warning-dark);
 }
 
 .status-toggle-check svg {
@@ -1072,6 +1036,7 @@ onMounted(async () => {
   color: white;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.2);
 }
 
 .client-name {
@@ -1080,7 +1045,7 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
-.commande-details-row {
+.commande-details {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -1088,7 +1053,7 @@ onMounted(async () => {
   margin-bottom: var(--spacing-3);
 }
 
-.detail-left {
+.details-left {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-2);
@@ -1110,8 +1075,8 @@ onMounted(async () => {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--warning-light);
+  color: var(--warning-dark);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
@@ -1128,49 +1093,26 @@ onMounted(async () => {
   color: var(--rose-600);
 }
 
-.format-badge-small {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--border-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  color: white;
-}
-
-.format-a { background: #2563eb; }
-.format-b { background: var(--rose-500); }
-.format-c { background: #059669; }
-
-.commande-collections-preview {
+.commande-collections {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-1);
 }
 
-.collection-mini-chip {
+.collection-chip {
   background: var(--gray-100);
-  padding: 2px 8px;
+  padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
 }
 
-.commande-arrow {
-  position: absolute;
-  right: var(--spacing-4);
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-tertiary);
-  opacity: 0.3;
-  transition: all var(--transition-normal);
-}
-
-.commande-arrow svg {
-  width: 20px;
-  height: 20px;
+.collection-chip-lg {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  background: var(--rose-100);
+  color: var(--rose-700);
 }
 
 /* === Order Wizard === */
@@ -1182,7 +1124,7 @@ onMounted(async () => {
 
 .wizard-step {
   background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
   transition: opacity var(--transition-normal);
 }
@@ -1211,6 +1153,7 @@ onMounted(async () => {
   font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
   flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.25);
 }
 
 .step-info {
@@ -1263,26 +1206,14 @@ onMounted(async () => {
   position: relative;
 }
 
-.format-card-a {
-  background: #dbeafe;
-}
-.format-card-a:hover, .format-card-a.format-card-selected {
-  border-color: #2563eb;
-}
+.format-card-a { background: var(--format-a-light); }
+.format-card-a:hover, .format-card-a.format-card-selected { border-color: var(--format-a); }
 
-.format-card-b {
-  background: #fce7f3;
-}
-.format-card-b:hover, .format-card-b.format-card-selected {
-  border-color: var(--rose-500);
-}
+.format-card-b { background: var(--format-b-light); }
+.format-card-b:hover, .format-card-b.format-card-selected { border-color: var(--format-b); }
 
-.format-card-c {
-  background: #d1fae5;
-}
-.format-card-c:hover, .format-card-c.format-card-selected {
-  border-color: #059669;
-}
+.format-card-c { background: var(--format-c-light); }
+.format-card-c:hover, .format-card-c.format-card-selected { border-color: var(--format-c); }
 
 .format-card-letter {
   font-size: var(--font-size-2xl);
@@ -1290,9 +1221,9 @@ onMounted(async () => {
   margin-bottom: var(--spacing-1);
 }
 
-.format-card-a .format-card-letter { color: #2563eb; }
-.format-card-b .format-card-letter { color: var(--rose-600); }
-.format-card-c .format-card-letter { color: #059669; }
+.format-card-a .format-card-letter { color: var(--format-a); }
+.format-card-b .format-card-letter { color: var(--format-b-dark); }
+.format-card-c .format-card-letter { color: var(--format-c); }
 
 .format-card-price {
   font-size: var(--font-size-lg);
@@ -1300,7 +1231,7 @@ onMounted(async () => {
   color: var(--text-primary);
 }
 
-.format-card-collections {
+.format-card-info {
   font-size: var(--font-size-xs);
   color: var(--text-secondary);
   margin-top: var(--spacing-1);
@@ -1317,6 +1248,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: var(--shadow-sm);
 }
 
 .format-card-check svg {
@@ -1324,9 +1256,9 @@ onMounted(async () => {
   height: 12px;
 }
 
-.format-card-a .format-card-check svg { color: #2563eb; }
-.format-card-b .format-card-check svg { color: var(--rose-500); }
-.format-card-c .format-card-check svg { color: #059669; }
+.format-card-a .format-card-check svg { color: var(--format-a); }
+.format-card-b .format-card-check svg { color: var(--format-b); }
+.format-card-c .format-card-check svg { color: var(--format-c); }
 
 /* === Collections Picker === */
 .collections-picker {
@@ -1435,20 +1367,21 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-4);
-  background: linear-gradient(135deg, var(--rose-50) 0%, #fce7f3 100%);
-  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, var(--rose-50) 0%, var(--format-b-light) 100%);
+  border-radius: var(--border-radius-xl);
   border: 1px solid var(--rose-200);
 }
 
 .summary-icon {
-  width: 44px;
-  height: 44px;
-  background: var(--rose-500);
-  border-radius: var(--border-radius);
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  border-radius: var(--border-radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
 }
 
 .summary-icon svg {
@@ -1532,6 +1465,7 @@ onMounted(async () => {
   color: white;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
+  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
 }
 
 .view-client-info {
@@ -1583,17 +1517,6 @@ onMounted(async () => {
   color: var(--rose-600);
 }
 
-.format-badge-view {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-bold);
-  color: white;
-}
-
 .view-collections {
   background: var(--gray-50);
   border-radius: var(--border-radius-lg);
@@ -1606,7 +1529,7 @@ onMounted(async () => {
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: var(--letter-spacing-wider);
   margin-bottom: var(--spacing-3);
 }
 
@@ -1616,35 +1539,10 @@ onMounted(async () => {
   gap: var(--spacing-2);
 }
 
-.view-collection-chip {
-  background: var(--rose-100);
-  color: var(--rose-700);
-  padding: var(--spacing-2) var(--spacing-4);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-}
-
 .view-extras {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-2);
-}
-
-.view-extra-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-3);
-  background: var(--gray-100);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.view-extra-badge svg {
-  width: 14px;
-  height: 14px;
 }
 
 /* === Form Error === */
@@ -1654,81 +1552,8 @@ onMounted(async () => {
   margin-top: var(--spacing-2);
 }
 
-/* === Empty & Loading === */
-.empty-state {
-  text-align: center;
-  padding: var(--spacing-16) var(--spacing-8);
-}
-
-.empty-state-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-6);
-  color: var(--text-tertiary);
-}
-
-.empty-state-icon svg {
-  width: 100%;
-  height: 100%;
-}
-
-.empty-state-title {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
-}
-
-.empty-state-description {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-6);
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: var(--spacing-16);
-  gap: var(--spacing-4);
-}
-
-.loading-spinner {
-  width: 32px;
-  height: 32px;
-  border: 3px solid var(--rose-100);
-  border-top-color: var(--rose-500);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-state-text {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.error-state {
-  text-align: center;
-  padding: var(--spacing-16);
-  color: var(--error);
-}
-
 /* === Responsive === */
 @media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    gap: var(--spacing-4);
-  }
-  
-  .filters-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  
   .commandes-grid {
     grid-template-columns: 1fr;
   }
