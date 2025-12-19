@@ -4,8 +4,8 @@
       <!-- Page Header -->
       <header class="page-header">
         <div>
-          <h1 class="page-title">Gestion des stocks</h1>
-          <p class="page-subtitle">Suivez et gérez vos stocks par collection et format</p>
+          <h1 class="page-title">Stocks</h1>
+          <p class="page-subtitle">Gestion des commandes fournisseur</p>
         </div>
         <Button variant="secondary" @click="recalculateStocks" :loading="recalculating">
           <template #icon>
@@ -15,164 +15,122 @@
               <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
             </svg>
           </template>
-          Recalculer
+          Actualiser
         </Button>
       </header>
 
-      <!-- Stats Summary -->
-      <div class="stats-summary">
-        <div class="stat-item">
-          <span class="stat-number">{{ totalStocks }}</span>
-          <span class="stat-label">Total entrées</span>
-        </div>
-        <div class="stat-item stat-warning">
-          <span class="stat-number">{{ stocksAGerer }}</span>
-          <span class="stat-label">À gérer</span>
-        </div>
-        <div class="stat-item stat-success">
-          <span class="stat-number">{{ stocksGeres }}</span>
-          <span class="stat-label">Gérés</span>
-        </div>
-      </div>
-
-      <!-- Filter Tabs -->
-      <div class="filter-tabs">
+      <!-- Two States Toggle -->
+      <div class="state-toggle">
         <button 
-          :class="['filter-tab', { active: currentFilter === 'all' }]"
-          @click="currentFilter = 'all'"
+          :class="['toggle-btn', 'toggle-todo', { active: currentTab === 'todo' }]"
+          @click="currentTab = 'todo'"
         >
-          Tous
-          <span class="tab-count">{{ stocksStore.stocks.length }}</span>
+          <span class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </span>
+          <span class="toggle-label">À traiter</span>
+          <span class="toggle-count">{{ todoItems.length }}</span>
         </button>
         <button 
-          :class="['filter-tab filter-tab-warning', { active: currentFilter === 'pending' }]"
-          @click="currentFilter = 'pending'"
+          :class="['toggle-btn', 'toggle-done', { active: currentTab === 'done' }]"
+          @click="currentTab = 'done'"
         >
-          À gérer
-          <span class="tab-count">{{ stocksAGerer }}</span>
-        </button>
-        <button 
-          :class="['filter-tab filter-tab-success', { active: currentFilter === 'done' }]"
-          @click="currentFilter = 'done'"
-        >
-          Gérés
-          <span class="tab-count">{{ stocksGeres }}</span>
+          <span class="toggle-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </span>
+          <span class="toggle-label">Traité</span>
+          <span class="toggle-count">{{ doneItems.length }}</span>
         </button>
       </div>
 
-      <!-- Stocks List -->
+      <!-- Main Content -->
       <div v-if="stocksStore.loading" class="loading-state">
         <div class="loading-spinner"></div>
-        <span class="loading-state-text">Chargement des stocks...</span>
+        <span class="loading-state-text">Chargement...</span>
       </div>
 
-      <div v-else-if="stocksStore.error" class="error-state">
-        <p>{{ stocksStore.error }}</p>
-        <Button variant="secondary" @click="reloadStocks">Réessayer</Button>
-      </div>
-
-      <div v-else-if="filteredStocks.length === 0" class="empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-        </div>
-        <h3 class="empty-state-title">
-          {{ currentFilter !== 'all' ? 'Aucun stock dans cette catégorie' : 'Aucun stock à gérer' }}
-        </h3>
-        <p class="empty-state-description">
-          {{ currentFilter !== 'all' ? 'Changez de filtre pour voir d\'autres stocks' : 'Les stocks apparaîtront lorsqu\'il y aura des commandes' }}
-        </p>
-        <Button v-if="currentFilter !== 'all'" variant="secondary" @click="currentFilter = 'all'">
-          Voir tous les stocks
-        </Button>
-      </div>
-
-      <div v-else class="stocks-grid">
-        <div
-          v-for="stock in filteredStocks"
-          :key="`${stock.collection_id}_${stock.format}`"
-          :class="['stock-card', { 'stock-card-done': stock.gere === 1 }]"
-        >
-          <div class="stock-header">
-            <div class="stock-info">
-              <h3 class="stock-collection">{{ stock.collection_nom || getCollectionName(stock.collection_id) }}</h3>
-              <span class="stock-format">Format {{ stock.format }}</span>
+      <div v-else>
+        <!-- Tab: À traiter -->
+        <div v-if="currentTab === 'todo'" class="tab-content">
+          <div v-if="todoItems.length === 0" class="empty-tab">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
             </div>
-            <span :class="['status-indicator', stock.gere === 1 ? 'status-done' : 'status-pending']">
-              {{ stock.gere === 1 ? 'Géré' : 'À gérer' }}
-            </span>
+            <h3>Aucun article à traiter</h3>
+            <p>Toutes les collections demandées ont été traitées</p>
           </div>
 
-          <div class="stock-metrics">
-            <div class="metric">
-              <span class="metric-label">Commandés</span>
-              <span class="metric-value metric-demand">{{ stock.quantite_commande }}</span>
-            </div>
-            <div class="metric metric-editable">
-              <span class="metric-label">En stock</span>
-              <div class="stock-input-wrapper">
-                <button 
-                  class="stock-adjust-btn" 
-                  @click="decrementStock(stock)"
-                  :disabled="stock.quantite_stock <= 0"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                  </svg>
-                </button>
-                <input
-                  :value="stock.quantite_stock"
-                  type="number"
-                  min="0"
-                  class="stock-input"
-                  @change="updateStock(stock, $event.target.value)"
-                />
-                <button 
-                  class="stock-adjust-btn" 
-                  @click="incrementStock(stock)"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div class="stock-actions">
-            <Button
-              v-if="stock.gere === 0"
-              variant="success"
-              size="sm"
-              @click="markAsGere(stock)"
+          <div v-else class="items-list">
+            <div 
+              v-for="item in todoItems" 
+              :key="`${item.collection_id}-${item.format}`" 
+              class="item-card item-todo"
             >
-              <template #icon>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <div class="item-main">
+                <div class="item-format" :class="`format-${item.format.toLowerCase()}`">{{ item.format }}</div>
+                <div class="item-info">
+                  <h3 class="item-name">{{ item.collection_nom }}</h3>
+                  <p class="item-demand">
+                    <strong>{{ item.quantite_commande }}</strong> demandé{{ item.quantite_commande > 1 ? 's' : '' }}
+                  </p>
+                </div>
+              </div>
+              <button class="action-btn action-done" @click="markAsDone(item)" title="Marquer comme traité">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
-              </template>
-              Marquer comme géré
-            </Button>
-            <Button
-              v-else
-              variant="secondary"
-              size="sm"
-              @click="markAsNonGere(stock)"
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Traité -->
+        <div v-if="currentTab === 'done'" class="tab-content">
+          <div v-if="doneItems.length === 0" class="empty-tab">
+            <div class="empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+              </svg>
+            </div>
+            <h3>Aucun article traité</h3>
+            <p>Les articles validés apparaîtront ici</p>
+          </div>
+
+          <div v-else class="items-list">
+            <div 
+              v-for="item in doneItems" 
+              :key="`${item.collection_id}-${item.format}`" 
+              class="item-card item-done"
             >
-              <template #icon>
+              <div class="item-main">
+                <div class="item-format" :class="`format-${item.format.toLowerCase()}`">{{ item.format }}</div>
+                <div class="item-info">
+                  <h3 class="item-name">{{ item.collection_nom }}</h3>
+                  <p class="item-stock" v-if="item.quantite_stock > 0">
+                    <strong>{{ item.quantite_stock }}</strong> en stock
+                  </p>
+                  <p class="item-stock" v-else>Traité</p>
+                </div>
+              </div>
+              <button class="action-btn action-undo" @click="markAsTodo(item)" title="Remettre à commander">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
                   <path d="M21 3v5h-5"/>
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                  <path d="M3 21v-5h5"/>
                 </svg>
-              </template>
-              Remettre en attente
-            </Button>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -190,37 +148,38 @@ import { useCollectionsStore } from '../stores/collections';
 const stocksStore = useStocksStore();
 const collectionsStore = useCollectionsStore();
 
-const currentFilter = ref('all');
+const currentTab = ref('todo');
 const recalculating = ref(false);
 
-const totalStocks = computed(() => stocksStore.stocks.length);
+// 2 états simples :
+// - À commander : gere === 0 et demande > 0
+// - C'est bon : gere === 1 ou stock > 0
 
-const stocksAGerer = computed(() => {
-  return stocksStore.stocks.filter(s => s.gere === 0 && s.quantite_commande > 0).length;
+const todoItems = computed(() => {
+  return stocksStore.stocks
+    .filter(s => s.quantite_commande > 0 && s.gere === 0)
+    .sort((a, b) => b.quantite_commande - a.quantite_commande);
 });
 
-const stocksGeres = computed(() => {
-  return stocksStore.stocks.filter(s => s.gere === 1).length;
+const doneItems = computed(() => {
+  return stocksStore.stocks
+    .filter(s => s.gere === 1 || s.quantite_stock > 0)
+    .sort((a, b) => (a.collection_nom || '').localeCompare(b.collection_nom || ''));
 });
 
-const filteredStocks = computed(() => {
-  switch (currentFilter.value) {
-    case 'pending':
-      return stocksStore.stocks.filter(s => s.gere === 0 && s.quantite_commande > 0);
-    case 'done':
-      return stocksStore.stocks.filter(s => s.gere === 1);
-    default:
-      return stocksStore.stocks;
+// Actions
+const markAsDone = async (item) => {
+  try {
+    await stocksStore.markAsGere(item.collection_id, item.format);
+    await stocksStore.fetchStocks();
+  } catch (error) {
+    console.error('Erreur:', error);
   }
-});
-
-const getCollectionName = (collectionId) => {
-  const collection = collectionsStore.getCollectionById(collectionId);
-  return collection ? collection.nom : `Collection #${collectionId}`;
 };
 
-const reloadStocks = async () => {
+const markAsTodo = async (item) => {
   try {
+    await stocksStore.markAsNonGere(item.collection_id, item.format);
     await stocksStore.fetchStocks();
   } catch (error) {
     console.error('Erreur:', error);
@@ -238,52 +197,6 @@ const recalculateStocks = async () => {
   }
 };
 
-const updateStock = async (stock, newValue) => {
-  const quantiteStock = parseInt(newValue);
-  if (isNaN(quantiteStock) || quantiteStock < 0) {
-    await stocksStore.fetchStocks();
-    return;
-  }
-  
-  if (quantiteStock === stock.quantite_stock) return;
-  
-  try {
-    await stocksStore.updateStock(stock.collection_id, stock.format, quantiteStock);
-    await stocksStore.fetchStocks();
-  } catch (error) {
-    console.error('Erreur:', error);
-    await stocksStore.fetchStocks();
-  }
-};
-
-const incrementStock = async (stock) => {
-  await updateStock(stock, stock.quantite_stock + 1);
-};
-
-const decrementStock = async (stock) => {
-  if (stock.quantite_stock > 0) {
-    await updateStock(stock, stock.quantite_stock - 1);
-  }
-};
-
-const markAsGere = async (stock) => {
-  try {
-    await stocksStore.markAsGere(stock.collection_id, stock.format);
-    await stocksStore.fetchStocks();
-  } catch (error) {
-    console.error('Erreur:', error);
-  }
-};
-
-const markAsNonGere = async (stock) => {
-  try {
-    await stocksStore.markAsNonGere(stock.collection_id, stock.format);
-    await stocksStore.fetchStocks();
-  } catch (error) {
-    console.error('Erreur:', error);
-  }
-};
-
 onMounted(async () => {
   try {
     await collectionsStore.fetchCollections();
@@ -296,7 +209,7 @@ onMounted(async () => {
 
 <style scoped>
 .stocks-view {
-  max-width: 1200px;
+  max-width: 800px;
 }
 
 .page-header {
@@ -319,336 +232,253 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-/* === Stats Summary === */
-.stats-summary {
-  display: flex;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-5);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-lg);
-  border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  padding: var(--spacing-3) var(--spacing-5);
-  border-radius: var(--border-radius);
-  background: var(--gray-50);
-  min-width: 120px;
-}
-
-.stat-item.stat-warning {
-  background: var(--warning-light);
-}
-
-.stat-item.stat-success {
-  background: var(--success-light);
-}
-
-.stat-number {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-  line-height: 1;
-}
-
-.stat-warning .stat-number {
-  color: #d97706;
-}
-
-.stat-success .stat-number {
-  color: #059669;
-}
-
-.stat-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-  margin-top: var(--spacing-1);
-}
-
-/* === Filter Tabs === */
-.filter-tabs {
-  display: flex;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  padding: var(--spacing-1);
-  background: var(--gray-100);
-  border-radius: var(--border-radius);
-  width: fit-content;
-}
-
-.filter-tab {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  background: transparent;
-  border: none;
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-family);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.filter-tab:hover {
-  color: var(--text-primary);
-}
-
-.filter-tab.active {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.filter-tab-warning.active {
-  color: #d97706;
-}
-
-.filter-tab-success.active {
-  color: #059669;
-}
-
-.tab-count {
-  padding: 2px 8px;
-  background: var(--gray-200);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-}
-
-.filter-tab.active .tab-count {
-  background: var(--rose-100);
-  color: var(--rose-700);
-}
-
-.filter-tab-warning.active .tab-count {
-  background: var(--warning-light);
-  color: #d97706;
-}
-
-.filter-tab-success.active .tab-count {
-  background: var(--success-light);
-  color: #059669;
-}
-
-/* === Stocks Grid === */
-.stocks-grid {
+/* === State Toggle === */
+.state-toggle {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--spacing-4);
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-6);
 }
 
-.stock-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-5);
-  border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
-}
-
-.stock-card:hover {
-  border-color: var(--rose-200);
-  box-shadow: var(--shadow-md);
-}
-
-.stock-card-done {
-  opacity: 0.7;
-  background: var(--gray-50);
-}
-
-.stock-card-done:hover {
-  opacity: 1;
-}
-
-.stock-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: var(--spacing-4);
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border-color-light);
-}
-
-.stock-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.stock-collection {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stock-format {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.status-indicator {
-  padding: var(--spacing-1) var(--spacing-3);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-}
-
-.status-pending {
-  background: var(--warning-light);
-  color: #d97706;
-}
-
-.status-done {
-  background: var(--success-light);
-  color: #059669;
-}
-
-/* === Stock Metrics === */
-.stock-metrics {
-  display: flex;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-4);
-}
-
-.metric {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3);
-  background: var(--gray-50);
-  border-radius: var(--border-radius);
-}
-
-.metric-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.metric-value {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-}
-
-.metric-demand {
-  color: var(--rose-600);
-}
-
-.stock-input-wrapper {
+.toggle-btn {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: var(--spacing-3);
+  padding: var(--spacing-5);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color-light);
+  border-radius: var(--border-radius-xl);
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  font-family: var(--font-family);
 }
 
-.stock-adjust-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
+.toggle-btn:hover {
+  border-color: var(--gray-300);
+}
+
+.toggle-todo.active {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+}
+
+.toggle-done.active {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  border-color: #10b981;
+}
+
+.toggle-icon {
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-xs);
 }
 
-.stock-adjust-btn:hover:not(:disabled) {
-  background: var(--rose-100);
-  color: var(--rose-600);
+.toggle-icon svg {
+  width: 24px;
+  height: 24px;
 }
 
-.stock-adjust-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.stock-adjust-btn svg {
-  width: 14px;
-  height: 14px;
-}
-
-.stock-input {
-  width: 60px;
-  padding: var(--spacing-2);
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+.toggle-label {
+  flex: 1;
   font-size: var(--font-size-md);
-  font-weight: var(--font-weight-bold);
-  font-family: var(--font-family);
-  text-align: center;
+  font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  background: var(--bg-primary);
+  text-align: left;
 }
 
-.stock-input:focus {
-  outline: none;
-  border-color: var(--rose-400);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.12);
-}
-
-/* Remove number input spinners */
-.stock-input::-webkit-outer-spin-button,
-.stock-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.stock-input {
-  -moz-appearance: textfield;
-}
-
-/* === Stock Actions === */
-.stock-actions {
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border-color-light);
-}
-
-/* === Empty & Loading States === */
-.empty-state {
+.toggle-count {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.6);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--border-radius-full);
+  min-width: 40px;
   text-align: center;
-  padding: var(--spacing-16) var(--spacing-8);
 }
 
-.empty-state-icon {
-  width: 80px;
-  height: 80px;
-  margin: 0 auto var(--spacing-6);
+/* === Tab Content === */
+.tab-content {
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === Empty Tab === */
+.empty-tab {
+  text-align: center;
+  padding: var(--spacing-16);
+  background: var(--gray-50);
+  border-radius: var(--border-radius-xl);
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto var(--spacing-4);
   color: var(--text-tertiary);
 }
 
-.empty-state-icon svg {
+.empty-icon svg {
   width: 100%;
   height: 100%;
 }
 
-.empty-state-title {
+.empty-tab h3 {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
-  margin-bottom: var(--spacing-2);
+  margin: 0 0 var(--spacing-2) 0;
 }
 
-.empty-state-description {
+.empty-tab p {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* === Items List === */
+.items-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+}
+
+.item-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-xl);
+  border-left: 4px solid;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.item-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.item-todo {
+  border-left-color: #f59e0b;
+}
+
+.item-done {
+  border-left-color: #10b981;
+  opacity: 0.8;
+}
+
+.item-done:hover {
+  opacity: 1;
+}
+
+.item-main {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.item-format {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: white;
+  flex-shrink: 0;
+}
+
+.format-a { background: #2563eb; }
+.format-b { background: var(--rose-500); }
+.format-c { background: #059669; }
+
+.item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-1) 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.item-demand {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: var(--spacing-6);
+  margin: 0;
 }
 
+.item-demand strong {
+  color: #f59e0b;
+}
+
+.item-stock {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.item-stock strong {
+  color: #10b981;
+}
+
+/* === Action Button === */
+.action-btn {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.action-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.action-done {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.action-done:hover {
+  background: #10b981;
+  color: white;
+  transform: scale(1.05);
+}
+
+.action-undo {
+  background: var(--gray-100);
+  color: var(--text-secondary);
+}
+
+.action-undo:hover {
+  background: var(--gray-200);
+  color: var(--text-primary);
+}
+
+/* === Loading === */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -676,41 +506,39 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-.error-state {
-  text-align: center;
-  padding: var(--spacing-16);
-  color: var(--error);
-}
-
 /* === Responsive === */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .page-header {
     flex-direction: column;
     gap: var(--spacing-4);
   }
   
-  .stats-summary {
-    flex-wrap: wrap;
-  }
-  
-  .stat-item {
-    flex: 1;
-    min-width: 100px;
-  }
-  
-  .filter-tabs {
-    width: 100%;
-    overflow-x: auto;
-  }
-  
-  .stocks-grid {
+  .state-toggle {
     grid-template-columns: 1fr;
   }
   
-  .stock-metrics {
-    flex-direction: column;
+  .toggle-label {
+    display: none;
+  }
+  
+  .item-card {
+    padding: var(--spacing-3) var(--spacing-4);
+  }
+  
+  .item-format {
+    width: 36px;
+    height: 36px;
+    font-size: var(--font-size-md);
+  }
+  
+  .action-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .action-btn svg {
+    width: 20px;
+    height: 20px;
   }
 }
 </style>
-
-
