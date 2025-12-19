@@ -1,143 +1,107 @@
-import { defineStore } from 'pinia'
-
-const API_URL = 'http://localhost:3000/api/clients'
+import { defineStore } from 'pinia';
+import { clientsAPI } from '../services/api';
 
 export const useClientsStore = defineStore('clients', {
   state: () => ({
     clients: [],
-    isLoading: false,
+    loading: false,
     error: null,
-    editingClient: null
   }),
 
+  getters: {
+    getClientById: (state) => (id) => {
+      return state.clients.find(client => client.id === id);
+    },
+  },
+
   actions: {
-    // READ - Récupérer tous les clients
     async fetchClients() {
-      this.isLoading = true
-      this.error = null
-
+      this.loading = true;
+      this.error = null;
       try {
-        const res = await fetch(API_URL)
-        if (!res.ok) throw new Error('HTTP ' + res.status)
-        this.clients = await res.json()
-      } catch (err) {
-        this.error = err.message
+        this.clients = await clientsAPI.getAll();
+      } catch (error) {
+        this.error = error.message;
+        console.error('Erreur lors de la récupération des clients:', error);
       } finally {
-        this.isLoading = false
+        this.loading = false;
       }
     },
 
-    // READ - Récupérer un client par ID
-    async fetchClientById(id) {
-      this.isLoading = true
-      this.error = null
-
+    async fetchClient(id) {
+      this.loading = true;
+      this.error = null;
       try {
-        const res = await fetch(`${API_URL}/${id}`)
-        if (!res.ok) throw new Error('HTTP ' + res.status)
-        return await res.json()
-      } catch (err) {
-        this.error = err.message
-        throw err
-      } finally {
-        this.isLoading = false
-      }
-    },
-
-    // CREATE - Créer un nouveau client
-    async createClient(clientData) {
-      this.isLoading = true
-      this.error = null
-
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(clientData)
-        })
-
-        if (!res.ok) {
-          const error = await res.json()
-          throw new Error(error.error || 'Erreur lors de la création')
-        }
-
-        const newClient = await res.json()
-        this.clients.push(newClient)
-        return newClient
-      } catch (err) {
-        this.error = err.message
-        throw err
-      } finally {
-        this.isLoading = false
-      }
-    },
-
-    // UPDATE - Mettre à jour un client
-    async updateClient(id, clientData) {
-      this.isLoading = true
-      this.error = null
-
-      try {
-        const res = await fetch(`${API_URL}/${id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(clientData)
-        })
-
-        if (!res.ok) {
-          const error = await res.json()
-          throw new Error(error.error || 'Erreur lors de la mise à jour')
-        }
-
-        const updatedClient = await res.json()
-        const index = this.clients.findIndex(c => c.id === id)
+        const client = await clientsAPI.getById(id);
+        const index = this.clients.findIndex(c => c.id === id);
         if (index !== -1) {
-          this.clients[index] = updatedClient
+          this.clients[index] = client;
+        } else {
+          this.clients.push(client);
         }
-        return updatedClient
-      } catch (err) {
-        this.error = err.message
-        throw err
+        return client;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
       } finally {
-        this.isLoading = false
+        this.loading = false;
       }
     },
 
-    // DELETE - Supprimer un client
-    async deleteClient(id) {
-      this.isLoading = true
-      this.error = null
-
+    async createClient(clientData) {
+      this.loading = true;
+      this.error = null;
       try {
-        const res = await fetch(`${API_URL}/${id}`, {
-          method: 'DELETE'
-        })
-
-        if (!res.ok) {
-          const error = await res.json()
-          throw new Error(error.error || 'Erreur lors de la suppression')
-        }
-
-        this.clients = this.clients.filter(c => c.id !== id)
-      } catch (err) {
-        this.error = err.message
-        throw err
+        const newClient = await clientsAPI.create(clientData);
+        this.clients.push(newClient);
+        return newClient;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
       } finally {
-        this.isLoading = false
+        this.loading = false;
       }
     },
 
-    // Actions pour gérer l'édition
-    setEditingClient(client) {
-      this.editingClient = client ? { ...client } : null
+    async updateClient(id, clientData) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const updatedClient = await clientsAPI.update(id, clientData);
+        const index = this.clients.findIndex(c => c.id === id);
+        if (index !== -1) {
+          this.clients[index] = updatedClient;
+        }
+        return updatedClient;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
     },
 
-    clearEditingClient() {
-      this.editingClient = null
-    }
-  }
-})
+    async deleteClient(id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        await clientsAPI.delete(id);
+        this.clients = this.clients.filter(c => c.id !== id);
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async fetchClientCommandes(clientId) {
+      try {
+        return await clientsAPI.getCommandes(clientId);
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      }
+    },
+  },
+});

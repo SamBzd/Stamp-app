@@ -1,268 +1,565 @@
 <template>
-  <div class="dashboard-container">
-    <header class="dashboard-header">
-      <h1 class="dashboard-title">💕 Mon Tableau de Bord 💕</h1>
-      <p class="dashboard-subtitle">Gérez votre activité en un coup d'œil</p>
-    </header>
+  <Layout>
+    <div class="dashboard">
+      <!-- Page Header -->
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">Dashboard</h1>
+          <p class="page-subtitle">Vue d'ensemble de votre activité</p>
+        </div>
+      </header>
 
-    <div class="dashboard-grid">
-      <!-- Carte 1: Liste des clients -->
-      <div 
-        class="dashboard-card card-clients"
-        @click="navigateToClients"
-      >
-        <div class="card-icon">👥</div>
-        <h2 class="card-title">Mes Clients</h2>
-        <p class="card-description">Gérez votre liste de clients</p>
-        <div class="card-stats">
-          <span class="stat-number">{{ clientsCount }}</span>
-          <span class="stat-label">clients</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-link">Voir la liste →</span>
-        </div>
-      </div>
+      <!-- Stats Cards -->
+      <section class="stats-section">
+        <div class="stats-grid">
+          <div class="stat-card stat-card-rose">
+            <div class="stat-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats.clients }}</span>
+              <span class="stat-label">Clients</span>
+            </div>
+          </div>
 
-      <!-- Carte 2: Vide (à venir) -->
-      <div class="dashboard-card card-coming-soon">
-        <div class="card-icon">✨</div>
-        <h2 class="card-title">Bientôt disponible</h2>
-        <p class="card-description">Une nouvelle fonctionnalité arrive...</p>
-        <div class="card-stats">
-          <span class="stat-number">-</span>
-          <span class="stat-label">en préparation</span>
-        </div>
-        <div class="card-footer">
-          <span class="card-link disabled">À venir</span>
-        </div>
-      </div>
+          <div class="stat-card stat-card-purple">
+            <div class="stat-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats.groupes }}</span>
+              <span class="stat-label">Groupes</span>
+            </div>
+          </div>
 
-      <!-- Carte 3: Vide (à venir) -->
-      <div class="dashboard-card card-coming-soon">
-        <div class="card-icon">🌟</div>
-        <h2 class="card-title">Bientôt disponible</h2>
-        <p class="card-description">Une nouvelle fonctionnalité arrive...</p>
-        <div class="card-stats">
-          <span class="stat-number">-</span>
-          <span class="stat-label">en préparation</span>
+          <div class="stat-card stat-card-blue">
+            <div class="stat-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats.commandes }}</span>
+              <span class="stat-label">Commandes</span>
+            </div>
+          </div>
+
+          <div class="stat-card stat-card-green">
+            <div class="stat-icon-wrapper">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
+            <div class="stat-content">
+              <span class="stat-value">{{ stats.commandesReglees }}</span>
+              <span class="stat-label">Réglées</span>
+            </div>
+          </div>
         </div>
-        <div class="card-footer">
-          <span class="card-link disabled">À venir</span>
+      </section>
+
+      <!-- Quick Actions -->
+      <section class="quick-actions-section">
+        <h2 class="section-title">Navigation rapide</h2>
+        <div class="quick-actions-grid">
+          <router-link to="/clients" class="action-card">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Gérer les clients</h3>
+              <p class="action-description">Ajouter, modifier ou consulter vos clients</p>
+            </div>
+            <div class="action-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </router-link>
+
+          <router-link to="/groupes" class="action-card">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Gérer les groupes</h3>
+              <p class="action-description">Créer et organiser vos groupes de collections</p>
+            </div>
+            <div class="action-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </router-link>
+
+          <router-link to="/commandes" class="action-card">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Gérer les commandes</h3>
+              <p class="action-description">Suivre et gérer toutes vos commandes</p>
+            </div>
+            <div class="action-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </router-link>
+
+          <router-link to="/stocks" class="action-card">
+            <div class="action-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                <line x1="12" y1="22.08" x2="12" y2="12"/>
+              </svg>
+            </div>
+            <div class="action-content">
+              <h3 class="action-title">Gestion des stocks</h3>
+              <p class="action-description">Visualiser et ajuster vos stocks</p>
+            </div>
+            <div class="action-arrow">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </div>
+          </router-link>
         </div>
-      </div>
+      </section>
+
+      <!-- Recent Activity -->
+      <section v-if="recentCommandes.length > 0" class="recent-section">
+        <div class="section-header">
+          <h2 class="section-title">Commandes récentes</h2>
+          <router-link to="/commandes" class="section-link">
+            Voir tout
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </router-link>
+        </div>
+        <div class="recent-list">
+          <div 
+            v-for="commande in recentCommandes" 
+            :key="commande.id" 
+            class="recent-item"
+          >
+            <div class="recent-item-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <div class="recent-item-content">
+              <span class="recent-item-title">Commande #{{ commande.id }}</span>
+              <span class="recent-item-subtitle">{{ getClientName(commande.client_id) }}</span>
+            </div>
+            <div class="recent-item-meta">
+              <span :class="['status-badge', commande.reglee ? 'status-success' : 'status-warning']">
+                {{ commande.reglee ? 'Réglée' : 'En attente' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
-  </div>
+  </Layout>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useClientsStore } from '../stores/clients'
+import { ref, onMounted, computed } from 'vue';
+import Layout from '../components/Layout.vue';
+import { useClientsStore } from '../stores/clients';
+import { useGroupesStore } from '../stores/groupes';
+import { useCommandesStore } from '../stores/commandes';
 
-const router = useRouter()
-const clientsStore = useClientsStore()
+const clientsStore = useClientsStore();
+const groupesStore = useGroupesStore();
+const commandesStore = useCommandesStore();
 
-const clientsCount = computed(() => clientsStore.clients.length)
+const loading = ref(true);
 
-onMounted(() => {
-  clientsStore.fetchClients()
-})
+const stats = computed(() => ({
+  clients: clientsStore.clients.length,
+  groupes: groupesStore.groupes.length,
+  commandes: commandesStore.commandes.length,
+  commandesReglees: commandesStore.commandes.filter(c => c.reglee === 1).length,
+}));
 
-const navigateToClients = () => {
-  router.push('/clients')
-}
+const recentCommandes = computed(() => {
+  return [...commandesStore.commandes]
+    .sort((a, b) => b.id - a.id)
+    .slice(0, 5);
+});
+
+const getClientName = (clientId) => {
+  const client = clientsStore.getClientById(clientId);
+  return client ? `${client.prenom} ${client.nom}` : `Client #${clientId}`;
+};
+
+onMounted(async () => {
+  try {
+    await Promise.all([
+      clientsStore.fetchClients(),
+      groupesStore.fetchGroupes(),
+      commandesStore.fetchCommandes(),
+    ]);
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <style scoped>
-.dashboard-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #ffeef8 0%, #f8e8ff 50%, #fff0f5 100%);
-  padding: 40px 20px;
+.dashboard {
+  max-width: 1200px;
 }
 
-.dashboard-header {
-  text-align: center;
-  margin-bottom: 50px;
-  padding: 30px 20px;
+.page-header {
+  margin-bottom: var(--spacing-8);
 }
 
-.dashboard-title {
-  font-size: 3.5rem;
-  color: #d63384;
-  margin: 0;
-  text-shadow: 2px 2px 4px rgba(214, 51, 132, 0.2);
-  font-weight: 700;
-  background: linear-gradient(135deg, #d63384 0%, #a855f7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.page-title {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  letter-spacing: var(--letter-spacing-tight);
+  margin-bottom: var(--spacing-1);
 }
 
-.dashboard-subtitle {
-  font-size: 1.3rem;
-  color: #a855f7;
-  margin: 15px 0 0 0;
-  font-style: italic;
-  font-weight: 300;
+.page-subtitle {
+  font-size: var(--font-size-md);
+  color: var(--text-secondary);
 }
 
-.dashboard-grid {
-  max-width: 1400px;
-  margin: 0 auto;
+/* === Stats Section === */
+.stats-section {
+  margin-bottom: var(--spacing-10);
+}
+
+.stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 30px;
-  padding: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--spacing-5);
 }
 
-.dashboard-card {
-  background: white;
-  border-radius: 25px;
-  padding: 40px 30px;
-  box-shadow: 0 10px 30px rgba(214, 51, 132, 0.15);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  cursor: pointer;
-  border: 3px solid transparent;
-  position: relative;
-  overflow: hidden;
+.stat-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-5);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
 }
 
-.dashboard-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 5px;
-  background: linear-gradient(90deg, #ff6b9d 0%, #c44569 50%, #a855f7 100%);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
-.dashboard-card:hover::before {
-  transform: scaleX(1);
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.card-clients {
-  background: linear-gradient(135deg, #fff 0%, #ffeef8 100%);
+.stat-icon-wrapper svg {
+  width: 24px;
+  height: 24px;
 }
 
-.card-clients:hover {
-  transform: translateY(-10px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(214, 51, 132, 0.25);
-  border-color: #ffb3d9;
+.stat-card-rose .stat-icon-wrapper {
+  background: var(--rose-100);
+  color: var(--rose-600);
 }
 
-.card-coming-soon {
-  background: linear-gradient(135deg, #fff 0%, #f8f8f8 100%);
-  opacity: 0.7;
-  cursor: not-allowed;
+.stat-card-purple .stat-icon-wrapper {
+  background: #f3e8ff;
+  color: #9333ea;
 }
 
-.card-coming-soon:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+.stat-card-blue .stat-icon-wrapper {
+  background: #dbeafe;
+  color: #2563eb;
 }
 
-.card-icon {
-  font-size: 4rem;
-  text-align: center;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 4px 8px rgba(214, 51, 132, 0.2));
-  animation: float 3s ease-in-out infinite;
+.stat-card-green .stat-icon-wrapper {
+  background: #d1fae5;
+  color: #059669;
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-}
-
-.card-title {
-  font-size: 1.8rem;
-  color: #d63384;
-  margin: 0 0 10px 0;
-  font-weight: 700;
-  text-align: center;
-}
-
-.card-description {
-  font-size: 1rem;
-  color: #666;
-  margin: 0 0 30px 0;
-  text-align: center;
-  line-height: 1.6;
-}
-
-.card-stats {
+.stat-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 25px;
-  padding: 20px;
-  background: linear-gradient(135deg, #ffeef8 0%, #f8e8ff 100%);
-  border-radius: 15px;
 }
 
-.stat-number {
-  font-size: 3rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #ff6b9d 0%, #a855f7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+.stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: #a855f7;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-1);
 }
 
-.card-footer {
-  text-align: center;
-  padding-top: 20px;
-  border-top: 2px solid #ffeef8;
+/* === Section Title === */
+.section-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-5);
 }
 
-.card-link {
-  color: #ff6b9d;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  display: inline-block;
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-5);
 }
 
-.card-clients:hover .card-link {
-  color: #d63384;
-  transform: translateX(5px);
+.section-header .section-title {
+  margin-bottom: 0;
 }
 
-.card-link.disabled {
-  color: #bbb;
-  cursor: not-allowed;
+.section-link {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-1);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--rose-600);
+  text-decoration: none;
 }
 
+.section-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.section-link:hover {
+  color: var(--rose-700);
+}
+
+/* === Quick Actions === */
+.quick-actions-section {
+  margin-bottom: var(--spacing-10);
+}
+
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.action-card {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-5);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--rose-200);
+}
+
+.action-card:hover .action-icon {
+  background: var(--rose-100);
+  color: var(--rose-600);
+}
+
+.action-card:hover .action-arrow {
+  transform: translateX(4px);
+  opacity: 1;
+}
+
+.action-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--gray-100);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: all var(--transition-normal);
+}
+
+.action-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.action-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.action-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-1);
+}
+
+.action-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.action-arrow {
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: all var(--transition-normal);
+}
+
+.action-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* === Recent Section === */
+.recent-section {
+  background: var(--bg-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-6);
+  border: 1px solid var(--border-color-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4) 0;
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.recent-item:first-child {
+  padding-top: 0;
+}
+
+.recent-item-icon {
+  width: 36px;
+  height: 36px;
+  background: var(--rose-50);
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--rose-500);
+  flex-shrink: 0;
+}
+
+.recent-item-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.recent-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recent-item-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.recent-item-subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.recent-item-meta {
+  flex-shrink: 0;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-1) var(--spacing-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-full);
+}
+
+.status-success {
+  background: var(--success-light);
+  color: #059669;
+}
+
+.status-warning {
+  background: var(--warning-light);
+  color: #d97706;
+}
+
+/* === Responsive === */
 @media (max-width: 768px) {
-  .dashboard-title {
-    font-size: 2.5rem;
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-
-  .dashboard-grid {
+  
+  .quick-actions-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .dashboard-card {
-    padding: 30px 20px;
   }
 }
 </style>
-

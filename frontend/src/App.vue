@@ -3,9 +3,10 @@
 </template>
 
 <script setup>
-// Le composant App sert maintenant uniquement de conteneur pour le router
+// Le composant App sert uniquement de conteneur pour le router
+// Le Layout est géré dans chaque vue individuellement
 </script>
 
-<style scoped>
-/* Styles globaux dans style.css */
+<style>
+/* Les styles globaux sont dans style.css */
 </style>

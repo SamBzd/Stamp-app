@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "migrate:stocks": "node src/migrate-stocks.js"
   },
   "keywords": [],
   "author": "",

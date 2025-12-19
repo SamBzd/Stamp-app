@@ -9,6 +9,7 @@ const clientsRoutes = require('./routes/client')
 const collectionsRoutes = require('./routes/collection')
 const groupesRoutes = require('./routes/groupes')
 const commandesRoutes = require('./routes/commandes')
+const stocksRoutes = require('./routes/stocks')
 
 app.use(cors())
 app.use(express.json())
@@ -29,6 +30,9 @@ app.use('/api/groupes', groupesRoutes)
 
 // Routes pour les commandes
 app.use('/api/commandes', commandesRoutes)
+
+// Routes pour les stocks
+app.use('/api/stocks', stocksRoutes)
 
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`)

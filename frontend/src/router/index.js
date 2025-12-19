@@ -11,7 +11,22 @@ export default createRouter({
     { 
       path: '/clients', 
       name: 'clients', 
-      component: () => import('../views/ClientsListView.vue') 
+      component: () => import('../views/ClientsView.vue') 
+    },
+    { 
+      path: '/groupes', 
+      name: 'groupes', 
+      component: () => import('../views/GroupesView.vue') 
+    },
+    { 
+      path: '/commandes', 
+      name: 'commandes', 
+      component: () => import('../views/CommandesView.vue') 
+    },
+    { 
+      path: '/stocks', 
+      name: 'stocks', 
+      component: () => import('../views/StocksView.vue') 
     }
   ]
 })
