@@ -3,26 +3,15 @@
     <Transition name="modal">
       <div v-if="isOpen" class="modal-overlay" @click.self="handleClose">
         <div class="modal-container" :style="{ maxWidth: maxWidth }">
-          <!-- Barre de titre macOS style -->
+          <!-- Barre de titre -->
           <div class="modal-header">
-            <div class="traffic-lights">
-              <button 
-                class="traffic-light red" 
-                @click="handleClose"
-                title="Fermer"
-              ></button>
-              <button 
-                class="traffic-light yellow" 
-                @click="handleMinimize"
-                title="Réduire"
-              ></button>
-              <button 
-                class="traffic-light green"
-                title="Agrandir"
-              ></button>
-            </div>
             <h2 class="modal-title">{{ title }}</h2>
-            <div class="modal-header-spacer"></div>
+            <button class="modal-close" @click="handleClose" title="Fermer">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
           </div>
 
           <!-- Contenu -->
@@ -62,14 +51,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['close', 'minimize']);
+const emit = defineEmits(['close']);
 
 const handleClose = () => {
   emit('close');
-};
-
-const handleMinimize = () => {
-  emit('minimize');
 };
 
 // Fermer avec la touche Escape
@@ -131,75 +116,12 @@ onUnmounted(() => {
 .modal-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding: var(--spacing-4) var(--spacing-5);
   background: linear-gradient(180deg, var(--gray-50) 0%, var(--gray-100) 100%);
   border-bottom: 1px solid var(--border-color);
   min-height: 52px;
   user-select: none;
-}
-
-.traffic-lights {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.traffic-light {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.traffic-light:hover {
-  filter: brightness(0.9);
-}
-
-.traffic-light.red { 
-  background: var(--macos-red);
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.1);
-}
-
-.traffic-light.yellow { 
-  background: var(--macos-yellow);
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.1);
-}
-
-.traffic-light.green { 
-  background: var(--macos-green);
-  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.1);
-}
-
-/* Icons inside traffic lights on hover */
-.traffic-lights:hover .traffic-light.red::after {
-  content: '×';
-  font-size: 11px;
-  font-weight: bold;
-  color: rgba(74, 0, 0, 0.8);
-  line-height: 1;
-}
-
-.traffic-lights:hover .traffic-light.yellow::after {
-  content: '−';
-  font-size: 14px;
-  font-weight: bold;
-  color: rgba(92, 69, 0, 0.8);
-  line-height: 0.7;
-}
-
-.traffic-lights:hover .traffic-light.green::after {
-  content: '+';
-  font-size: 12px;
-  font-weight: bold;
-  color: rgba(0, 74, 0, 0.8);
-  line-height: 1;
 }
 
 .modal-title {
@@ -208,13 +130,31 @@ onUnmounted(() => {
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
-  text-align: center;
-  padding: 0 var(--spacing-4);
 }
 
-.modal-header-spacer {
-  width: 52px; /* Équilibre les contrôles */
+.modal-close {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
   flex-shrink: 0;
+}
+
+.modal-close:hover {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+.modal-close svg {
+  width: 16px;
+  height: 16px;
 }
 
 .modal-content {

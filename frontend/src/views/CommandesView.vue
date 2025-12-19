@@ -88,9 +88,18 @@
               <span class="number-label">Commande n°</span>
               <span class="number-value">{{ commande.id }}</span>
             </div>
-            <span :class="['status-pill', commande.reglee ? 'status-success' : 'status-warning']">
-              {{ commande.reglee ? 'Réglée' : 'En attente' }}
-            </span>
+            <button 
+              :class="['status-toggle', commande.reglee ? 'status-toggle-success' : 'status-toggle-warning']"
+              @click.stop="toggleReglee(commande)"
+              :title="commande.reglee ? 'Marquer comme non réglée' : 'Marquer comme réglée'"
+            >
+              <span class="status-toggle-check">
+                <svg v-if="commande.reglee" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
+              <span class="status-toggle-text">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span>
+            </button>
           </div>
 
           <!-- Client -->
@@ -771,6 +780,19 @@ const deleteCommande = async () => {
   }
 };
 
+// Toggle reglee status
+const toggleReglee = async (commande) => {
+  try {
+    const newReglee = commande.reglee ? 0 : 1;
+    await commandesStore.updateCommande(commande.id, {
+      ...commande,
+      reglee: newReglee,
+    });
+  } catch (error) {
+    console.error('Erreur lors du changement de statut:', error);
+  }
+};
+
 // Load collections for display
 const loadCommandesCollections = async () => {
   for (const commande of commandesStore.commandes) {
@@ -958,6 +980,76 @@ onMounted(async () => {
 .status-warning {
   background: #fef3c7;
   color: #d97706;
+}
+
+/* === Status Toggle Button === */
+.status-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.status-toggle:hover {
+  transform: scale(1.05);
+}
+
+.status-toggle:active {
+  transform: scale(0.98);
+}
+
+.status-toggle-success {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.status-toggle-success:hover {
+  background: #a7f3d0;
+}
+
+.status-toggle-warning {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.status-toggle-warning:hover {
+  background: #fde68a;
+}
+
+.status-toggle-check {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.status-toggle-success .status-toggle-check {
+  background: #059669;
+}
+
+.status-toggle-warning .status-toggle-check {
+  background: transparent;
+  border: 2px solid #d97706;
+}
+
+.status-toggle-check svg {
+  width: 10px;
+  height: 10px;
+  color: white;
+}
+
+.status-toggle-text {
+  line-height: 1;
 }
 
 .commande-client {

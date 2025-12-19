@@ -25,14 +25,6 @@
   --rose-800: #9f1239;
   --rose-900: #881337;
 
-  /* === Couleurs iOS/macOS - Traffic Lights === */
-  --macos-red: #ff5f57;
-  --macos-red-hover: #ff4136;
-  --macos-yellow: #febc2e;
-  --macos-yellow-hover: #ffa600;
-  --macos-green: #28c840;
-  --macos-green-hover: #1db954;
-
   /* === Couleurs neutres === */
   --gray-25: #fcfcfd;
   --gray-50: #f9fafb;
@@ -460,66 +452,6 @@ a:hover {
 .hover-lift:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
-}
-
-/* === Traffic Light Buttons Container === */
-.traffic-lights {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.traffic-light {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: none;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  position: relative;
-}
-
-.traffic-light:hover {
-  filter: brightness(0.9);
-}
-
-.traffic-light.red { background: var(--macos-red); }
-.traffic-light.yellow { background: var(--macos-yellow); }
-.traffic-light.green { background: var(--macos-green); }
-
-/* Icons inside traffic lights on hover */
-.traffic-light::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.traffic-lights:hover .traffic-light.red::after {
-  content: '×';
-  font-size: 10px;
-  font-weight: bold;
-  color: #4a0000;
-  opacity: 1;
-}
-
-.traffic-lights:hover .traffic-light.yellow::after {
-  content: '−';
-  font-size: 10px;
-  font-weight: bold;
-  color: #5c4500;
-  opacity: 1;
-}
-
-.traffic-lights:hover .traffic-light.green::after {
-  content: '+';
-  font-size: 10px;
-  font-weight: bold;
-  color: #004a00;
-  opacity: 1;
 }
 
 /* === Page Header === */

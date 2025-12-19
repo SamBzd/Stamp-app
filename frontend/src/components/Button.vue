@@ -180,7 +180,7 @@ const handleClick = (event) => {
 }
 
 .btn-danger {
-  background: linear-gradient(180deg, var(--macos-red) 0%, #e04e4e 100%);
+  background: linear-gradient(180deg, var(--error) 0%, #dc2626 100%);
   color: white;
   box-shadow: 
     0 1px 2px rgba(0, 0, 0, 0.05),
@@ -188,14 +188,14 @@ const handleClick = (event) => {
 }
 
 .btn-danger:hover:not(.btn-disabled):not(.btn-loading) {
-  background: linear-gradient(180deg, #e04e4e 0%, #cc4545 100%);
+  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
   box-shadow: 
-    0 4px 12px rgba(255, 95, 87, 0.35),
+    0 4px 12px rgba(239, 68, 68, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .btn-success {
-  background: linear-gradient(180deg, var(--macos-green) 0%, #1db954 100%);
+  background: linear-gradient(180deg, var(--success) 0%, #059669 100%);
   color: white;
   box-shadow: 
     0 1px 2px rgba(0, 0, 0, 0.05),
@@ -203,9 +203,9 @@ const handleClick = (event) => {
 }
 
 .btn-success:hover:not(.btn-disabled):not(.btn-loading) {
-  background: linear-gradient(180deg, #1db954 0%, #1aa34a 100%);
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
   box-shadow: 
-    0 4px 12px rgba(40, 200, 64, 0.35),
+    0 4px 12px rgba(16, 185, 129, 0.35),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 

@@ -2,15 +2,6 @@
   <div class="app-layout">
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
-      <!-- Window Controls -->
-      <div class="sidebar-header">
-        <div class="traffic-lights">
-          <button class="traffic-light red" title="Fermer"></button>
-          <button class="traffic-light yellow" title="Réduire"></button>
-          <button class="traffic-light green" title="Agrandir"></button>
-        </div>
-      </div>
-
       <!-- Logo / Brand -->
       <div class="sidebar-brand">
         <div class="brand-icon">
@@ -139,12 +130,6 @@ const isActive = (path) => {
   left: 0;
   height: 100vh;
   z-index: var(--z-sticky);
-}
-
-.sidebar-header {
-  padding: var(--spacing-4) var(--spacing-5);
-  display: flex;
-  align-items: center;
 }
 
 .sidebar-brand {
@@ -283,27 +268,6 @@ const isActive = (path) => {
   width: 100%;
   margin: 0 auto;
 }
-
-/* === Traffic Lights === */
-.traffic-lights {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.traffic-light {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: none;
-  cursor: default;
-  transition: all var(--transition-fast);
-  position: relative;
-}
-
-.traffic-light.red { background: var(--macos-red); }
-.traffic-light.yellow { background: var(--macos-yellow); }
-.traffic-light.green { background: var(--macos-green); }
 
 /* === Responsive === */
 @media (max-width: 1024px) {
