@@ -44,7 +44,7 @@
 
       <div v-else class="catalogues-grid">
         <div
-          v-for="groupe in groupesStore.groupes"
+          v-for="groupe in sortedGroupes"
           :key="groupe.id"
           class="catalogue-card"
           @click="viewCatalogue(groupe)"
@@ -460,6 +460,13 @@ const newCollectionName = ref('');
 
 // Computed
 const formModalTitle = computed(() => isEditing.value ? 'Modifier le catalogue' : 'Nouveau catalogue');
+
+const sortedGroupes = computed(() => {
+  return [...groupesStore.groupes].sort((a, b) => {
+    // Trier par ID décroissant (plus récent = ID plus grand)
+    return b.id - a.id;
+  });
+});
 
 const availableCollectionsForForm = computed(() => {
   const selectedIds = formCollections.value.map(c => c.id).filter(Boolean);
