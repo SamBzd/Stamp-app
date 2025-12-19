@@ -21,9 +21,9 @@
       <!-- Filters -->
       <div class="filters-bar">
         <div class="filter-group">
-          <label class="filter-label">Filtrer par groupe</label>
+          <label class="filter-label">Filtrer par catalogue</label>
           <select v-model="selectedGroupeFilter" class="filter-select">
-            <option value="">Tous les groupes</option>
+            <option value="">Tous les catalogues</option>
             <option 
               v-for="groupe in groupesStore.groupes" 
               :key="groupe.id" 
@@ -75,83 +75,70 @@
         <Button v-if="!selectedGroupeFilter" @click="openCreateModal">Nouvelle commande</Button>
       </div>
 
-      <div v-else class="commandes-list">
+      <div v-else class="commandes-grid">
         <div
           v-for="commande in filteredCommandes"
           :key="commande.id"
           class="commande-card"
+          @click="viewCommande(commande)"
         >
+          <!-- Header -->
           <div class="commande-header">
-            <div class="commande-id-badge">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="9" cy="21" r="1"/>
-                <circle cx="20" cy="21" r="1"/>
-                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-              </svg>
-              <span>#{{ commande.id }}</span>
+            <div class="commande-number">
+              <span class="number-label">Commande n°</span>
+              <span class="number-value">{{ commande.id }}</span>
             </div>
-            <span :class="['status-badge', commande.reglee ? 'status-success' : 'status-warning']">
+            <span :class="['status-pill', commande.reglee ? 'status-success' : 'status-warning']">
               {{ commande.reglee ? 'Réglée' : 'En attente' }}
             </span>
           </div>
 
-          <div class="commande-body">
-            <div class="commande-info-grid">
-              <div class="info-item">
-                <span class="info-label">Client</span>
-                <span class="info-value">{{ getClientName(commande.client_id) }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Collection</span>
-                <span class="info-value">{{ commandeCollectionsMap[commande.id] || '...' }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Format</span>
-                <span class="info-value format-badge">{{ commande.format_type }}</span>
-              </div>
-              <div class="info-item">
-                <span class="info-label">Paiement</span>
-                <span class="info-value">{{ commande.methode_paiement }}</span>
+          <!-- Client -->
+          <div class="commande-client">
+            <div class="client-avatar-small">
+              {{ getClientInitials(commande.client_id) }}
+            </div>
+            <span class="client-name">{{ getClientName(commande.client_id) }}</span>
+          </div>
+
+          <!-- Details -->
+          <div class="commande-details-row">
+            <div class="detail-left">
+              <span class="detail-catalogue">{{ getGroupeName(commande.groupe_id) }}</span>
+              <div class="detail-tags">
+                <span :class="['format-badge-small', `format-${commande.format_type.toLowerCase()}`]">
+                  {{ commande.format_type }}
+                </span>
+                <span v-if="commande.papier_supplementaire" class="papier-badge">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  +Papier
+                </span>
               </div>
             </div>
-            
-            <div v-if="commande.papier_supplementaire || commande.articles_supplementaires" class="commande-extras">
-              <span v-if="commande.papier_supplementaire" class="extra-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                Papier supp.
-              </span>
-              <span v-if="commande.articles_supplementaires" class="extra-badge">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <line x1="12" y1="5" x2="12" y2="19"/>
-                  <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                {{ commande.articles_supplementaires }}
-              </span>
+            <div class="detail-price">
+              {{ getCommandeTotalPrice(commande) }}€
             </div>
           </div>
 
-          <div class="commande-actions">
-            <button class="action-btn" title="Voir les détails" @click="viewCommande(commande)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-            </button>
-            <button class="action-btn" title="Modifier" @click="editCommande(commande)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </button>
-            <button class="action-btn action-btn-danger" title="Supprimer" @click="confirmDelete(commande)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
+          <!-- Collections -->
+          <div class="commande-collections-preview">
+            <span 
+              v-for="col in getCommandeCollectionsPreview(commande.id)" 
+              :key="col"
+              class="collection-mini-chip"
+            >
+              {{ col }}
+            </span>
+          </div>
+
+          <!-- Arrow -->
+          <div class="commande-arrow">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
           </div>
         </div>
       </div>
@@ -160,123 +147,280 @@
       <Modal
         :is-open="isModalOpen"
         :title="modalTitle"
+        max-width="700px"
         @close="closeModal"
       >
-        <form @submit.prevent="handleSubmit">
-          <FormSelect
-            v-model="formData.client_id"
-            label="Client"
-            :options="clientsOptions"
-            placeholder="Sélectionner un client"
-            required
-            :error="errors.client_id"
-          />
-          
-          <FormSelect
-            v-model="formData.collection_id"
-            label="Collection"
-            :options="collectionsOptions"
-            placeholder="Sélectionner une collection"
-            required
-            :error="errors.collection_id"
-            :disabled="collectionsOptions.length === 0"
-            @update:model-value="onCollectionChange"
-          />
-
-          <div class="form-row">
-            <FormSelect
-              v-model="formData.format_type"
-              label="Format"
-              :options="formatOptions"
-              placeholder="Sélectionner"
-              required
-              :error="errors.format_type"
-              :disabled="!formData.collection_id"
-            />
-            <FormSelect
-              v-model="formData.methode_paiement"
-              label="Méthode de paiement"
-              :options="paiementOptions"
-              placeholder="Sélectionner"
-              required
-              :error="errors.methode_paiement"
-            />
+        <div class="order-wizard">
+          <!-- Step 1: Client -->
+          <div class="wizard-step">
+            <div class="step-header">
+              <div class="step-number">1</div>
+              <div class="step-info">
+                <h4 class="step-title">Cliente</h4>
+                <p class="step-desc">Qui passe la commande ?</p>
+              </div>
+            </div>
+            <div class="step-content">
+              <FormSelect
+                v-model="formData.client_id"
+                label=""
+                :options="clientsOptions"
+                placeholder="Sélectionner une cliente..."
+                :error="errors.client_id"
+              />
+            </div>
           </div>
 
-          <FormCheckbox
-            v-model="formData.papier_supplementaire"
-            label="Papier supplémentaire"
-          />
+          <!-- Step 2: Catalogue & Format -->
+          <div class="wizard-step" :class="{ 'step-disabled': !formData.client_id }">
+            <div class="step-header">
+              <div class="step-number">2</div>
+              <div class="step-info">
+                <h4 class="step-title">Catalogue & Format</h4>
+                <p class="step-desc">Choisissez le catalogue et le format</p>
+              </div>
+            </div>
+            <div class="step-content">
+              <FormSelect
+                v-model="formData.groupe_id"
+                label="Catalogue"
+                :options="groupesOptions"
+                placeholder="Sélectionner un catalogue..."
+                :error="errors.groupe_id"
+                :disabled="!formData.client_id"
+                @update:model-value="onCatalogueChange"
+              />
 
-          <FormInput
-            v-model="formData.articles_supplementaires"
-            label="Articles supplémentaires"
-            placeholder="Description des articles supplémentaires"
-          />
+              <div v-if="formData.groupe_id && selectedGroupePrices" class="format-selector">
+                <label class="format-selector-label">Format</label>
+                <div class="format-cards">
+                  <div 
+                    v-for="format in ['A', 'B', 'C']" 
+                    :key="format"
+                    :class="['format-card', `format-card-${format.toLowerCase()}`, { 'format-card-selected': formData.format_type === format }]"
+                    @click="selectFormat(format)"
+                  >
+                    <div class="format-card-letter">{{ format }}</div>
+                    <div class="format-card-price">{{ selectedGroupePrices[`format_${format}_prix`] }}€</div>
+                    <div class="format-card-collections">{{ format === 'C' ? '1 collection' : '2 collections' }}</div>
+                    <div v-if="formData.format_type === format" class="format-card-check">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                <p v-if="errors.format_type" class="form-error">{{ errors.format_type }}</p>
+              </div>
+            </div>
+          </div>
 
-          <FormCheckbox
-            v-model="formData.reglee"
-            label="Commande réglée"
-            description="Cochez si le paiement a été effectué"
-          />
-        </form>
+          <!-- Step 3: Collections -->
+          <div class="wizard-step" :class="{ 'step-disabled': !formData.format_type }">
+            <div class="step-header">
+              <div class="step-number">3</div>
+              <div class="step-info">
+                <h4 class="step-title">Collections</h4>
+                <p class="step-desc">
+                  {{ formData.format_type === 'C' ? 'Choisissez 1 collection' : 'Choisissez 2 collections' }}
+                </p>
+              </div>
+            </div>
+            <div class="step-content">
+              <div v-if="catalogueCollections.length > 0" class="collections-picker">
+                <div 
+                  v-for="col in catalogueCollections" 
+                  :key="col.id"
+                  :class="['collection-pick-card', { 'collection-picked': isCollectionSelected(col.id) }]"
+                  @click="toggleCollection(col.id)"
+                >
+                  <div class="pick-checkbox">
+                    <svg v-if="isCollectionSelected(col.id)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <span class="pick-name">{{ col.nom }}</span>
+                  <span class="pick-order" v-if="isCollectionSelected(col.id)">
+                    {{ getCollectionOrder(col.id) }}
+                  </span>
+                </div>
+              </div>
+              <div v-else-if="formData.groupe_id" class="collections-empty-picker">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                </svg>
+                <p>Aucune collection dans ce catalogue</p>
+              </div>
+              <p v-if="errors.collections" class="form-error">{{ errors.collections }}</p>
+            </div>
+          </div>
+
+          <!-- Step 4: Options -->
+          <div class="wizard-step" :class="{ 'step-disabled': !hasValidCollections }">
+            <div class="step-header">
+              <div class="step-number">4</div>
+              <div class="step-info">
+                <h4 class="step-title">Paiement & Options</h4>
+                <p class="step-desc">Finalisez la commande</p>
+              </div>
+            </div>
+            <div class="step-content">
+              <div class="options-grid">
+                <FormSelect
+                  v-model="formData.methode_paiement"
+                  label="Méthode de paiement"
+                  :options="paiementOptions"
+                  placeholder="Sélectionner..."
+                  :error="errors.methode_paiement"
+                  :disabled="!hasValidCollections"
+                />
+
+                <div class="option-checkboxes">
+                  <FormCheckbox
+                    v-model="formData.papier_supplementaire"
+                    label="Papier supplémentaire"
+                    :disabled="!hasValidCollections"
+                  />
+                  <FormCheckbox
+                    v-model="formData.reglee"
+                    label="Commande réglée"
+                    description="Cochez si le paiement a été effectué"
+                    :disabled="!hasValidCollections"
+                  />
+                </div>
+              </div>
+
+              <FormInput
+                v-model="formData.articles_supplementaires"
+                label="Articles supplémentaires"
+                placeholder="Ex: Marque-pages, Carte postale..."
+                :disabled="!hasValidCollections"
+              />
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div v-if="hasValidCollections && formData.methode_paiement" class="order-summary">
+            <div class="summary-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"/>
+                <circle cx="20" cy="21" r="1"/>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+              </svg>
+            </div>
+            <div class="summary-details">
+              <span class="summary-title">Récapitulatif</span>
+              <span class="summary-text">
+                {{ selectedCollections.length }} collection(s) · Format {{ formData.format_type }} · {{ formData.methode_paiement }}
+                <template v-if="formData.papier_supplementaire"> · +Papier</template>
+              </span>
+            </div>
+            <div class="summary-price-group">
+              <div v-if="formData.papier_supplementaire" class="summary-price-detail">
+                <span>{{ selectedGroupePrices?.[`format_${formData.format_type}_prix`] || 0 }}€ + {{ SUPPLEMENT_PAPIER }}€</span>
+              </div>
+              <div class="summary-price">{{ totalPrice }}€</div>
+            </div>
+          </div>
+        </div>
         <template #footer>
           <Button variant="secondary" @click="closeModal">Annuler</Button>
-          <Button @click="handleSubmit" :loading="saving">
-            {{ isEditing ? 'Enregistrer' : 'Créer' }}
+          <Button @click="handleSubmit" :loading="saving" :disabled="!canSubmit">
+            {{ isEditing ? 'Enregistrer' : 'Créer la commande' }}
           </Button>
         </template>
       </Modal>
 
-      <!-- Modal détails commande -->
+      <!-- Modal Vue Commande -->
       <Modal
-        :is-open="isDetailsModalOpen"
-        :title="`Commande #${selectedCommande?.id}`"
-        @close="closeDetailsModal"
+        :is-open="isViewModalOpen"
+        :title="''"
+        max-width="600px"
+        @close="closeViewModal"
       >
-        <div v-if="commandeDetailsLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <span class="loading-state-text">Chargement...</span>
-        </div>
-        <div v-else-if="commandeDetails" class="commande-details">
-          <div class="detail-section">
-            <div class="detail-row">
-              <span class="detail-label">Client</span>
-              <span class="detail-value">{{ getClientName(commandeDetails.client_id) }}</span>
+        <div v-if="selectedCommande" class="commande-view">
+          <div class="view-header">
+            <div class="view-number">
+              <span class="view-hash">#</span>{{ selectedCommande.id }}
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Groupe</span>
-              <span class="detail-value">{{ getGroupeName(commandeDetails.groupe_id) }}</span>
+            <span :class="['status-pill status-pill-lg', selectedCommande.reglee ? 'status-success' : 'status-warning']">
+              {{ selectedCommande.reglee ? 'Réglée' : 'En attente' }}
+            </span>
+          </div>
+
+          <div class="view-client">
+            <div class="view-client-avatar">
+              {{ getClientInitials(selectedCommande.client_id) }}
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Format</span>
-              <span class="detail-value">{{ commandeDetails.format_type }}</span>
+            <div class="view-client-info">
+              <span class="view-client-name">{{ getClientName(selectedCommande.client_id) }}</span>
+              <span class="view-client-label">Cliente</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Paiement</span>
-              <span class="detail-value">{{ commandeDetails.methode_paiement }}</span>
+          </div>
+
+          <div class="view-details">
+            <div class="view-detail-row">
+              <span class="view-detail-label">Catalogue</span>
+              <span class="view-detail-value">{{ getGroupeName(selectedCommande.groupe_id) }}</span>
             </div>
-            <div class="detail-row">
-              <span class="detail-label">Statut</span>
-              <span :class="['status-badge', commandeDetails.reglee ? 'status-success' : 'status-warning']">
-                {{ commandeDetails.reglee ? 'Réglée' : 'En attente' }}
+            <div class="view-detail-row">
+              <span class="view-detail-label">Format</span>
+              <span :class="['format-badge-view', `format-${selectedCommande.format_type.toLowerCase()}`]">
+                {{ selectedCommande.format_type }}
+              </span>
+            </div>
+            <div class="view-detail-row">
+              <span class="view-detail-label">Prix</span>
+              <span class="view-detail-value view-price">{{ getFormatPrice(selectedCommande) }}€</span>
+            </div>
+            <div class="view-detail-row">
+              <span class="view-detail-label">Paiement</span>
+              <span class="view-detail-value">{{ selectedCommande.methode_paiement }}</span>
+            </div>
+          </div>
+
+          <div v-if="viewCollections.length > 0" class="view-collections">
+            <span class="view-collections-label">Collections</span>
+            <div class="view-collections-list">
+              <span v-for="col in viewCollections" :key="col.id" class="view-collection-chip">
+                {{ col.nom }}
               </span>
             </div>
           </div>
 
-          <div v-if="commandeCollections.length > 0" class="detail-section">
-            <h4 class="detail-section-title">Collections</h4>
-            <div class="detail-collections">
-              <span 
-                v-for="collection in commandeCollections" 
-                :key="collection.id"
-                class="collection-tag"
-              >
-                {{ collection.nom }}
-              </span>
-            </div>
+          <div v-if="selectedCommande.papier_supplementaire || selectedCommande.articles_supplementaires" class="view-extras">
+            <span v-if="selectedCommande.papier_supplementaire" class="view-extra-badge">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              Papier supplémentaire
+            </span>
+            <span v-if="selectedCommande.articles_supplementaires" class="view-extra-badge">
+              {{ selectedCommande.articles_supplementaires }}
+            </span>
           </div>
         </div>
+        <template #footer>
+          <Button variant="danger" @click="confirmDeleteFromView">
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              </svg>
+            </template>
+            Supprimer
+          </Button>
+          <Button variant="secondary" @click="editFromView">
+            <template #icon>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </template>
+            Modifier
+          </Button>
+        </template>
       </Modal>
 
       <!-- Confirm Delete Dialog -->
@@ -294,7 +438,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, reactive } from 'vue';
 import Layout from '../components/Layout.vue';
 import Modal from '../components/Modal.vue';
 import Button from '../components/Button.vue';
@@ -312,56 +456,88 @@ const clientsStore = useClientsStore();
 const groupesStore = useGroupesStore();
 const collectionsStore = useCollectionsStore();
 
+// State
 const isModalOpen = ref(false);
-const isDetailsModalOpen = ref(false);
+const isViewModalOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
 const isEditing = ref(false);
 const editingCommandeId = ref(null);
 const selectedCommande = ref(null);
 const commandeToDelete = ref(null);
-const commandeDetails = ref(null);
-const commandeCollections = ref([]);
-const commandeDetailsLoading = ref(false);
 const selectedGroupeFilter = ref('');
 const saving = ref(false);
 
+// View modal
+const viewCollections = ref([]);
+
+// Form
 const formData = ref({
   client_id: '',
-  collection_id: '',
-  groupe_id: null,
+  groupe_id: '',
   format_type: '',
   methode_paiement: '',
   papier_supplementaire: false,
   articles_supplementaires: '',
   reglee: false,
 });
-
+const selectedCollections = ref([]);
+const catalogueCollections = ref([]);
 const errors = ref({});
-const commandeCollectionsMap = ref({});
-const collectionsOptions = ref([]);
 
-const modalTitle = computed(() => {
-  return isEditing.value ? 'Modifier la commande' : 'Nouvelle commande';
-});
+// Cache collections par commande
+const commandeCollectionsCache = reactive({});
+
+// Computed
+const modalTitle = computed(() => isEditing.value ? 'Modifier la commande' : 'Nouvelle commande');
 
 const clientsOptions = computed(() => {
   return clientsStore.clients.map(c => ({
-    value: c.id,
+    value: c.id.toString(),
     label: `${c.prenom} ${c.nom}`,
   }));
 });
 
-const formatOptions = [
-  { value: 'A', label: 'Format A' },
-  { value: 'B', label: 'Format B' },
-  { value: 'C', label: 'Format C' },
-];
+const groupesOptions = computed(() => {
+  return groupesStore.groupes.map(g => ({
+    value: g.id.toString(),
+    label: g.nom,
+  }));
+});
 
 const paiementOptions = [
   { value: 'Paypal', label: 'Paypal' },
   { value: 'chèque', label: 'Chèque' },
   { value: 'virement', label: 'Virement' },
 ];
+
+const selectedGroupePrices = computed(() => {
+  if (!formData.value.groupe_id) return null;
+  return groupesStore.getGroupeById(parseInt(formData.value.groupe_id));
+});
+
+const requiredCollectionsCount = computed(() => {
+  return formData.value.format_type === 'C' ? 1 : 2;
+});
+
+const hasValidCollections = computed(() => {
+  return selectedCollections.value.length === requiredCollectionsCount.value;
+});
+
+const canSubmit = computed(() => {
+  return formData.value.client_id 
+    && formData.value.groupe_id 
+    && formData.value.format_type 
+    && hasValidCollections.value 
+    && formData.value.methode_paiement;
+});
+
+const SUPPLEMENT_PAPIER = 3.5;
+
+const totalPrice = computed(() => {
+  const basePrice = selectedGroupePrices.value?.[`format_${formData.value.format_type}_prix`] || 0;
+  const supplement = formData.value.papier_supplementaire ? SUPPLEMENT_PAPIER : 0;
+  return basePrice + supplement;
+});
 
 const filteredCommandes = computed(() => {
   if (!selectedGroupeFilter.value) {
@@ -370,60 +546,80 @@ const filteredCommandes = computed(() => {
   return commandesStore.commandes.filter(c => c.groupe_id === parseInt(selectedGroupeFilter.value));
 });
 
+// Helpers
 const getClientName = (clientId) => {
   const client = clientsStore.getClientById(clientId);
   return client ? `${client.prenom} ${client.nom}` : `Client #${clientId}`;
 };
 
+const getClientInitials = (clientId) => {
+  const client = clientsStore.getClientById(clientId);
+  if (!client) return '?';
+  return `${client.prenom?.[0] || ''}${client.nom?.[0] || ''}`.toUpperCase();
+};
+
 const getGroupeName = (groupeId) => {
   const groupe = groupesStore.getGroupeById(groupeId);
-  return groupe ? groupe.nom : `Groupe #${groupeId}`;
+  return groupe ? groupe.nom : `Catalogue #${groupeId}`;
 };
 
-const loadCollectionsOptions = async () => {
-  const options = [];
-  for (const groupe of groupesStore.groupes) {
-    try {
-      const collections = await groupesStore.fetchGroupeCollections(groupe.id);
-      for (const collection of collections) {
-        if (!options.find(o => o.collectionId === collection.id)) {
-          options.push({
-            value: collection.id.toString(),
-            label: `${collection.nom} (${groupe.nom})`,
-            collectionId: collection.id,
-            groupeId: groupe.id,
-          });
-        }
-      }
-    } catch (error) {
-      console.error(`Erreur groupe ${groupe.id}:`, error);
-    }
-  }
-  collectionsOptions.value = options;
+const getFormatPrice = (commande) => {
+  const groupe = groupesStore.getGroupeById(commande.groupe_id);
+  if (!groupe) return 0;
+  return groupe[`format_${commande.format_type}_prix`] || 0;
 };
 
-const loadCommandesCollections = async () => {
-  for (const commande of commandesStore.commandes) {
-    try {
-      const collections = await commandesStore.fetchCommandeCollections(commande.id);
-      commandeCollectionsMap.value[commande.id] = collections.length > 0 ? collections[0].nom : 'Aucune';
-    } catch (error) {
-      commandeCollectionsMap.value[commande.id] = 'Erreur';
-    }
-  }
+const getCommandeTotalPrice = (commande) => {
+  const basePrice = getFormatPrice(commande);
+  const supplement = commande.papier_supplementaire ? SUPPLEMENT_PAPIER : 0;
+  return basePrice + supplement;
 };
 
-const findGroupeForCollection = (collectionId) => {
-  const option = collectionsOptions.value.find(opt => opt.collectionId === parseInt(collectionId));
-  return option ? option.groupeId : null;
+const getCommandeCollectionsPreview = (commandeId) => {
+  return commandeCollectionsCache[commandeId] || [];
 };
 
-const onCollectionChange = () => {
+const isCollectionSelected = (colId) => {
+  return selectedCollections.value.includes(colId);
+};
+
+const getCollectionOrder = (colId) => {
+  return selectedCollections.value.indexOf(colId) + 1;
+};
+
+// Actions
+const onCatalogueChange = async () => {
   formData.value.format_type = '';
-  if (formData.value.collection_id) {
-    formData.value.groupe_id = findGroupeForCollection(formData.value.collection_id);
+  selectedCollections.value = [];
+  
+  if (formData.value.groupe_id) {
+    try {
+      catalogueCollections.value = await groupesStore.fetchGroupeCollections(parseInt(formData.value.groupe_id));
+    } catch (error) {
+      console.error('Erreur:', error);
+      catalogueCollections.value = [];
+    }
   } else {
-    formData.value.groupe_id = null;
+    catalogueCollections.value = [];
+  }
+};
+
+const selectFormat = (format) => {
+  formData.value.format_type = format;
+  // Reset collections si on change de format
+  selectedCollections.value = [];
+};
+
+const toggleCollection = (colId) => {
+  if (!formData.value.format_type) return;
+  
+  const index = selectedCollections.value.indexOf(colId);
+  if (index > -1) {
+    selectedCollections.value.splice(index, 1);
+  } else {
+    if (selectedCollections.value.length < requiredCollectionsCount.value) {
+      selectedCollections.value.push(colId);
+    }
   }
 };
 
@@ -432,42 +628,45 @@ const openCreateModal = () => {
   editingCommandeId.value = null;
   formData.value = {
     client_id: '',
-    collection_id: '',
-    groupe_id: null,
+    groupe_id: '',
     format_type: '',
     methode_paiement: '',
     papier_supplementaire: false,
     articles_supplementaires: '',
     reglee: false,
   };
+  selectedCollections.value = [];
+  catalogueCollections.value = [];
   errors.value = {};
   isModalOpen.value = true;
 };
 
-const editCommande = async (commande) => {
+const editFromView = async () => {
+  const commande = selectedCommande.value;
+  const collections = [...viewCollections.value];
+  closeViewModal();
+  
   isEditing.value = true;
   editingCommandeId.value = commande.id;
   
-  let collectionId = '';
-  try {
-    const collections = await commandesStore.fetchCommandeCollections(commande.id);
-    if (collections.length > 0) {
-      collectionId = collections[0].id.toString();
-    }
-  } catch (error) {
-    console.error('Erreur:', error);
-  }
-  
   formData.value = {
     client_id: commande.client_id.toString(),
-    collection_id: collectionId,
-    groupe_id: commande.groupe_id,
+    groupe_id: commande.groupe_id.toString(),
     format_type: commande.format_type,
     methode_paiement: commande.methode_paiement,
     papier_supplementaire: commande.papier_supplementaire === 1,
     articles_supplementaires: commande.articles_supplementaires || '',
     reglee: commande.reglee === 1,
   };
+  
+  // Load catalogue collections
+  try {
+    catalogueCollections.value = await groupesStore.fetchGroupeCollections(commande.groupe_id);
+  } catch (error) {
+    catalogueCollections.value = [];
+  }
+  
+  selectedCollections.value = collections.map(c => c.id);
   errors.value = {};
   isModalOpen.value = true;
 };
@@ -480,16 +679,12 @@ const handleSubmit = async () => {
   errors.value = {};
 
   if (!formData.value.client_id) errors.value.client_id = 'Requis';
-  if (!formData.value.collection_id) errors.value.collection_id = 'Requis';
+  if (!formData.value.groupe_id) errors.value.groupe_id = 'Requis';
   if (!formData.value.format_type) errors.value.format_type = 'Requis';
   if (!formData.value.methode_paiement) errors.value.methode_paiement = 'Requis';
-
-  if (!formData.value.groupe_id && formData.value.collection_id) {
-    formData.value.groupe_id = findGroupeForCollection(formData.value.collection_id);
-  }
-
-  if (!formData.value.groupe_id) {
-    errors.value.collection_id = 'Groupe introuvable';
+  
+  if (selectedCollections.value.length !== requiredCollectionsCount.value) {
+    errors.value.collections = `Sélectionnez ${requiredCollectionsCount.value} collection(s)`;
   }
 
   if (Object.keys(errors.value).length > 0) return;
@@ -510,25 +705,27 @@ const handleSubmit = async () => {
     if (isEditing.value) {
       await commandesStore.updateCommande(editingCommandeId.value, data);
       commandeId = editingCommandeId.value;
+      
+      // Remove old collections
+      try {
+        const oldCollections = await commandesStore.fetchCommandeCollections(commandeId);
+        for (const col of oldCollections) {
+          await commandesStore.removeCollectionFromCommande(commandeId, col.id);
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+      }
     } else {
       const newCommande = await commandesStore.createCommande(data);
       commandeId = newCommande.id;
     }
 
-    if (commandeId && formData.value.collection_id) {
-      if (isEditing.value) {
-        try {
-          const oldCollections = await commandesStore.fetchCommandeCollections(commandeId);
-          for (const oldCollection of oldCollections) {
-            await commandesStore.removeCollectionFromCommande(commandeId, oldCollection.id);
-          }
-        } catch (error) {
-          console.error('Erreur:', error);
-        }
-      }
-      await commandesStore.addCollectionToCommande(commandeId, parseInt(formData.value.collection_id));
+    // Add selected collections
+    for (const colId of selectedCollections.value) {
+      await commandesStore.addCollectionToCommande(commandeId, colId);
     }
 
+    // Refresh
     await loadCommandesCollections();
     closeModal();
   } catch (error) {
@@ -538,29 +735,26 @@ const handleSubmit = async () => {
   }
 };
 
+// View
 const viewCommande = async (commande) => {
   selectedCommande.value = commande;
-  commandeDetailsLoading.value = true;
-  isDetailsModalOpen.value = true;
   try {
-    commandeDetails.value = await commandesStore.fetchCommandeComplet(commande.id);
-    commandeCollections.value = await commandesStore.fetchCommandeCollections(commande.id);
+    viewCollections.value = await commandesStore.fetchCommandeCollections(commande.id);
   } catch (error) {
-    console.error('Erreur:', error);
-  } finally {
-    commandeDetailsLoading.value = false;
+    viewCollections.value = [];
   }
+  isViewModalOpen.value = true;
 };
 
-const closeDetailsModal = () => {
-  isDetailsModalOpen.value = false;
+const closeViewModal = () => {
+  isViewModalOpen.value = false;
   selectedCommande.value = null;
-  commandeDetails.value = null;
-  commandeCollections.value = [];
+  viewCollections.value = [];
 };
 
-const confirmDelete = (commande) => {
-  commandeToDelete.value = commande;
+const confirmDeleteFromView = () => {
+  commandeToDelete.value = selectedCommande.value;
+  closeViewModal();
   isDeleteDialogOpen.value = true;
 };
 
@@ -568,6 +762,7 @@ const deleteCommande = async () => {
   if (!commandeToDelete.value) return;
   try {
     await commandesStore.deleteCommande(commandeToDelete.value.id);
+    delete commandeCollectionsCache[commandeToDelete.value.id];
   } catch (error) {
     console.error('Erreur:', error);
   } finally {
@@ -576,11 +771,17 @@ const deleteCommande = async () => {
   }
 };
 
-watch(() => commandesStore.commandes.length, async (newLength, oldLength) => {
-  if (newLength > 0 && newLength !== oldLength) {
-    await loadCommandesCollections();
+// Load collections for display
+const loadCommandesCollections = async () => {
+  for (const commande of commandesStore.commandes) {
+    try {
+      const collections = await commandesStore.fetchCommandeCollections(commande.id);
+      commandeCollectionsCache[commande.id] = collections.map(c => c.nom);
+    } catch (error) {
+      commandeCollectionsCache[commande.id] = [];
+    }
   }
-});
+};
 
 onMounted(async () => {
   try {
@@ -590,10 +791,7 @@ onMounted(async () => {
       groupesStore.fetchGroupes(),
       collectionsStore.fetchCollections(),
     ]);
-    await loadCollectionsOptions();
-    if (commandesStore.commandes.length > 0) {
-      await loadCommandesCollections();
-    }
+    await loadCommandesCollections();
   } catch (error) {
     console.error('Erreur:', error);
   }
@@ -625,18 +823,17 @@ onMounted(async () => {
   color: var(--text-secondary);
 }
 
-/* === Filters Bar === */
+/* === Filters === */
 .filters-bar {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   gap: var(--spacing-4);
   margin-bottom: var(--spacing-6);
-  padding: var(--spacing-5);
+  padding: var(--spacing-4) var(--spacing-5);
   background: var(--bg-primary);
   border-radius: var(--border-radius-lg);
   border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
 }
 
 .filter-group {
@@ -666,7 +863,6 @@ onMounted(async () => {
 .filter-select:focus {
   outline: none;
   border-color: var(--rose-400);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.12);
 }
 
 .filter-info {
@@ -686,32 +882,35 @@ onMounted(async () => {
   background: none;
   border: none;
   cursor: pointer;
-  font-weight: var(--font-weight-medium);
 }
 
-.clear-filter-btn:hover {
-  text-decoration: underline;
-}
-
-/* === Commandes List === */
-.commandes-list {
-  display: flex;
-  flex-direction: column;
+/* === Commandes Grid === */
+.commandes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: var(--spacing-4);
 }
 
 .commande-card {
   background: var(--bg-primary);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
   border: 1px solid var(--border-color-light);
   box-shadow: var(--shadow-sm);
+  cursor: pointer;
   transition: all var(--transition-normal);
+  position: relative;
 }
 
 .commande-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
   border-color: var(--rose-200);
-  box-shadow: var(--shadow-md);
+}
+
+.commande-card:hover .commande-arrow {
+  opacity: 1;
+  transform: translateX(4px);
 }
 
 .commande-header {
@@ -719,213 +918,651 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-4);
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border-color-light);
 }
 
-.commande-id-badge {
+.commande-number {
   display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
-}
-
-.commande-id-badge svg {
-  width: 20px;
-  height: 20px;
-  color: var(--rose-500);
-}
-
-.commande-body {
-  margin-bottom: var(--spacing-4);
-}
-
-.commande-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--spacing-4);
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
+  align-items: baseline;
   gap: var(--spacing-1);
 }
 
-.info-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-value {
+.number-label {
   font-size: var(--font-size-sm);
+  color: var(--text-secondary);
   font-weight: var(--font-weight-medium);
+}
+
+.number-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
   color: var(--text-primary);
 }
 
-.info-value.format-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  background: var(--rose-100);
-  color: var(--rose-600);
-  border-radius: var(--border-radius-sm);
-  font-weight: var(--font-weight-bold);
-}
-
-.commande-extras {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-4);
-  padding-top: var(--spacing-4);
-  border-top: 1px dashed var(--border-color-light);
-}
-
-.extra-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
+.status-pill {
   padding: var(--spacing-1) var(--spacing-3);
-  background: var(--gray-100);
   border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-.extra-badge svg {
-  width: 12px;
-  height: 12px;
-}
-
-.commande-actions {
-  display: flex;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-4);
-  border-top: 1px solid var(--border-color-light);
-}
-
-/* === Action Buttons === */
-.action-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: var(--gray-100);
-  border-radius: var(--border-radius);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-}
-
-.action-btn:hover {
-  background: var(--rose-100);
-  color: var(--rose-600);
-}
-
-.action-btn-danger:hover {
-  background: var(--error-light);
-  color: var(--error);
-}
-
-.action-btn svg {
-  width: 18px;
-  height: 18px;
-}
-
-/* === Status Badge === */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-1) var(--spacing-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  border-radius: var(--border-radius-full);
+}
+
+.status-pill-lg {
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
 }
 
 .status-success {
-  background: var(--success-light);
+  background: #d1fae5;
   color: #059669;
 }
 
 .status-warning {
-  background: var(--warning-light);
+  background: #fef3c7;
   color: #d97706;
 }
 
-/* === Form === */
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-4);
+.commande-client {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border-color-light);
 }
 
-/* === Details Modal === */
-.commande-details {
+.client-avatar-small {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.client-name {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.commande-details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-3);
+}
+
+.detail-left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.detail-catalogue {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.detail-tags {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.papier-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #fef3c7;
+  color: #d97706;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.papier-badge svg {
+  width: 12px;
+  height: 12px;
+}
+
+.detail-price {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--rose-600);
+}
+
+.format-badge-small {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--border-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: white;
+}
+
+.format-a { background: #2563eb; }
+.format-b { background: var(--rose-500); }
+.format-c { background: #059669; }
+
+.commande-collections-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-1);
+}
+
+.collection-mini-chip {
+  background: var(--gray-100);
+  padding: 2px 8px;
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.commande-arrow {
+  position: absolute;
+  right: var(--spacing-4);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  opacity: 0.3;
+  transition: all var(--transition-normal);
+}
+
+.commande-arrow svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* === Order Wizard === */
+.order-wizard {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-5);
 }
 
-.detail-section {
-  padding: var(--spacing-4);
+.wizard-step {
   background: var(--gray-50);
-  border-radius: var(--border-radius);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-5);
+  transition: opacity var(--transition-normal);
 }
 
-.detail-section-title {
+.step-disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: var(--font-weight-bold);
   font-size: var(--font-size-sm);
+  flex-shrink: 0;
+}
+
+.step-info {
+  flex: 1;
+}
+
+.step-title {
+  font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.step-desc {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.step-content {
+  padding-left: calc(32px + var(--spacing-4));
+}
+
+/* === Format Selector === */
+.format-selector {
+  margin-top: var(--spacing-4);
+}
+
+.format-selector-label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   color: var(--text-primary);
   margin-bottom: var(--spacing-3);
 }
 
-.detail-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-2) 0;
+.format-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-3);
 }
 
-.detail-row:not(:last-child) {
-  border-bottom: 1px solid var(--border-color-light);
+.format-card {
+  padding: var(--spacing-4);
+  border-radius: var(--border-radius-lg);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
+  position: relative;
 }
 
-.detail-label {
-  font-size: var(--font-size-sm);
+.format-card-a {
+  background: #dbeafe;
+}
+.format-card-a:hover, .format-card-a.format-card-selected {
+  border-color: #2563eb;
+}
+
+.format-card-b {
+  background: #fce7f3;
+}
+.format-card-b:hover, .format-card-b.format-card-selected {
+  border-color: var(--rose-500);
+}
+
+.format-card-c {
+  background: #d1fae5;
+}
+.format-card-c:hover, .format-card-c.format-card-selected {
+  border-color: #059669;
+}
+
+.format-card-letter {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-1);
+}
+
+.format-card-a .format-card-letter { color: #2563eb; }
+.format-card-b .format-card-letter { color: var(--rose-600); }
+.format-card-c .format-card-letter { color: #059669; }
+
+.format-card-price {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.format-card-collections {
+  font-size: var(--font-size-xs);
   color: var(--text-secondary);
+  margin-top: var(--spacing-1);
 }
 
-.detail-value {
+.format-card-check {
+  position: absolute;
+  top: var(--spacing-2);
+  right: var(--spacing-2);
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.format-card-check svg {
+  width: 12px;
+  height: 12px;
+}
+
+.format-card-a .format-card-check svg { color: #2563eb; }
+.format-card-b .format-card-check svg { color: var(--rose-500); }
+.format-card-c .format-card-check svg { color: #059669; }
+
+/* === Collections Picker === */
+.collections-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+}
+
+.collection-pick-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-3) var(--spacing-4);
+  background: var(--bg-primary);
+  border: 2px solid var(--border-color-light);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.collection-pick-card:hover {
+  border-color: var(--rose-300);
+}
+
+.collection-picked {
+  border-color: var(--rose-500);
+  background: var(--rose-50);
+}
+
+.pick-checkbox {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--gray-300);
+  border-radius: var(--border-radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+}
+
+.collection-picked .pick-checkbox {
+  background: var(--rose-500);
+  border-color: var(--rose-500);
+}
+
+.pick-checkbox svg {
+  width: 14px;
+  height: 14px;
+  color: white;
+}
+
+.pick-name {
+  flex: 1;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-primary);
 }
 
-.detail-collections {
+.pick-order {
+  width: 24px;
+  height: 24px;
+  background: var(--rose-100);
+  color: var(--rose-600);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.collections-empty-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-6);
+  color: var(--text-tertiary);
+  text-align: center;
+}
+
+.collections-empty-picker svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* === Options Grid === */
+.options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4);
+  margin-bottom: var(--spacing-4);
+}
+
+.option-checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  padding-top: var(--spacing-6);
+}
+
+/* === Order Summary === */
+.order-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background: linear-gradient(135deg, var(--rose-50) 0%, #fce7f3 100%);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--rose-200);
+}
+
+.summary-icon {
+  width: 44px;
+  height: 44px;
+  background: var(--rose-500);
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.summary-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.summary-details {
+  flex: 1;
+}
+
+.summary-title {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.summary-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.summary-price-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.summary-price-detail {
+  font-size: var(--font-size-xs);
+  color: var(--text-secondary);
+}
+
+.summary-price {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--rose-600);
+}
+
+/* === View Modal === */
+.commande-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-5);
+}
+
+.view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-4);
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.view-number {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+}
+
+.view-hash {
+  color: var(--rose-400);
+}
+
+.view-client {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
+.view-client-avatar {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.view-client-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.view-client-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.view-client-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.view-details {
+  background: var(--gray-50);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+}
+
+.view-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-3) 0;
+}
+
+.view-detail-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-color-light);
+}
+
+.view-detail-label {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.view-detail-value {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-primary);
+}
+
+.view-price {
+  font-size: var(--font-size-lg);
+  color: var(--rose-600);
+}
+
+.format-badge-view {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  color: white;
+}
+
+.view-collections {
+  background: var(--gray-50);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-4);
+}
+
+.view-collections-label {
+  display: block;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-3);
+}
+
+.view-collections-list {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-2);
 }
 
-.collection-tag {
-  padding: var(--spacing-2) var(--spacing-3);
+.view-collection-chip {
   background: var(--rose-100);
   color: var(--rose-700);
-  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
 }
 
-/* === Empty & Loading States === */
+.view-extras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.view-extra-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-3);
+  background: var(--gray-100);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.view-extra-badge svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* === Form Error === */
+.form-error {
+  color: var(--error);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-2);
+}
+
+/* === Empty & Loading === */
 .empty-state {
   text-align: center;
   padding: var(--spacing-16) var(--spacing-8);
@@ -960,7 +1597,6 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   padding: var(--spacing-16);
   gap: var(--spacing-4);
 }
@@ -1001,17 +1637,20 @@ onMounted(async () => {
     align-items: stretch;
   }
   
-  .filter-select {
-    min-width: auto;
-    width: 100%;
-  }
-  
-  .form-row {
+  .commandes-grid {
     grid-template-columns: 1fr;
   }
   
-  .commande-info-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .format-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .options-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .step-content {
+    padding-left: 0;
   }
 }
 </style>
