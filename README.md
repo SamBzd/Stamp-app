@@ -30,36 +30,25 @@ Stamp-app/
 ### Prérequis
 
 - Node.js (v16 ou supérieur)
-- npm ou yarn
+- npm (v8 ou supérieur)
 
-### Installation des dépendances
+### Installation des dépendances (centralisée)
+
+**Une seule commande pour installer toutes les dépendances :**
 
 ```bash
-# Backend
-cd backend
-npm install
-
-# Frontend
-cd ../frontend
-npm install
+# À la racine du projet
+npm run install:all
 ```
+
+Cette commande installe automatiquement :
+- Les dépendances de la racine (concurrently)
+- Les dépendances du backend
+- Les dépendances du frontend
+
+**Note :** Les versions sont fixées (sans `^`) pour garantir la reproductibilité.
 
 ## 🗄️ Base de données
-
-### Application des migrations
-
-**⚠️ IMPORTANT : Sauvegardez votre base de données avant d'appliquer les migrations !**
-
-```bash
-# Sauvegarde (Windows PowerShell)
-Copy-Item db\app.db db\app.db.backup
-
-# Application de la migration
-cd backend
-npm run migrate
-```
-
-Pour plus de détails, consultez le [Guide de migration](MIGRATION.md).
 
 ### Structure de la base de données
 
@@ -76,45 +65,52 @@ Pour plus de détails, consultez [CommandesArchi.md](CommandesArchi.md).
 
 ## 🏃 Démarrage
 
-### Backend
+### Démarrage en mode développement (recommandé)
+
+**Une seule commande pour lancer backend + frontend :**
 
 ```bash
+# À la racine du projet
+npm run dev
+```
+
+Cette commande lance simultanément :
+- **Backend** sur `http://localhost:3000` (avec nodemon pour le rechargement automatique)
+- **Frontend** sur `http://localhost:5173` (avec Vite pour le hot-reload)
+
+Les logs sont colorés pour distinguer facilement les deux services :
+- 🔵 **Backend** (en bleu)
+- 🟢 **Frontend** (en vert)
+
+### Démarrage manuel (si nécessaire)
+
+Si vous préférez lancer les services séparément :
+
+```bash
+# Backend uniquement
 cd backend
-npm run dev    # Mode développement avec nodemon
-# ou
-npm start      # Mode production
-```
+npm run dev
 
-Le serveur démarre sur `http://localhost:3000` (par défaut).
-
-### Frontend
-
-```bash
+# Frontend uniquement (dans un autre terminal)
 cd frontend
-npm run dev    # Mode développement
-# ou
-npm run build  # Build pour production
+npm run dev
 ```
-
-L'application démarre sur `http://localhost:5173` (par défaut).
-
-## 📚 Documentation
-
-- [Architecture des commandes](CommandesArchi.md) : Documentation complète de l'architecture
-- [Guide de migration](MIGRATION.md) : Instructions pour appliquer les migrations
 
 ## 🔧 Scripts disponibles
 
-### Backend
+### Scripts racine (recommandés)
 
-- `npm run dev` : Démarre le serveur en mode développement
+- `npm run install:all` : Installe toutes les dépendances (racine, backend, frontend)
+- `npm run dev` : Lance backend + frontend en mode développement (une seule commande)
+
+### Scripts backend (dans `backend/`)
+
+- `npm run dev` : Démarre le serveur en mode développement avec nodemon
 - `npm start` : Démarre le serveur en mode production
-- `npm run migrate` : Applique le schéma complet depuis `schema.sql`
-- `npm run migrate:groupes` : Crée/met à jour les tables de groupes
 
-### Frontend
+### Scripts frontend (dans `frontend/`)
 
-- `npm run dev` : Démarre le serveur de développement
+- `npm run dev` : Démarre le serveur de développement Vite
 - `npm run build` : Build pour la production
 - `npm run preview` : Prévisualise le build de production
 
@@ -143,8 +139,6 @@ L'application suit une architecture en 3 niveaux :
 1. **Frontend** (Vue.js) : Interface utilisateur
 2. **Backend** (Express.js) : API REST
 3. **Base de données** (SQLite) : Stockage des données
-
-Pour plus de détails, consultez [CommandesArchi.md](CommandesArchi.md).
 
 ## 🔒 Sécurité
 
