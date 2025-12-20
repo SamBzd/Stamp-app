@@ -32,9 +32,21 @@
             class="search-input"
           />
         </div>
-        <div class="toolbar-info">
-          <span class="count-badge">{{ filteredClients.length }}</span>
-          <span class="toolbar-label">client{{ filteredClients.length > 1 ? 's' : '' }}</span>
+        <div class="toolbar-actions">
+          <button
+            :class="['favorites-toggle', { 'favorites-toggle-active': showOnlyFavorites }]"
+            @click="showOnlyFavorites = !showOnlyFavorites"
+            :title="showOnlyFavorites ? 'Afficher tous les clients' : 'Afficher seulement les favoris'"
+          >
+            <svg viewBox="0 0 24 24" :fill="showOnlyFavorites ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span>{{ showOnlyFavorites ? 'Favoris' : 'Tous' }}</span>
+          </button>
+          <div class="toolbar-info">
+            <span class="count-badge">{{ filteredClients.length }}</span>
+            <span class="toolbar-label">client{{ filteredClients.length > 1 ? 's' : '' }}</span>
+          </div>
         </div>
       </div>
 
@@ -59,12 +71,12 @@
           </svg>
         </div>
         <h3 class="empty-state-title">
-          {{ searchQuery ? 'Aucun résultat' : 'Aucun client' }}
+          {{ searchQuery ? 'Aucun résultat' : showOnlyFavorites ? 'Aucun client favori' : 'Aucun client' }}
         </h3>
         <p class="empty-state-description">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche' : 'Commencez par ajouter votre premier client' }}
+          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche' : showOnlyFavorites ? 'Aucun client n\'est marqué comme favori pour le moment' : 'Commencez par ajouter votre premier client' }}
         </p>
-        <Button v-if="!searchQuery" @click="openCreateModal">Ajouter un client</Button>
+        <Button v-if="!searchQuery && !showOnlyFavorites" @click="openCreateModal">Ajouter un client</Button>
       </div>
 
       <div v-else class="clients-grid">
@@ -476,6 +488,7 @@ import { useClientsStore } from '../stores/clients';
 const clientsStore = useClientsStore();
 
 const searchQuery = ref('');
+const showOnlyFavorites = ref(false);
 const isModalOpen = ref(false);
 const isViewModalOpen = ref(false);
 const isDeleteDialogOpen = ref(false);
@@ -512,17 +525,28 @@ const hasAddress = computed(() => {
 });
 
 const filteredClients = computed(() => {
-  if (!searchQuery.value) return clientsStore.clients;
-  const query = searchQuery.value.toLowerCase();
-  return clientsStore.clients.filter(client => {
-    return (
-      client.nom?.toLowerCase().includes(query) ||
-      client.prenom?.toLowerCase().includes(query) ||
-      client.email?.toLowerCase().includes(query) ||
-      client.telephone_raw?.includes(query) ||
-      client.ville?.toLowerCase().includes(query)
-    );
-  });
+  let clients = clientsStore.clients;
+  
+  // Filtrer par favoris si activé
+  if (showOnlyFavorites.value) {
+    clients = clients.filter(client => client.contacter === 1);
+  }
+  
+  // Filtrer par recherche
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase();
+    clients = clients.filter(client => {
+      return (
+        client.nom?.toLowerCase().includes(query) ||
+        client.prenom?.toLowerCase().includes(query) ||
+        client.email?.toLowerCase().includes(query) ||
+        client.telephone_raw?.includes(query) ||
+        client.ville?.toLowerCase().includes(query)
+      );
+    });
+  }
+  
+  return clients;
 });
 
 const getInitials = (client) => {
@@ -677,10 +701,16 @@ const handleSubmit = async () => {
 
   saving.value = true;
   try {
+    // Convertir contacter de booléen à 0/1 pour le backend
+    const clientData = {
+      ...formData.value,
+      contacter: formData.value.contacter ? 1 : 0,
+    };
+    
     if (isEditing.value) {
-      await clientsStore.updateClient(editingClientId.value, formData.value);
+      await clientsStore.updateClient(editingClientId.value, clientData);
     } else {
-      await clientsStore.createClient(formData.value);
+      await clientsStore.createClient(clientData);
     }
     closeModal();
   } catch (error) {
@@ -719,6 +749,19 @@ onMounted(async () => {
 }
 
 /* === Toolbar === */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-4);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-4);
+}
+
 .toolbar-info {
   display: flex;
   align-items: center;
@@ -728,6 +771,43 @@ onMounted(async () => {
 .toolbar-label {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
+}
+
+.favorites-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: var(--spacing-2) var(--spacing-4);
+  background: var(--bg-primary);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.favorites-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+
+.favorites-toggle:hover {
+  background: var(--warning-light);
+  border-color: #fbbf24;
+  color: #d97706;
+}
+
+.favorites-toggle-active {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #f59e0b;
+  color: #d97706;
+}
+
+.favorites-toggle-active svg {
+  color: #f59e0b;
 }
 
 /* === Clients Grid === */
@@ -1155,6 +1235,16 @@ onMounted(async () => {
 
 /* === Responsive === */
 @media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-3);
+  }
+  
+  .toolbar-actions {
+    justify-content: space-between;
+  }
+  
   .form-row {
     grid-template-columns: 1fr;
   }
