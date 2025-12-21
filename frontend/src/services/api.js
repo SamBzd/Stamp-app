@@ -1,9 +1,9 @@
 /**
  * Service API - Communication avec le backend
- * Base URL: http://localhost:3000/api
+ * En production Docker, utilise le proxy nginx (/api)
+ * En développement, utilise l'URL complète
  */
-
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * Fonction utilitaire pour les appels API
