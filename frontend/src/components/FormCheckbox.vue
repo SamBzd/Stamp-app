@@ -103,11 +103,11 @@ defineExpose({
 }
 
 .checkbox-custom {
-  width: 20px;
-  height: 20px;
-  border: 2px solid var(--gray-300);
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--border);
   border-radius: var(--border-radius-xs);
-  background: var(--bg-primary);
+  background: rgba(255, 255, 255, 0.50);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,23 +115,23 @@ defineExpose({
 }
 
 .checkbox-input:focus-visible + .checkbox-custom {
-  outline: 2px solid var(--rose-400);
+  outline: 2px solid rgba(93, 112, 82, 0.40);
   outline-offset: 2px;
 }
 
 .checkbox-label:hover:not(.checkbox-disabled) .checkbox-custom:not(.checkbox-checked) {
-  border-color: var(--rose-400);
+  border-color: var(--primary);
 }
 
 .checkbox-checked {
-  background: linear-gradient(180deg, var(--rose-500) 0%, var(--rose-600) 100%);
-  border-color: var(--rose-500);
+  background: var(--primary);
+  border-color: var(--primary);
 }
 
 .checkbox-custom svg {
   width: 14px;
   height: 14px;
-  color: white;
+  color: var(--primary-foreground);
 }
 
 .checkbox-content {
@@ -158,6 +158,6 @@ defineExpose({
   font-size: var(--font-size-xs);
   color: var(--error);
   margin: var(--spacing-2) 0 0;
-  padding-left: calc(20px + var(--spacing-3));
+  padding-left: calc(22px + var(--spacing-3));
 }
 </style>

@@ -90,13 +90,13 @@ const handleCancel = () => {
 }
 
 .confirm-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--spacing-4);
+  margin: 0 auto var(--spacing-5);
 }
 
 .confirm-icon svg {
@@ -105,13 +105,13 @@ const handleCancel = () => {
 }
 
 .confirm-icon-danger {
-  background: var(--error-light);
-  color: var(--error);
+  background: var(--destructive-light);
+  color: var(--destructive);
 }
 
 .confirm-icon-info {
-  background: var(--rose-100);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .confirm-message {

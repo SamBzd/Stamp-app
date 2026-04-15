@@ -115,11 +115,11 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-color);
+  padding: var(--spacing-4) var(--spacing-5);
+  background: var(--card);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-float);
+  border: 1px solid var(--border-light);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
@@ -196,6 +196,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   transition: color var(--transition-fast);
+  border-radius: var(--border-radius-sm);
 }
 
 .toast-close:hover {

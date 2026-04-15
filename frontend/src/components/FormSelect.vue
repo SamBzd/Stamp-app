@@ -118,26 +118,26 @@ defineExpose({
 }
 
 .form-required {
-  color: var(--rose-500);
+  color: var(--secondary);
 }
 
 .select-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--bg-primary);
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--border-radius);
+  background: rgba(255, 255, 255, 0.50);
+  border: 1.5px solid var(--border);
+  border-radius: var(--border-radius-full);
   transition: all var(--transition-fast);
 }
 
 .select-wrapper:hover:not(.select-error) {
-  border-color: var(--gray-300);
+  border-color: var(--muted-foreground);
 }
 
 .select-focused:not(.select-error) {
-  border-color: var(--rose-400);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(93, 112, 82, 0.12);
 }
 
 .select-error {
@@ -145,12 +145,12 @@ defineExpose({
 }
 
 .select-error.select-focused {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 3px rgba(168, 84, 72, 0.12);
 }
 
 .form-select {
   flex: 1;
-  padding: var(--spacing-3) var(--spacing-10) var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-10) var(--spacing-3) var(--spacing-5);
   border: none;
   background: transparent;
   font-size: var(--font-size-sm);
@@ -162,6 +162,7 @@ defineExpose({
   -moz-appearance: none;
   min-width: 0;
   width: 100%;
+  min-height: 48px;
 }
 
 .form-select:focus {
@@ -169,7 +170,7 @@ defineExpose({
 }
 
 .form-select:disabled {
-  background: var(--gray-50);
+  background: var(--muted);
   color: var(--text-tertiary);
   cursor: not-allowed;
 }
@@ -186,9 +187,9 @@ defineExpose({
 
 .select-icon {
   position: absolute;
-  right: var(--spacing-3);
+  right: var(--spacing-4);
   pointer-events: none;
-  color: var(--text-tertiary);
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,11 +204,13 @@ defineExpose({
   font-size: var(--font-size-xs);
   color: var(--error);
   margin: 0;
+  padding-left: var(--spacing-4);
 }
 
 .form-hint {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   margin: 0;
+  padding-left: var(--spacing-4);
 }
 </style>

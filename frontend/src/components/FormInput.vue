@@ -141,26 +141,26 @@ defineExpose({
 }
 
 .form-required {
-  color: var(--rose-500);
+  color: var(--secondary);
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: var(--bg-primary);
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--border-radius);
+  background: rgba(255, 255, 255, 0.50);
+  border: 1.5px solid var(--border);
+  border-radius: var(--border-radius-full);
   transition: all var(--transition-fast);
   overflow: hidden;
 }
 
 .input-wrapper:hover:not(.input-error) {
-  border-color: var(--gray-300);
+  border-color: var(--muted-foreground);
 }
 
 .input-focused:not(.input-error) {
-  border-color: var(--rose-400);
-  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.12);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(93, 112, 82, 0.12);
 }
 
 .input-error {
@@ -168,12 +168,12 @@ defineExpose({
 }
 
 .input-error.input-focused {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+  box-shadow: 0 0 0 3px rgba(168, 84, 72, 0.12);
 }
 
 .form-input {
   flex: 1;
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-5);
   border: none;
   background: transparent;
   font-size: var(--font-size-sm);
@@ -181,6 +181,7 @@ defineExpose({
   color: var(--text-primary);
   min-width: 0;
   width: 100%;
+  min-height: 48px;
 }
 
 .form-input:focus {
@@ -188,7 +189,7 @@ defineExpose({
 }
 
 .form-input:disabled {
-  background: var(--gray-50);
+  background: var(--muted);
   color: var(--text-tertiary);
   cursor: not-allowed;
 }
@@ -200,6 +201,7 @@ defineExpose({
 /* Remove number input spinners */
 .form-input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .form-input[type="number"]::-webkit-outer-spin-button,
@@ -213,19 +215,21 @@ defineExpose({
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 var(--spacing-3);
+  padding: 0 var(--spacing-4);
   color: var(--text-tertiary);
   font-size: var(--font-size-sm);
 }
 
 .input-prefix {
-  border-right: 1px solid var(--border-color);
-  background: var(--gray-50);
+  border-right: 1px solid var(--border-light);
+  background: var(--muted);
+  border-radius: var(--border-radius-full) 0 0 var(--border-radius-full);
 }
 
 .input-suffix {
-  border-left: 1px solid var(--border-color);
-  background: var(--gray-50);
+  border-left: 1px solid var(--border-light);
+  background: var(--muted);
+  border-radius: 0 var(--border-radius-full) var(--border-radius-full) 0;
 }
 
 .form-error {
@@ -235,11 +239,13 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
+  padding-left: var(--spacing-4);
 }
 
 .form-hint {
   font-size: var(--font-size-xs);
   color: var(--text-tertiary);
   margin: 0;
+  padding-left: var(--spacing-4);
 }
 </style>

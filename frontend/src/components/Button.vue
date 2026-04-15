@@ -75,11 +75,11 @@ const handleClick = (event) => {
   justify-content: center;
   gap: var(--spacing-2);
   font-family: var(--font-family);
-  font-weight: var(--font-weight-medium);
-  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-semibold);
+  border-radius: var(--border-radius-full);
   border: none;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
   white-space: nowrap;
   user-select: none;
   position: relative;
@@ -87,126 +87,111 @@ const handleClick = (event) => {
 }
 
 .btn:focus-visible {
-  outline: 2px solid var(--rose-400);
+  outline: 2px solid rgba(93, 112, 82, 0.40);
   outline-offset: 2px;
 }
 
+.btn:not(.btn-disabled):not(.btn-loading):hover {
+  transform: scale(1.05);
+}
+
 .btn:not(.btn-disabled):not(.btn-loading):active {
-  transform: scale(0.98);
+  transform: scale(0.95);
 }
 
 /* === Sizes === */
 .btn-sm {
-  padding: var(--spacing-2) var(--spacing-3);
+  padding: var(--spacing-2) var(--spacing-5);
   font-size: var(--font-size-sm);
-  min-height: 32px;
+  min-height: 40px;
 }
 
 .btn-md {
-  padding: var(--spacing-2) var(--spacing-4);
+  padding: var(--spacing-3) var(--spacing-6);
   font-size: var(--font-size-sm);
-  min-height: 38px;
+  min-height: 48px;
 }
 
 .btn-lg {
-  padding: var(--spacing-3) var(--spacing-6);
+  padding: var(--spacing-3) var(--spacing-8);
   font-size: var(--font-size-base);
-  min-height: 44px;
+  min-height: 56px;
 }
 
 /* Icon only buttons */
 .btn-icon-only.btn-sm {
-  width: 32px;
+  width: 40px;
   padding: 0;
 }
 
 .btn-icon-only.btn-md {
-  width: 38px;
+  width: 48px;
   padding: 0;
 }
 
 .btn-icon-only.btn-lg {
-  width: 44px;
+  width: 56px;
   padding: 0;
 }
 
 /* === Variants === */
 .btn-primary {
-  background: linear-gradient(180deg, var(--rose-500) 0%, var(--rose-600) 100%);
-  color: white;
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-primary:hover:not(.btn-disabled):not(.btn-loading) {
-  background: linear-gradient(180deg, var(--rose-600) 0%, var(--rose-700) 100%);
-  box-shadow: 
-    0 4px 12px rgba(236, 72, 153, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.30);
 }
 
 .btn-secondary {
-  background: var(--gray-100);
+  background: var(--muted);
   color: var(--text-primary);
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow: var(--shadow-xs);
 }
 
 .btn-secondary:hover:not(.btn-disabled):not(.btn-loading) {
-  background: var(--gray-200);
+  background: var(--accent);
 }
 
 .btn-ghost {
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--primary);
 }
 
 .btn-ghost:hover:not(.btn-disabled):not(.btn-loading) {
-  background: var(--gray-100);
-  color: var(--text-primary);
+  background: var(--primary-light);
 }
 
 .btn-outline {
   background: transparent;
-  color: var(--rose-600);
-  border: 1.5px solid var(--rose-300);
+  color: var(--secondary);
+  border: 2px solid var(--secondary);
 }
 
 .btn-outline:hover:not(.btn-disabled):not(.btn-loading) {
-  background: var(--rose-50);
-  border-color: var(--rose-400);
+  background: var(--secondary-light);
 }
 
 .btn-danger {
-  background: linear-gradient(180deg, var(--error) 0%, #dc2626 100%);
+  background: var(--destructive);
   color: white;
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px -2px rgba(168, 84, 72, 0.20);
 }
 
 .btn-danger:hover:not(.btn-disabled):not(.btn-loading) {
-  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
-  box-shadow: 
-    0 4px 12px rgba(239, 68, 68, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 24px -4px rgba(168, 84, 72, 0.35);
 }
 
 .btn-success {
-  background: linear-gradient(180deg, var(--success) 0%, #059669 100%);
-  color: white;
-  box-shadow: 
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-soft);
 }
 
 .btn-success:hover:not(.btn-disabled):not(.btn-loading) {
-  background: linear-gradient(180deg, #059669 0%, #047857 100%);
-  box-shadow: 
-    0 4px 12px rgba(16, 185, 129, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.30);
 }
 
 /* === States === */

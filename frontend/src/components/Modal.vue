@@ -90,7 +90,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(44, 44, 36, 0.35);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
@@ -101,11 +101,11 @@ onUnmounted(() => {
 }
 
 .modal-container {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
+  background: var(--card);
+  border-radius: var(--border-radius-2xl);
   box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.25),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+    0 25px 50px -12px rgba(93, 112, 82, 0.20),
+    0 0 0 1px var(--border-light);
   width: 100%;
   max-height: calc(100vh - 48px);
   display: flex;
@@ -117,29 +117,30 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-4) var(--spacing-5);
-  background: linear-gradient(180deg, var(--gray-50) 0%, var(--gray-100) 100%);
-  border-bottom: 1px solid var(--border-color);
-  min-height: 52px;
+  padding: var(--spacing-5) var(--spacing-6);
+  background: linear-gradient(180deg, var(--muted) 0%, var(--accent) 100%);
+  border-bottom: 1px solid var(--border-light);
+  min-height: 56px;
   user-select: none;
 }
 
 .modal-title {
   flex: 1;
-  font-size: var(--font-size-md);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
   margin: 0;
 }
 
 .modal-close {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -148,8 +149,8 @@ onUnmounted(() => {
 }
 
 .modal-close:hover {
-  background: var(--gray-100);
-  color: var(--text-primary);
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .modal-close svg {
@@ -172,8 +173,8 @@ onUnmounted(() => {
   justify-content: flex-end;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  background: var(--gray-50);
-  border-top: 1px solid var(--border-color);
+  background: var(--muted);
+  border-top: 1px solid var(--border-light);
 }
 
 /* === Transitions === */
@@ -211,7 +212,7 @@ onUnmounted(() => {
   
   .modal-container {
     max-height: calc(100vh - 32px);
-    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+    border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
   }
 }
 </style>
