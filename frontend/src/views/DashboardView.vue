@@ -1,11 +1,15 @@
 <template>
   <Layout>
     <div class="dashboard">
+      <!-- Decorative Background Blobs -->
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+
       <!-- Page Header -->
       <header class="page-header">
         <div class="page-header-content">
           <div class="page-header-greeting">
-            <span class="greeting-emoji">✨</span>
+            <span class="greeting-emoji">🌿</span>
             <h1 class="page-title">Tableau de bord</h1>
           </div>
           <p class="page-subtitle">Bienvenue ! Voici un aperçu de votre activité</p>
@@ -14,8 +18,8 @@
 
       <!-- Stats Row -->
       <section class="stats-row">
-        <div class="stat-card stat-card-commandes">
-          <div class="stat-icon">
+        <div class="stat-card" :style="{ borderRadius: 'var(--card-radius-2)' }">
+          <div class="stat-icon stat-icon-commandes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="9" cy="21" r="1"/>
               <circle cx="20" cy="21" r="1"/>
@@ -28,8 +32,8 @@
           </div>
         </div>
         
-        <div class="stat-card stat-card-clients">
-          <div class="stat-icon">
+        <div class="stat-card" :style="{ borderRadius: 'var(--card-radius-3)' }">
+          <div class="stat-icon stat-icon-clients">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
               <circle cx="9" cy="7" r="4"/>
@@ -43,8 +47,8 @@
           </div>
         </div>
         
-        <div class="stat-card stat-card-attente">
-          <div class="stat-icon">
+        <div class="stat-card" :style="{ borderRadius: 'var(--card-radius-4)' }">
+          <div class="stat-icon stat-icon-attente">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <polyline points="12 6 12 12 16 14"/>
@@ -56,8 +60,8 @@
           </div>
         </div>
         
-        <div class="stat-card stat-card-reglees">
-          <div class="stat-icon">
+        <div class="stat-card" :style="{ borderRadius: 'var(--card-radius-5)' }">
+          <div class="stat-icon stat-icon-reglees">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
@@ -73,9 +77,9 @@
       <!-- Widgets Grid -->
       <section class="widgets-grid">
         <!-- Widget Commandes -->
-        <router-link to="/commandes" class="widget">
+        <router-link to="/commandes" class="widget" :style="{ borderRadius: 'var(--card-radius-2)' }">
           <div class="widget-header">
-            <div class="widget-icon widget-icon-blue">
+            <div class="widget-icon widget-icon-info">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
@@ -118,9 +122,9 @@
         </router-link>
 
         <!-- Widget Clients -->
-        <router-link to="/clients" class="widget">
+        <router-link to="/clients" class="widget" :style="{ borderRadius: 'var(--card-radius-6)' }">
           <div class="widget-header">
-            <div class="widget-icon widget-icon-rose">
+            <div class="widget-icon widget-icon-primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
@@ -160,9 +164,9 @@
         </router-link>
 
         <!-- Widget Stocks -->
-        <router-link to="/stocks" class="widget widget-stocks">
+        <router-link to="/stocks" class="widget widget-stocks" :style="{ borderRadius: 'var(--card-radius-3)' }">
           <div class="widget-header">
-            <div class="widget-icon widget-icon-green">
+            <div class="widget-icon widget-icon-success">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
                 <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
@@ -287,11 +291,41 @@ onMounted(async () => {
 .dashboard {
   max-width: var(--content-max-width);
   animation: fadeInUp 0.4s ease-out;
+  position: relative;
+}
+
+/* === Decorative Background Blobs === */
+.blob {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0.4;
+  filter: blur(60px);
+  z-index: 0;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: rgba(93, 112, 82, 0.15);
+  border-radius: var(--radius-blob-1);
+  top: -100px;
+  right: -100px;
+}
+
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: rgba(193, 140, 93, 0.12);
+  border-radius: var(--radius-blob-2);
+  bottom: 100px;
+  left: -80px;
 }
 
 /* === Page Header === */
 .page-header {
   margin-bottom: var(--spacing-8);
+  position: relative;
+  z-index: 1;
 }
 
 .page-header-content {
@@ -311,9 +345,10 @@ onMounted(async () => {
 }
 
 .page-title {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-4xl);
+  font-weight: 800;
+  color: var(--foreground);
   letter-spacing: var(--letter-spacing-tight);
   margin: 0;
 }
@@ -329,35 +364,41 @@ onMounted(async () => {
 .stats-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-4);
+  gap: var(--spacing-5);
   margin-bottom: var(--spacing-8);
+  position: relative;
+  z-index: 1;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
-  padding: var(--spacing-5);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color-light);
-  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-soft);
   transition: all var(--transition-normal);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+}
+
+.stat-card:hover .stat-value {
+  transform: scale(1.05);
 }
 
 .stat-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--border-radius-lg);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all var(--transition-normal);
 }
 
 .stat-icon svg {
@@ -365,22 +406,22 @@ onMounted(async () => {
   height: 24px;
 }
 
-.stat-card-commandes .stat-icon {
+.stat-icon-commandes {
   background: var(--info-light);
   color: var(--info-dark);
 }
 
-.stat-card-clients .stat-icon {
-  background: var(--rose-100);
-  color: var(--rose-600);
+.stat-icon-clients {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
-.stat-card-attente .stat-icon {
+.stat-icon-attente {
   background: var(--warning-light);
   color: var(--warning-dark);
 }
 
-.stat-card-reglees .stat-icon {
+.stat-icon-reglees {
   background: var(--success-light);
   color: var(--success-dark);
 }
@@ -391,10 +432,12 @@ onMounted(async () => {
 }
 
 .stat-value {
+  font-family: var(--font-heading);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--foreground);
   line-height: 1;
+  transition: transform var(--transition-normal);
 }
 
 .stat-label {
@@ -408,16 +451,17 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-5);
+  position: relative;
+  z-index: 1;
 }
 
 /* === Widget Base === */
 .widget {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
+  background: var(--card);
   padding: var(--spacing-6);
   text-decoration: none;
   color: inherit;
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
   transition: all var(--transition-normal);
   display: flex;
@@ -426,14 +470,15 @@ onMounted(async () => {
 }
 
 .widget:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: var(--rose-200);
+  transform: translateY(-4px) rotate(0.5deg);
+  box-shadow: 0 20px 40px -10px rgba(93, 112, 82, 0.15);
+  border-color: var(--border);
 }
 
 .widget:hover .arrow-indicator {
   transform: translateX(4px);
   opacity: 1;
+  color: var(--primary);
 }
 
 /* === Widget Header === */
@@ -443,17 +488,18 @@ onMounted(async () => {
   gap: var(--spacing-4);
   margin-bottom: var(--spacing-5);
   padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .widget-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--border-radius-lg);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all var(--transition-normal);
 }
 
 .widget-icon svg {
@@ -461,22 +507,34 @@ onMounted(async () => {
   height: 24px;
 }
 
-.widget-icon-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+.widget-icon-info {
+  background: var(--info-light);
+  color: var(--info-dark);
 }
 
-.widget-icon-rose {
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+.widget:hover .widget-icon-info {
+  background: var(--info);
   color: white;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
 }
 
-.widget-icon-green {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+.widget-icon-primary {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.widget:hover .widget-icon-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.widget-icon-success {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.widget:hover .widget-icon-success {
+  background: var(--success);
+  color: var(--primary-foreground);
 }
 
 .widget-title-group {
@@ -487,9 +545,10 @@ onMounted(async () => {
 }
 
 .widget-title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -506,13 +565,13 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--gray-50);
+  background: var(--muted);
   border-radius: var(--border-radius);
   transition: background var(--transition-fast);
 }
 
 .widget:hover .widget-list-item {
-  background: var(--gray-100);
+  background: var(--accent);
 }
 
 .list-item-left {
@@ -531,8 +590,8 @@ onMounted(async () => {
 .list-item-avatar {
   width: 32px;
   height: 32px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
+  color: var(--primary-foreground);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
@@ -546,7 +605,7 @@ onMounted(async () => {
   flex: 1;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .list-item-content {
@@ -630,6 +689,10 @@ onMounted(async () => {
   .widgets-grid {
     grid-template-columns: 1fr;
   }
+
+  .blob {
+    display: none;
+  }
 }
 
 @media (max-width: 640px) {
@@ -639,6 +702,10 @@ onMounted(async () => {
   
   .page-subtitle {
     padding-left: 0;
+  }
+
+  .page-title {
+    font-size: var(--font-size-3xl);
   }
 }
 </style>
