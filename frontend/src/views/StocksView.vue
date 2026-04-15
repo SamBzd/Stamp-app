@@ -250,11 +250,16 @@ onMounted(async () => {
   animation: fadeInUp 0.4s ease-out;
 }
 
+/* === Page Title === */
+.page-title {
+  font-family: var(--font-heading);
+}
+
 /* === Stats Summary === */
 .stats-summary {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-4);
+  gap: var(--spacing-5);
   margin-bottom: var(--spacing-6);
 }
 
@@ -262,17 +267,23 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
-  padding: var(--spacing-5);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color-light);
+  padding: var(--spacing-5) var(--spacing-6);
+  background: var(--card);
+  border-radius: var(--border-radius-2xl);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
+  transition: all var(--transition-normal);
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
 }
 
 .summary-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--border-radius-lg);
+  width: 52px;
+  height: 52px;
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -300,9 +311,10 @@ onMounted(async () => {
 }
 
 .summary-value {
+  font-family: var(--font-heading);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--foreground);
   line-height: 1;
 }
 
@@ -325,24 +337,24 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-5);
-  background: var(--bg-primary);
-  border: 2px solid var(--border-color-light);
-  border-radius: var(--border-radius-xl);
+  background: var(--card);
+  border: 2px solid var(--border-light);
+  border-radius: var(--border-radius-2xl);
   cursor: pointer;
   transition: all var(--transition-normal);
   font-family: var(--font-family);
 }
 
 .toggle-btn:hover {
-  border-color: var(--gray-300);
+  border-color: var(--border);
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
 }
 
 .toggle-btn.active {
-  border-color: var(--rose-400);
-  background: var(--rose-50);
-  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+  border-color: var(--primary);
+  background: var(--primary-light);
+  box-shadow: 0 0 0 4px rgba(93, 112, 82, 0.08);
 }
 
 .toggle-icon {
@@ -373,7 +385,7 @@ onMounted(async () => {
   flex: 1;
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--foreground);
   text-align: left;
 }
 
@@ -410,8 +422,8 @@ onMounted(async () => {
 .empty-tab {
   text-align: center;
   padding: var(--spacing-16);
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--success-light) 100%);
-  border-radius: var(--border-radius-xl);
+  background: linear-gradient(135deg, var(--muted) 0%, var(--success-light) 100%);
+  border-radius: var(--border-radius-2xl);
   border: 2px dashed var(--success);
 }
 
@@ -433,6 +445,7 @@ onMounted(async () => {
 }
 
 .empty-tab h3 {
+  font-family: var(--font-heading);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--success-dark);
@@ -457,7 +470,7 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-4);
   padding: var(--spacing-4) var(--spacing-5);
-  background: var(--bg-primary);
+  background: var(--card);
   border-radius: var(--border-radius-xl);
   border-left: 4px solid;
   box-shadow: var(--shadow-card);
@@ -497,9 +510,10 @@ onMounted(async () => {
 }
 
 .item-name {
+  font-family: var(--font-heading);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0 0 var(--spacing-1) 0;
   white-space: nowrap;
   overflow: hidden;
@@ -545,7 +559,7 @@ onMounted(async () => {
   width: 52px;
   height: 52px;
   border: none;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -566,19 +580,19 @@ onMounted(async () => {
 
 .action-done:hover {
   background: var(--success);
-  color: white;
+  color: var(--primary-foreground);
   transform: scale(1.08);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.25);
 }
 
 .action-undo {
-  background: var(--gray-100);
+  background: var(--muted);
   color: var(--text-secondary);
 }
 
 .action-undo:hover {
-  background: var(--gray-200);
-  color: var(--text-primary);
+  background: var(--accent);
+  color: var(--foreground);
   transform: scale(1.05);
 }
 
@@ -611,3 +625,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+
