@@ -123,12 +123,12 @@
         </div>
       </div>
 
-      <!-- Modal consultation client -->
-      <Modal
+      <!-- Panel consultation client -->
+      <SlidePanel
         :is-open="isViewModalOpen"
-        :title="''"
+        title=""
         @close="closeViewModal"
-        max-width="680px"
+        max-width="560px"
       >
         <div v-if="selectedClient" class="client-profile">
           <!-- Header avec avatar et infos principales -->
@@ -314,33 +314,18 @@
           </div>
         </div>
         <template #footer>
-          <Button variant="danger" @click="confirmDeleteFromView">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </template>
-            Supprimer
-          </Button>
-          <Button variant="secondary" @click="editClientFromView">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </template>
-            Modifier
-          </Button>
+          <Button variant="danger" @click="confirmDeleteFromView">Supprimer</Button>
+          <Button variant="secondary" @click="editClientFromView">Modifier</Button>
+          <Button @click="newOrderForClient">Nouvelle commande</Button>
         </template>
-      </Modal>
+      </SlidePanel>
 
-      <!-- Modal création/édition client -->
-      <Modal
+      <!-- Panel création/édition client -->
+      <SlidePanel
         :is-open="isModalOpen"
         :title="modalTitle"
         @close="closeModal"
-        max-width="640px"
+        max-width="560px"
       >
         <form @submit.prevent="handleSubmit" class="client-form">
           <!-- Section Identité -->
@@ -459,7 +444,7 @@
             {{ isEditing ? 'Enregistrer' : 'Créer' }}
           </Button>
         </template>
-      </Modal>
+      </SlidePanel>
 
       <!-- Confirm Delete Dialog -->
       <ConfirmDialog
@@ -477,13 +462,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
-import Modal from '../components/Modal.vue';
+import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
 import FormInput from '../components/FormInput.vue';
 import FormCheckbox from '../components/FormCheckbox.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import { useClientsStore } from '../stores/clients';
+
+const router = useRouter();
 
 const clientsStore = useClientsStore();
 
@@ -643,6 +631,13 @@ const editClientFromView = () => {
   editClient(client);
 };
 
+const newOrderForClient = () => {
+  const client = selectedClient.value;
+  closeViewModal();
+  // Navigate to home (orders) with client pre-selected via query param
+  router.push({ path: '/', query: { client: client.id } });
+};
+
 const confirmDeleteFromView = () => {
   const client = selectedClient.value;
   closeViewModal();
@@ -748,6 +743,11 @@ onMounted(async () => {
   animation: fadeInUp 0.4s ease-out;
 }
 
+/* === Page Title === */
+.page-title {
+  font-family: var(--font-heading);
+}
+
 /* === Toolbar === */
 .toolbar {
   display: flex;
@@ -778,8 +778,8 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-4);
-  background: var(--bg-primary);
-  border: 1.5px solid var(--border-color);
+  background: var(--card);
+  border: 1.5px solid var(--border);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -796,32 +796,32 @@ onMounted(async () => {
 
 .favorites-toggle:hover {
   background: var(--warning-light);
-  border-color: #fbbf24;
-  color: #d97706;
+  border-color: var(--secondary);
+  color: var(--warning-dark);
 }
 
 .favorites-toggle-active {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-color: #f59e0b;
-  color: #d97706;
+  background: var(--warning-light);
+  border-color: var(--secondary);
+  color: var(--warning-dark);
 }
 
 .favorites-toggle-active svg {
-  color: #f59e0b;
+  color: var(--secondary);
 }
 
 /* === Clients Grid === */
 .clients-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: var(--spacing-4);
+  gap: var(--spacing-5);
 }
 
 .client-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
+  background: var(--card);
+  border-radius: var(--border-radius-2xl);
   padding: var(--spacing-5);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
   display: flex;
   gap: var(--spacing-4);
@@ -831,29 +831,30 @@ onMounted(async () => {
 }
 
 .client-card:hover {
-  border-color: var(--rose-200);
+  border-color: var(--border);
   box-shadow: var(--shadow-card-hover);
-  transform: translateY(-4px);
+  transform: translateY(-3px) rotate(0.3deg);
 }
 
 .client-card:hover .arrow-indicator {
   opacity: 1;
   transform: translateX(4px);
+  color: var(--primary);
 }
 
 .client-avatar {
   width: 52px;
   height: 52px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
-  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-foreground);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.25);
 }
 
 .client-info {
@@ -862,9 +863,10 @@ onMounted(async () => {
 }
 
 .client-name {
+  font-family: var(--font-heading);
   font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin-bottom: var(--spacing-2);
 }
 
@@ -912,12 +914,12 @@ onMounted(async () => {
 }
 
 .favorite-btn-active {
-  color: #f59e0b;
+  color: var(--secondary);
 }
 
 .favorite-btn:hover {
-  background: var(--warning-light);
-  color: #f59e0b;
+  background: var(--secondary-light);
+  color: var(--secondary);
   transform: scale(1.1);
 }
 
@@ -926,8 +928,8 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-2);
   padding: var(--spacing-2) var(--spacing-4);
-  background: var(--gray-100);
-  border: 1.5px solid var(--border-color);
+  background: var(--muted);
+  border: 1.5px solid var(--border);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
@@ -943,19 +945,19 @@ onMounted(async () => {
 }
 
 .favorite-toggle:hover {
-  background: var(--warning-light);
-  border-color: #fbbf24;
-  color: #d97706;
+  background: var(--secondary-light);
+  border-color: var(--secondary);
+  color: var(--warning-dark);
 }
 
 .favorite-toggle-active {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border-color: #f59e0b;
-  color: #d97706;
+  background: var(--warning-light);
+  border-color: var(--secondary);
+  color: var(--warning-dark);
 }
 
 .favorite-toggle-active svg {
-  color: #f59e0b;
+  color: var(--secondary);
 }
 
 /* === Form === */
@@ -967,7 +969,7 @@ onMounted(async () => {
 
 .form-section {
   padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .form-section:last-child {
@@ -979,9 +981,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  font-family: var(--font-heading);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--rose-600);
+  color: var(--primary);
   margin: 0 0 var(--spacing-4) 0;
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
@@ -1010,22 +1013,22 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-5);
   padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .profile-avatar {
   width: 72px;
   height: 72px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
   border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-foreground);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
+  box-shadow: 0 4px 16px rgba(93, 112, 82, 0.25);
 }
 
 .profile-identity {
@@ -1034,9 +1037,10 @@ onMounted(async () => {
 }
 
 .profile-name {
+  font-family: var(--font-heading);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0 0 var(--spacing-2) 0;
 }
 
@@ -1054,8 +1058,8 @@ onMounted(async () => {
 }
 
 .profile-section {
-  background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-4);
 }
 
@@ -1080,18 +1084,18 @@ onMounted(async () => {
 
 .info-value {
   font-size: var(--font-size-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   font-weight: var(--font-weight-medium);
 }
 
 .info-link {
-  color: var(--rose-600);
+  color: var(--primary);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 .info-link:hover {
-  color: var(--rose-700);
+  color: var(--secondary);
   text-decoration: underline;
 }
 
@@ -1115,7 +1119,7 @@ onMounted(async () => {
 
 .address-line {
   font-size: var(--font-size-sm);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -1123,22 +1127,22 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
-  background: var(--bg-primary);
+  background: var(--card);
   padding: var(--spacing-2) var(--spacing-3);
   border-radius: var(--border-radius);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .relais-value svg {
   width: 16px;
   height: 16px;
-  color: var(--rose-500);
+  color: var(--primary);
 }
 
 /* === Profile Commandes === */
 .profile-commandes {
-  background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
 }
 
@@ -1184,16 +1188,16 @@ onMounted(async () => {
   top: 8px;
   bottom: 8px;
   width: 2px;
-  background: var(--border-color);
+  background: var(--border);
   border-radius: 1px;
 }
 
 .timeline-item {
   position: relative;
-  background: var(--bg-primary);
+  background: var(--card);
   border-radius: var(--border-radius);
   padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .timeline-dot {
@@ -1204,7 +1208,7 @@ onMounted(async () => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  border: 2px solid var(--bg-primary);
+  border: 2px solid var(--card);
 }
 
 .dot-success {
@@ -1225,7 +1229,7 @@ onMounted(async () => {
 .timeline-title {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .timeline-meta {
