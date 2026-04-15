@@ -116,11 +116,11 @@
         </div>
       </div>
 
-      <!-- Modal Vue Catalogue -->
-      <Modal
+      <!-- Panel Vue Catalogue -->
+      <SlidePanel
         :is-open="isViewModalOpen"
-        :title="''"
-        max-width="700px"
+        title=""
+        max-width="560px"
         @close="closeViewModal"
       >
         <div v-if="selectedGroupe" class="catalogue-view">
@@ -206,32 +206,16 @@
           </div>
         </div>
         <template #footer>
-          <Button variant="danger" @click="confirmDeleteFromView">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </template>
-            Supprimer
-          </Button>
-          <Button variant="secondary" @click="editFromView">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-              </svg>
-            </template>
-            Modifier
-          </Button>
+          <Button variant="danger" @click="confirmDeleteFromView">Supprimer</Button>
+          <Button variant="secondary" @click="editFromView">Modifier</Button>
         </template>
-      </Modal>
+      </SlidePanel>
 
-      <!-- Modal création/édition catalogue -->
-      <Modal
+      <!-- Panel création/édition catalogue -->
+      <SlidePanel
         :is-open="isFormModalOpen"
         :title="formModalTitle"
-        max-width="700px"
+        max-width="560px"
         @close="closeFormModal"
       >
         <form @submit.prevent="handleSubmit" class="catalogue-form">
@@ -364,13 +348,13 @@
             {{ isEditing ? 'Enregistrer' : 'Créer le catalogue' }}
           </Button>
         </template>
-      </Modal>
+      </SlidePanel>
 
-      <!-- Modal ajout collection (depuis vue) -->
-      <Modal
+      <!-- Panel ajout collection (depuis vue) -->
+      <SlidePanel
         :is-open="isAddCollectionModalOpen"
         title="Ajouter une collection"
-        max-width="480px"
+        max-width="420px"
         @close="closeAddCollectionModal"
       >
         <div class="add-collection-form">
@@ -402,7 +386,7 @@
             Ajouter
           </Button>
         </template>
-      </Modal>
+      </SlidePanel>
 
       <!-- Confirm Delete Dialog -->
       <ConfirmDialog
@@ -421,7 +405,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive } from 'vue';
 import Layout from '../components/Layout.vue';
-import Modal from '../components/Modal.vue';
+import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
 import FormInput from '../components/FormInput.vue';
 import FormSelect from '../components/FormSelect.vue';
@@ -744,6 +728,10 @@ onMounted(async () => {
   animation: fadeInUp 0.4s ease-out;
 }
 
+.page-title {
+  font-family: var(--font-heading);
+}
+
 /* === Catalogues Grid === */
 .catalogues-grid {
   display: grid;
@@ -752,10 +740,10 @@ onMounted(async () => {
 }
 
 .catalogue-card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
+  background: var(--card);
+  border-radius: var(--border-radius-2xl);
   padding: var(--spacing-5);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: all var(--transition-normal);
@@ -763,9 +751,9 @@ onMounted(async () => {
 }
 
 .catalogue-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px) rotate(0.3deg);
   box-shadow: var(--shadow-card-hover);
-  border-color: var(--rose-200);
+  border-color: var(--border);
 }
 
 .catalogue-card:hover .arrow-indicator {
@@ -784,14 +772,14 @@ onMounted(async () => {
 .catalogue-icon {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
-  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--primary-foreground);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.25);
 }
 
 .catalogue-icon svg {
@@ -801,9 +789,10 @@ onMounted(async () => {
 
 .catalogue-name {
   flex: 1;
+  font-family: var(--font-heading);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0;
 }
 
@@ -830,8 +819,8 @@ onMounted(async () => {
 
 /* === Catalogue Collections === */
 .catalogue-collections {
-  background: var(--gray-50);
-  border-radius: var(--border-radius-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-4);
 }
 
@@ -857,19 +846,19 @@ onMounted(async () => {
 }
 
 .collection-chip {
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color-light);
+  background: var(--card);
+  border: 1px solid var(--border-light);
   padding: var(--spacing-1) var(--spacing-3);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .collection-chip-more {
-  background: var(--rose-100);
-  border-color: var(--rose-200);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  border-color: var(--primary-medium);
+  color: var(--primary);
 }
 
 .collections-empty {
@@ -897,19 +886,19 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-4);
   padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .view-icon {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
   border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  box-shadow: 0 4px 16px rgba(236, 72, 153, 0.3);
+  color: var(--primary-foreground);
+  box-shadow: 0 4px 16px rgba(93, 112, 82, 0.25);
 }
 
 .view-icon svg {
@@ -922,9 +911,10 @@ onMounted(async () => {
 }
 
 .view-title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  color: var(--text-primary);
+  color: var(--foreground);
   margin: 0 0 var(--spacing-2) 0;
 }
 
@@ -934,7 +924,7 @@ onMounted(async () => {
 }
 
 .view-collections {
-  background: var(--gray-50);
+  background: var(--bg-tertiary);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
 }
@@ -981,14 +971,14 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--bg-primary);
+  background: var(--card);
   border-radius: var(--border-radius);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
   transition: all var(--transition-fast);
 }
 
 .collection-item:hover {
-  border-color: var(--rose-200);
+  border-color: var(--primary);
 }
 
 .collection-item:hover .collection-remove {
@@ -998,8 +988,8 @@ onMounted(async () => {
 .collection-number {
   width: 24px;
   height: 24px;
-  background: var(--rose-100);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  color: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1013,7 +1003,7 @@ onMounted(async () => {
   flex: 1;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .collection-remove {
@@ -1050,7 +1040,7 @@ onMounted(async () => {
 
 .form-section {
   padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-color-light);
+  border-bottom: 1px solid var(--border-light);
 }
 
 .form-section:last-child {
@@ -1062,9 +1052,10 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  font-family: var(--font-heading);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
-  color: var(--rose-600);
+  color: var(--primary);
   margin: 0 0 var(--spacing-4) 0;
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
@@ -1124,16 +1115,16 @@ onMounted(async () => {
   align-items: center;
   gap: var(--spacing-3);
   padding: var(--spacing-3) var(--spacing-4);
-  background: var(--gray-50);
+  background: var(--bg-tertiary);
   border-radius: var(--border-radius);
-  border: 1px solid var(--border-color-light);
+  border: 1px solid var(--border-light);
 }
 
 .form-collection-number {
   width: 24px;
   height: 24px;
-  background: var(--rose-100);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  color: var(--primary);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1147,7 +1138,7 @@ onMounted(async () => {
   flex: 1;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--foreground);
 }
 
 .form-collection-remove {
