@@ -1,7 +1,6 @@
 /* ============================================
-   Stamp App - Design System v2.0
-   Style Apple/iOS avec dominante rose
-   Design harmonisé et moderne
+   Stamp App - Organic/Natural Design System
+   Wabi-sabi inspired: warmth, softness, nature
    ============================================ */
 
 /* Reset & Base */
@@ -14,100 +13,110 @@
 }
 
 :root {
-  /* === Couleurs principales - Palette Rose === */
-  --rose-50: #fdf2f8;
-  --rose-100: #fce7f3;
-  --rose-200: #fbcfe8;
-  --rose-300: #f9a8d4;
-  --rose-400: #f472b6;
-  --rose-500: #ec4899;
-  --rose-600: #db2777;
-  --rose-700: #be185d;
-  --rose-800: #9f1239;
-  --rose-900: #881337;
+  /* === Core Organic Palette === */
+  --background: #FDFCF8;
+  --foreground: #2C2C24;
+  --primary: #5D7052;
+  --primary-foreground: #F3F4F1;
+  --primary-light: rgba(93, 112, 82, 0.10);
+  --primary-medium: rgba(93, 112, 82, 0.15);
+  --secondary: #C18C5D;
+  --secondary-foreground: #FFFFFF;
+  --secondary-light: rgba(193, 140, 93, 0.12);
+  --accent: #E6DCCD;
+  --accent-foreground: #4A4A40;
+  --muted: #F0EBE5;
+  --muted-foreground: #78786C;
+  --border: #DED8CF;
+  --border-light: rgba(222, 216, 207, 0.50);
+  --destructive: #A85448;
+  --destructive-light: rgba(168, 84, 72, 0.12);
+  --card: #FEFEFA;
 
-  /* === Couleurs neutres === */
-  --gray-25: #fcfcfd;
-  --gray-50: #f9fafb;
-  --gray-100: #f3f4f6;
-  --gray-200: #e5e7eb;
-  --gray-300: #d1d5db;
-  --gray-400: #9ca3af;
-  --gray-500: #6b7280;
-  --gray-600: #4b5563;
-  --gray-700: #374151;
-  --gray-800: #1f2937;
-  --gray-900: #111827;
-  --gray-950: #030712;
+  /* === Semantic Colors === */
+  --success: #5D7052;
+  --success-light: rgba(93, 112, 82, 0.12);
+  --success-dark: #4A5D42;
+  --warning: #C18C5D;
+  --warning-light: rgba(193, 140, 93, 0.12);
+  --warning-dark: #A07040;
+  --error: #A85448;
+  --error-light: rgba(168, 84, 72, 0.10);
+  --error-dark: #8B3E34;
+  --info: #6B8F71;
+  --info-light: rgba(107, 143, 113, 0.12);
+  --info-dark: #4A6B4E;
 
-  /* === Couleurs sémantiques === */
-  --success: #10b981;
-  --success-light: #d1fae5;
-  --success-dark: #059669;
-  --warning: #f59e0b;
-  --warning-light: #fef3c7;
-  --warning-dark: #d97706;
-  --error: #ef4444;
-  --error-light: #fee2e2;
-  --error-dark: #dc2626;
-  --info: #3b82f6;
-  --info-light: #dbeafe;
-  --info-dark: #2563eb;
-
-  /* === Palette Format (A, B, C) === */
-  --format-a: #2563eb;
-  --format-a-light: #dbeafe;
-  --format-a-dark: #1d4ed8;
-  --format-b: var(--rose-500);
-  --format-b-light: #fce7f3;
-  --format-b-dark: var(--rose-600);
-  --format-c: #059669;
-  --format-c-light: #d1fae5;
-  --format-c-dark: #047857;
+  /* === Format Colors (A, B, C) === */
+  --format-a: #6B8F71;
+  --format-a-light: rgba(107, 143, 113, 0.12);
+  --format-a-dark: #4A6B4E;
+  --format-b: #C18C5D;
+  --format-b-light: rgba(193, 140, 93, 0.12);
+  --format-b-dark: #A07040;
+  --format-c: #8B7355;
+  --format-c-light: rgba(139, 115, 85, 0.12);
+  --format-c-dark: #6B573F;
 
   /* === Surfaces === */
-  --bg-app: linear-gradient(160deg, #fefcfd 0%, #fdf2f8 25%, #fef7fa 50%, #f9fafb 100%);
-  --bg-primary: #ffffff;
-  --bg-secondary: var(--rose-50);
-  --bg-tertiary: var(--gray-50);
-  --bg-elevated: #ffffff;
-  --bg-overlay: rgba(0, 0, 0, 0.4);
-  --bg-frosted: rgba(255, 255, 255, 0.8);
-  --bg-card-hover: linear-gradient(135deg, #fefcfd 0%, var(--rose-50) 100%);
+  --bg-app: #FDFCF8;
+  --bg-primary: #FEFEFA;
+  --bg-secondary: #F0EBE5;
+  --bg-tertiary: #F7F4F0;
+  --bg-elevated: #FFFFFF;
+  --bg-overlay: rgba(44, 44, 36, 0.35);
+  --bg-frosted: rgba(253, 252, 248, 0.80);
+  --bg-card-hover: linear-gradient(135deg, #FEFEFA 0%, #F7F4F0 100%);
 
-  /* === Texte === */
-  --text-primary: var(--gray-900);
-  --text-secondary: var(--gray-600);
-  --text-tertiary: var(--gray-400);
-  --text-inverse: #ffffff;
-  --text-accent: var(--rose-600);
+  /* === Text === */
+  --text-primary: #2C2C24;
+  --text-secondary: #5A5A50;
+  --text-tertiary: #78786C;
+  --text-inverse: #FDFCF8;
+  --text-accent: #5D7052;
 
-  /* === Bordures === */
-  --border-color: var(--gray-200);
-  --border-color-light: var(--gray-100);
-  --border-color-focus: var(--rose-400);
-  --border-radius-xs: 6px;
-  --border-radius-sm: 8px;
-  --border-radius: 12px;
-  --border-radius-lg: 16px;
-  --border-radius-xl: 20px;
-  --border-radius-2xl: 24px;
+  /* === Borders & Radii === */
+  --border-color: #DED8CF;
+  --border-color-light: rgba(222, 216, 207, 0.40);
+  --border-color-focus: rgba(93, 112, 82, 0.40);
+  --border-radius-xs: 8px;
+  --border-radius-sm: 10px;
+  --border-radius: 16px;
+  --border-radius-lg: 20px;
+  --border-radius-xl: 24px;
+  --border-radius-2xl: 32px;
   --border-radius-full: 9999px;
 
-  /* === Ombres iOS style === */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.07), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
-  --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
-  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04);
-  --shadow-glow: 0 0 24px rgba(236, 72, 153, 0.12);
-  --shadow-glow-sm: 0 0 12px rgba(236, 72, 153, 0.08);
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.03), 0 4px 20px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 30px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  /* === Organic Blob Radii === */
+  --radius-blob-1: 60% 40% 30% 70% / 60% 30% 70% 40%;
+  --radius-blob-2: 40% 60% 70% 30% / 30% 70% 40% 60%;
+  --radius-blob-3: 50% 50% 30% 70% / 60% 40% 60% 40%;
+  --radius-blob-4: 70% 30% 50% 50% / 40% 60% 40% 60%;
+  --radius-blob-5: 30% 70% 60% 40% / 50% 50% 40% 60%;
+  --radius-blob-6: 55% 45% 40% 60% / 45% 55% 60% 40%;
 
-  /* === Espacements === */
+  /* === Asymmetric Card Radii === */
+  --card-radius-1: 2rem 2rem 2rem 2rem;
+  --card-radius-2: 3rem 2rem 2rem 2rem;
+  --card-radius-3: 2rem 3rem 2rem 2rem;
+  --card-radius-4: 2rem 2rem 3rem 2rem;
+  --card-radius-5: 2rem 2rem 2rem 3rem;
+  --card-radius-6: 3rem 2rem 3rem 2rem;
+
+  /* === Shadows (Nature-tinted, never pure black) === */
+  --shadow-xs: 0 1px 2px rgba(93, 112, 82, 0.04);
+  --shadow-sm: 0 1px 3px rgba(93, 112, 82, 0.06), 0 1px 2px rgba(93, 112, 82, 0.04);
+  --shadow: 0 4px 6px -1px rgba(93, 112, 82, 0.08), 0 2px 4px -1px rgba(93, 112, 82, 0.04);
+  --shadow-md: 0 10px 15px -3px rgba(93, 112, 82, 0.10), 0 4px 6px -2px rgba(93, 112, 82, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(93, 112, 82, 0.12), 0 10px 10px -5px rgba(93, 112, 82, 0.04);
+  --shadow-xl: 0 25px 50px -12px rgba(93, 112, 82, 0.18);
+  --shadow-inner: inset 0 2px 4px 0 rgba(93, 112, 82, 0.06);
+  --shadow-soft: 0 4px 20px -2px rgba(93, 112, 82, 0.15);
+  --shadow-float: 0 10px 40px -10px rgba(193, 140, 93, 0.20);
+  --shadow-card: 0 2px 12px rgba(93, 112, 82, 0.06), 0 4px 20px rgba(93, 112, 82, 0.04);
+  --shadow-card-hover: 0 8px 30px rgba(93, 112, 82, 0.12), 0 4px 12px rgba(93, 112, 82, 0.06);
+
+  /* === Spacing === */
   --spacing-px: 1px;
   --spacing-0: 0;
   --spacing-1: 4px;
@@ -122,10 +131,11 @@
   --spacing-16: 64px;
   --spacing-20: 80px;
 
-  /* === Typographie === */
-  --font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'SF Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
-  
+  /* === Typography === */
+  --font-family: 'Nunito', 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-heading: 'Fraunces', 'Georgia', 'Times New Roman', serif;
+  --font-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
+
   --font-size-xs: 11px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
@@ -152,10 +162,10 @@
   --letter-spacing-wide: 0.025em;
   --letter-spacing-wider: 0.05em;
 
-  /* === Transitions === */
-  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  /* === Transitions (Gentle, natural motion) === */
+  --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
   --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
   --transition-bounce: 500ms cubic-bezier(0.68, -0.6, 0.32, 1.6);
 
@@ -192,6 +202,24 @@ body {
   background: var(--bg-app);
   min-height: 100vh;
   overflow-x: hidden;
+  position: relative;
+}
+
+/* === Paper Grain Texture Overlay === */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.035;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
 }
 
 #app {
@@ -199,7 +227,7 @@ body {
   min-height: 100vh;
 }
 
-/* === Scrollbar personnalisée macOS style === */
+/* === Scrollbar (organic, soft) === */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -210,14 +238,14 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-300);
+  background: var(--border);
   border-radius: 10px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-400);
+  background: var(--muted-foreground);
   border: 2px solid transparent;
   background-clip: padding-box;
 }
@@ -226,34 +254,34 @@ body {
   background: transparent;
 }
 
-/* === Selection === */
+/* === Selection (Moss green tint) === */
 ::selection {
-  background: var(--rose-200);
-  color: var(--rose-900);
+  background: rgba(93, 112, 82, 0.20);
+  color: var(--foreground);
 }
 
-/* === Focus visible === */
+/* === Focus Visible (Soft moss green ring) === */
 :focus-visible {
-  outline: 2px solid var(--rose-400);
+  outline: 2px solid rgba(93, 112, 82, 0.40);
   outline-offset: 2px;
 }
 
 /* === Links === */
 a {
-  color: var(--rose-600);
+  color: var(--primary);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--rose-700);
+  color: var(--secondary);
 }
 
 /* ============================================
    UNIFIED PAGE STYLES
    ============================================ */
 
-/* === Page Header - Style unifié === */
+/* === Page Header === */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -263,15 +291,12 @@ a:hover {
 }
 
 .page-title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--text-primary);
   letter-spacing: var(--letter-spacing-tight);
   margin-bottom: var(--spacing-1);
-  background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-700) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .page-subtitle {
@@ -280,18 +305,18 @@ a:hover {
   margin: 0;
 }
 
-/* === Cards - Style unifié === */
+/* === Cards === */
 .card {
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color-light);
+  background: var(--card);
+  border-radius: var(--border-radius-2xl);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
   padding: var(--spacing-5);
   transition: all var(--transition-normal);
 }
 
 .card:hover {
-  border-color: var(--rose-200);
+  border-color: var(--border);
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
@@ -304,7 +329,7 @@ a:hover {
   transform: translateY(-4px);
 }
 
-/* === Empty State - Style unifié === */
+/* === Empty State === */
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -312,17 +337,17 @@ a:hover {
   justify-content: center;
   text-align: center;
   padding: var(--spacing-16) var(--spacing-8);
-  background: linear-gradient(135deg, var(--gray-50) 0%, var(--rose-50) 100%);
-  border-radius: var(--border-radius-xl);
-  border: 2px dashed var(--border-color);
+  background: linear-gradient(135deg, var(--muted) 0%, var(--accent) 50%, var(--muted) 100%);
+  border-radius: var(--border-radius-2xl);
+  border: 2px dashed var(--border);
 }
 
 .empty-state-icon {
   width: 80px;
   height: 80px;
   margin-bottom: var(--spacing-6);
-  color: var(--rose-300);
-  opacity: 0.8;
+  color: var(--primary);
+  opacity: 0.5;
 }
 
 .empty-state-icon svg {
@@ -331,6 +356,7 @@ a:hover {
 }
 
 .empty-state-title {
+  font-family: var(--font-heading);
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
   color: var(--text-primary);
@@ -344,7 +370,7 @@ a:hover {
   max-width: 360px;
 }
 
-/* === Loading State - Style unifié === */
+/* === Loading State === */
 .loading-state {
   display: flex;
   flex-direction: column;
@@ -357,8 +383,8 @@ a:hover {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--rose-100);
-  border-top-color: var(--rose-500);
+  border: 3px solid var(--primary-light);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -384,7 +410,7 @@ a:hover {
   50% { opacity: 0.6; }
 }
 
-/* === Error State - Style unifié === */
+/* === Error State === */
 .error-state {
   display: flex;
   flex-direction: column;
@@ -393,8 +419,8 @@ a:hover {
   text-align: center;
   padding: var(--spacing-16) var(--spacing-8);
   background: var(--error-light);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--border-radius-2xl);
+  border: 1px solid rgba(168, 84, 72, 0.2);
 }
 
 .error-state p {
@@ -403,7 +429,7 @@ a:hover {
   margin-bottom: var(--spacing-4);
 }
 
-/* === Grid Layouts - Style unifié === */
+/* === Grid Layouts === */
 .grid-cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
@@ -418,7 +444,7 @@ a:hover {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
 
-/* === Toolbar / Filter Bar - Style unifié === */
+/* === Toolbar / Filter Bar === */
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -426,13 +452,13 @@ a:hover {
   gap: var(--spacing-4);
   margin-bottom: var(--spacing-6);
   padding: var(--spacing-4) var(--spacing-5);
-  background: var(--bg-primary);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-color-light);
+  background: var(--card);
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--border-light);
   box-shadow: var(--shadow-sm);
 }
 
-/* === Search Input - Style unifié === */
+/* === Search Input === */
 .search-wrapper {
   position: relative;
   flex: 1;
@@ -453,8 +479,8 @@ a:hover {
 .search-input {
   width: 100%;
   padding: var(--spacing-3) var(--spacing-4) var(--spacing-3) var(--spacing-12);
-  background: var(--gray-50);
-  border: 1.5px solid transparent;
+  background: rgba(255, 255, 255, 0.50);
+  border: 1.5px solid var(--border);
   border-radius: var(--border-radius-full);
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
@@ -463,21 +489,22 @@ a:hover {
 }
 
 .search-input:hover {
-  background: var(--gray-100);
+  background: rgba(255, 255, 255, 0.70);
+  border-color: var(--muted-foreground);
 }
 
 .search-input:focus {
   outline: none;
   background: var(--bg-primary);
-  border-color: var(--rose-400);
-  box-shadow: 0 0 0 4px rgba(236, 72, 153, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(93, 112, 82, 0.12);
 }
 
 .search-input::placeholder {
   color: var(--text-tertiary);
 }
 
-/* === Badges / Pills - Style unifié === */
+/* === Badges / Pills === */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -516,17 +543,18 @@ a:hover {
   color: var(--info-dark);
 }
 
-.badge-rose {
-  background: var(--rose-100);
-  color: var(--rose-700);
+.badge-rose,
+.badge-primary {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
 .badge-neutral {
-  background: var(--gray-100);
+  background: var(--muted);
   color: var(--text-secondary);
 }
 
-/* === Format Badges - Style unifié === */
+/* === Format Badges === */
 .format-badge {
   display: inline-flex;
   align-items: center;
@@ -557,7 +585,7 @@ a:hover {
 .format-b, .format-badge-b { background: var(--format-b); }
 .format-c, .format-badge-c { background: var(--format-c); }
 
-/* === Format Pills - Style unifié === */
+/* === Format Pills === */
 .format-pill {
   display: inline-flex;
   align-items: center;
@@ -601,16 +629,16 @@ a:hover {
 .format-pill-c .format-pill-letter { background: var(--format-c); }
 .format-pill-c .format-pill-price { color: var(--format-c-dark); }
 
-/* === Avatar - Style unifié === */
+/* === Avatar === */
 .avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
+  color: var(--primary-foreground);
   font-weight: var(--font-weight-semibold);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 2px 8px rgba(93, 112, 82, 0.25);
 }
 
 .avatar-sm {
@@ -642,12 +670,13 @@ a:hover {
   border-radius: var(--border-radius-xl);
 }
 
-/* === Icon Box - Style unifié === */
+/* === Icon Box === */
 .icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all var(--transition-normal);
 }
 
 .icon-box svg {
@@ -673,38 +702,43 @@ a:hover {
   border-radius: var(--border-radius-xl);
 }
 
-.icon-box-rose {
-  background: linear-gradient(135deg, var(--rose-400) 0%, var(--rose-600) 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+.icon-box-rose,
+.icon-box-primary {
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
-.icon-box-blue {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+.icon-box-primary:hover {
+  background: var(--primary);
+  color: var(--primary-foreground);
 }
 
-.icon-box-green {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+.icon-box-blue,
+.icon-box-info {
+  background: var(--info-light);
+  color: var(--info-dark);
 }
 
-.icon-box-amber {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: white;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+.icon-box-green,
+.icon-box-success {
+  background: var(--success-light);
+  color: var(--success-dark);
+}
+
+.icon-box-amber,
+.icon-box-warning {
+  background: var(--warning-light);
+  color: var(--warning-dark);
 }
 
 .icon-box-soft {
-  background: var(--rose-100);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  color: var(--primary);
 }
 
-/* === Section - Style unifié === */
+/* === Section === */
 .section {
-  background: var(--gray-50);
+  background: var(--bg-tertiary);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-5);
 }
@@ -720,6 +754,7 @@ a:hover {
   display: flex;
   align-items: center;
   gap: var(--spacing-2);
+  font-family: var(--font-heading);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--text-secondary);
@@ -731,10 +766,10 @@ a:hover {
 .section-title svg {
   width: 16px;
   height: 16px;
-  color: var(--rose-500);
+  color: var(--primary);
 }
 
-/* === Divider - Style unifié === */
+/* === Divider === */
 .divider {
   display: flex;
   align-items: center;
@@ -746,7 +781,7 @@ a:hover {
 .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border);
 }
 
 .divider span {
@@ -755,10 +790,10 @@ a:hover {
   font-size: var(--font-size-sm);
 }
 
-/* === Count Badge - Style unifié === */
+/* === Count Badge === */
 .count-badge {
-  background: var(--rose-100);
-  color: var(--rose-600);
+  background: var(--primary-light);
+  color: var(--primary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   padding: 2px 10px;
@@ -775,7 +810,7 @@ a:hover {
   color: var(--success-dark);
 }
 
-/* === Arrow indicator - Style unifié === */
+/* === Arrow Indicator === */
 .arrow-indicator {
   color: var(--text-tertiary);
   opacity: 0.4;
@@ -791,6 +826,7 @@ a:hover {
 .card-interactive:hover .arrow-indicator {
   opacity: 1;
   transform: translateX(4px);
+  color: var(--primary);
 }
 
 /* ============================================
@@ -902,7 +938,7 @@ a:hover {
 }
 
 .hover-glow:hover {
-  box-shadow: var(--shadow-glow);
+  box-shadow: var(--shadow-soft);
 }
 
 /* ============================================
@@ -919,6 +955,7 @@ a:hover {
   .toolbar {
     flex-direction: column;
     align-items: stretch;
+    border-radius: var(--border-radius-xl);
   }
   
   .search-wrapper {
