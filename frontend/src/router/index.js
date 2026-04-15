@@ -5,8 +5,8 @@ export default createRouter({
   routes: [
     { 
       path: '/', 
-      name: 'dashboard', 
-      component: () => import('../views/DashboardView.vue') 
+      name: 'commandes', 
+      component: () => import('../views/CommandesView.vue') 
     },
     { 
       path: '/clients', 
@@ -17,11 +17,6 @@ export default createRouter({
       path: '/groupes', 
       name: 'groupes', 
       component: () => import('../views/GroupesView.vue') 
-    },
-    { 
-      path: '/commandes', 
-      name: 'commandes', 
-      component: () => import('../views/CommandesView.vue') 
     },
     { 
       path: '/stocks', 
