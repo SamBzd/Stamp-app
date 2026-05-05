@@ -6,6 +6,7 @@ const {
   getClientById,
   createClient,
   updateClient,
+  updatePointsFidelite,
   deleteClient
 } = require('../db/client');
 
@@ -113,6 +114,37 @@ router.delete('/:id', (req, res) => {
     res.status(204).send();
   } catch (err) {
     console.error('Erreur suppression client SQLite:', err);
+    res.status(500).json({ error: 'Erreur interne serveur' });
+  }
+});
+
+// UPDATE - Mettre à jour les points de fidélité d'un client
+router.patch('/:id/points', (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'ID invalide' });
+    }
+
+    const { points_fidelite } = req.body;
+
+    if (points_fidelite === undefined || points_fidelite === null) {
+      return res.status(400).json({ error: 'Le champ points_fidelite est obligatoire' });
+    }
+
+    const points = parseInt(points_fidelite);
+    if (isNaN(points) || points < 0 || !Number.isInteger(Number(points_fidelite))) {
+      return res.status(400).json({ error: 'points_fidelite doit être un entier >= 0' });
+    }
+
+    const updatedClient = updatePointsFidelite(id, points);
+    if (!updatedClient) {
+      return res.status(404).json({ error: 'Client non trouvé' });
+    }
+
+    res.json(updatedClient);
+  } catch (err) {
+    console.error('Erreur mise à jour points_fidelite SQLite:', err);
     res.status(500).json({ error: 'Erreur interne serveur' });
   }
 });

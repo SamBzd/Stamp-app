@@ -25,13 +25,14 @@ function createClient(clientData) {
     telephone_raw = null,
     relais_prefere = null,
     contacter = 0,
-    derniere_commande = null
+    derniere_commande = null,
+    points_fidelite = 0
   } = clientData;
 
   const stmt = db.prepare(`
-    INSERT INTO clients 
-    (nom, prenom, date_naissance, adresse, code_postal, ville, email, telephone_raw, relais_prefere, contacter, derniere_commande)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO clients
+    (nom, prenom, date_naissance, adresse, code_postal, ville, email, telephone_raw, relais_prefere, contacter, derniere_commande, points_fidelite)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -45,7 +46,8 @@ function createClient(clientData) {
     telephone_raw,
     relais_prefere,
     contacter,
-    derniere_commande
+    derniere_commande,
+    points_fidelite
   );
 
   return getClientById(result.lastInsertRowid);
@@ -71,11 +73,12 @@ function updateClient(id, clientData) {
     telephone_raw = existingClient.telephone_raw,
     relais_prefere = existingClient.relais_prefere,
     contacter = existingClient.contacter,
-    derniere_commande = existingClient.derniere_commande
+    derniere_commande = existingClient.derniere_commande,
+    points_fidelite = existingClient.points_fidelite
   } = clientData;
 
   const stmt = db.prepare(`
-    UPDATE clients 
+    UPDATE clients
     SET nom = ?,
         prenom = ?,
         date_naissance = ?,
@@ -86,7 +89,8 @@ function updateClient(id, clientData) {
         telephone_raw = ?,
         relais_prefere = ?,
         contacter = ?,
-        derniere_commande = ?
+        derniere_commande = ?,
+        points_fidelite = ?
     WHERE id = ?
   `);
 
@@ -102,6 +106,7 @@ function updateClient(id, clientData) {
     relais_prefere,
     contacter,
     derniere_commande,
+    points_fidelite,
     id
   );
 
@@ -123,6 +128,16 @@ function updateDerniereCommande(clientId) {
   return result.changes > 0;
 }
 
+// UPDATE - Mettre à jour les points de fidélité d'un client
+function updatePointsFidelite(id, points) {
+  const stmt = db.prepare('UPDATE clients SET points_fidelite = ? WHERE id = ?');
+  const result = stmt.run(points, id);
+  if (result.changes === 0) {
+    return null; // Client non trouvé
+  }
+  return getClientById(id);
+}
+
 // DELETE - Supprimer un client
 function deleteClient(id) {
   const stmt = db.prepare('DELETE FROM clients WHERE id = ?');
@@ -136,5 +151,6 @@ module.exports = {
   createClient,
   updateClient,
   updateDerniereCommande,
+  updatePointsFidelite,
   deleteClient
 };

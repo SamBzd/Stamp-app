@@ -6,10 +6,13 @@ const PORT = process.env.PORT || 3000
 
 // Import des routes
 const clientsRoutes = require('./routes/client')
+const cataloguesRoutes = require('./routes/catalogues')
 const collectionsRoutes = require('./routes/collection')
 const groupesRoutes = require('./routes/groupes')
 const commandesRoutes = require('./routes/commandes')
 const stocksRoutes = require('./routes/stocks')
+const settingsRoutes = require('./routes/settings')
+const papiersCartonnесRoutes = require('./routes/papiers-cartonnes')
 
 app.use(cors())
 app.use(express.json())
@@ -22,6 +25,9 @@ app.get('/api/health', (req, res) => {
 // Routes pour les clients
 app.use('/api/clients', clientsRoutes)
 
+// Routes pour les catalogues
+app.use('/api/catalogues', cataloguesRoutes)
+
 // Routes pour les collections
 app.use('/api/collections', collectionsRoutes)
 
@@ -33,6 +39,12 @@ app.use('/api/commandes', commandesRoutes)
 
 // Routes pour les stocks
 app.use('/api/stocks', stocksRoutes)
+
+// Routes pour les settings
+app.use('/api/settings', settingsRoutes)
+
+// Routes pour les papiers cartonnés
+app.use('/api/papiers-cartonnes', papiersCartonnесRoutes)
 
 app.listen(PORT, () => {
   console.log(`Backend listening on http://localhost:${PORT}`)
