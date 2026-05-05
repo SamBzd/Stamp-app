@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000
 
 // Import des routes
 const clientsRoutes = require('./routes/client')
+const cataloguesRoutes = require('./routes/catalogues')
 const collectionsRoutes = require('./routes/collection')
 const groupesRoutes = require('./routes/groupes')
 const commandesRoutes = require('./routes/commandes')
@@ -21,6 +22,9 @@ app.get('/api/health', (req, res) => {
 
 // Routes pour les clients
 app.use('/api/clients', clientsRoutes)
+
+// Routes pour les catalogues
+app.use('/api/catalogues', cataloguesRoutes)
 
 // Routes pour les collections
 app.use('/api/collections', collectionsRoutes)
