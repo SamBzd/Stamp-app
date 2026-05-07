@@ -196,17 +196,14 @@
           </div>
 
           <div v-if="stocksACommander.length > 0" class="widget-list">
-            <div 
-              v-for="stock in stocksACommanderPreview" 
-              :key="`${stock.collection_id}-${stock.format}`" 
+            <div
+              v-for="(stock, index) in stocksACommanderPreview"
+              :key="index"
               class="widget-list-item"
             >
-              <div :class="['format-badge', `format-badge-${stock.format.toLowerCase()}`]">
-                {{ stock.format }}
-              </div>
               <div class="list-item-content">
-                <span class="list-item-title">{{ stock.collection_nom || `Collection #${stock.collection_id}` }}</span>
-                <span class="list-item-meta">{{ stock.quantite_commande }} demandé(s)</span>
+                <span class="list-item-title">{{ stock.nom || stock.papier_spe || stock.embellissement }}</span>
+                <span class="list-item-meta">{{ stock.nb_feuilles || stock.nb_commandes }} à commander</span>
               </div>
             </div>
           </div>
@@ -256,7 +253,11 @@ const recentClients = computed(() => {
 });
 
 const stocksACommander = computed(() => {
-  return stocksStore.stocksANecessiterCommande;
+  if (!stocksStore.stocks) return [];
+  const papiers = stocksStore.stocks.papiers_cartonnes || [];
+  const specia = stocksStore.stocks.papier_spe || [];
+  const embell = stocksStore.stocks.embellissement || [];
+  return [...papiers, ...specia, ...embell];
 });
 
 const stocksACommanderPreview = computed(() => {

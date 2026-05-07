@@ -109,19 +109,8 @@ export const commandesAPI = {
  * API Stocks
  */
 export const stocksAPI = {
-  getAll: () => apiCall('/stocks'),
-  getById: (collectionId, format) => apiCall(`/stocks/${collectionId}/${format}`),
-  updateStock: (collectionId, format, quantiteStock) => 
-    apiCall(`/stocks/${collectionId}/${format}`, { 
-      method: 'PUT', 
-      body: JSON.stringify({ quantite_stock: quantiteStock }) 
-    }),
-  setGere: (collectionId, format, gere) => 
-    apiCall(`/stocks/${collectionId}/${format}/gere`, { 
-      method: 'PATCH', 
-      body: JSON.stringify({ gere }) 
-    }),
-  getANecessiter: () => apiCall('/stocks/a-necessiter'),
+  get: () => apiCall('/stocks'),
+  getBilan: (mois) => apiCall(`/stocks/bilan?mois=${mois}`),
   recalculate: () => apiCall('/stocks/recalculate', { method: 'POST' }),
 };
 
