@@ -72,11 +72,7 @@ router.post('/', (req, res) => {
     } catch (err) {
         console.error('Erreur création commande:', err);
 
-        const clientErrors = [
-            'Client non trouvé',
-            'Collection non trouvée',
-        ];
-        if (clientErrors.includes(err.message)) {
+        if (/non trou/.test(err.message)) {
             return res.status(404).json({ error: err.message });
         }
 
