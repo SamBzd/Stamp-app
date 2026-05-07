@@ -13,10 +13,10 @@ export default createRouter({
       name: 'clients', 
       component: () => import('../views/ClientsView.vue') 
     },
-    { 
-      path: '/groupes', 
-      name: 'groupes', 
-      component: () => import('../views/GroupesView.vue') 
+    {
+      path: '/catalogues',
+      name: 'catalogues',
+      component: () => import('../views/CataloguesView.vue')
     },
     { 
       path: '/stocks', 
