@@ -27,7 +27,7 @@
       </nav>
 
       <div class="rail-footer">
-        <div class="rail-version">v1</div>
+        <div class="rail-version">v2</div>
       </div>
     </aside>
 
@@ -47,6 +47,12 @@
         </div>
       </div>
       <div class="topbar-right">
+        <button class="topbar-icon-btn" @click="parametresOpen = true" title="Paramètres">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
         <button class="topbar-new-btn" @click="$emit('new-order')" title="Nouvelle commande (N)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/>
@@ -55,6 +61,8 @@
           <span>Nouvelle commande</span>
         </button>
       </div>
+
+      <ParametresModal :isOpen="parametresOpen" @close="parametresOpen = false" />
     </header>
 
     <!-- Main Content Area -->
@@ -67,11 +75,14 @@
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import { useRoute } from 'vue-router';
+import ParametresModal from './ParametresModal.vue';
 
 const route = useRoute();
 
 defineEmits(['new-order', 'focus-search']);
+const parametresOpen = ref(false);
 
 const navItems = [
   { 
@@ -346,7 +357,29 @@ const isActive = (path) => {
 
 .topbar-right {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
 }
+
+.topbar-icon-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.topbar-icon-btn:hover {
+  background: var(--muted);
+  color: var(--text-primary);
+}
+.topbar-icon-btn svg { width: 18px; height: 18px; }
 
 .topbar-new-btn {
   display: inline-flex;

@@ -91,37 +91,33 @@ export const groupesAPI = {
 export const commandesAPI = {
   getAll: () => apiCall('/commandes'),
   getById: (id) => apiCall(`/commandes/${id}`),
-  getComplet: (id) => apiCall(`/commandes/${id}/complet`),
-  getCollections: (id) => apiCall(`/commandes/${id}/collections`),
   create: (data) => apiCall('/commandes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/commandes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => apiCall(`/commandes/${id}`, { method: 'DELETE' }),
-  addCollection: (commandeId, collectionId) => 
-    apiCall(`/commandes/${commandeId}/collections`, { 
-      method: 'POST', 
-      body: JSON.stringify({ collection_id: collectionId }) 
-    }),
-  removeCollection: (commandeId, collectionId) => 
-    apiCall(`/commandes/${commandeId}/collections/${collectionId}`, { method: 'DELETE' }),
+};
+
+/**
+ * API Catalogues
+ */
+export const cataloguesAPI = {
+  getAll: () => apiCall('/catalogues'),
+  getById: (id) => apiCall(`/catalogues/${id}`),
+};
+
+/**
+ * API Settings
+ */
+export const settingsAPI = {
+  get: () => apiCall('/settings'),
+  update: (data) => apiCall('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 /**
  * API Stocks
  */
 export const stocksAPI = {
-  getAll: () => apiCall('/stocks'),
-  getById: (collectionId, format) => apiCall(`/stocks/${collectionId}/${format}`),
-  updateStock: (collectionId, format, quantiteStock) => 
-    apiCall(`/stocks/${collectionId}/${format}`, { 
-      method: 'PUT', 
-      body: JSON.stringify({ quantite_stock: quantiteStock }) 
-    }),
-  setGere: (collectionId, format, gere) => 
-    apiCall(`/stocks/${collectionId}/${format}/gere`, { 
-      method: 'PATCH', 
-      body: JSON.stringify({ gere }) 
-    }),
-  getANecessiter: () => apiCall('/stocks/a-necessiter'),
+  get: () => apiCall('/stocks'),
+  getBilan: (mois) => apiCall(`/stocks/bilan?mois=${mois}`),
   recalculate: () => apiCall('/stocks/recalculate', { method: 'POST' }),
 };
 
