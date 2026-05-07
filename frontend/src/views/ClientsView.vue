@@ -230,6 +230,15 @@
                   <span class="info-label">Dernière commande</span>
                   <span class="info-value">{{ formatDate(selectedClient.derniere_commande) }}</span>
                 </div>
+                <div class="info-item">
+                  <span class="info-label">Points fidélité</span>
+                  <span class="info-value fidelite-value">
+                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="14" height="14">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                    {{ selectedClient.points_fidelite ?? 0 }}
+                  </span>
+                </div>
                 <div v-if="!selectedClient.date_naissance && !selectedClient.derniere_commande" class="info-empty">
                   Aucune information
                 </div>
@@ -358,6 +367,14 @@
               label="Date de naissance"
               type="date"
               :error="errors.date_naissance"
+            />
+            <FormInput
+              v-model="formData.points_fidelite"
+              label="Points fidélité"
+              type="number"
+              :min="0"
+              :step="1"
+              placeholder="0"
             />
           </div>
 
@@ -499,6 +516,7 @@ const formData = ref({
   date_naissance: '',
   relais_prefere: '',
   contacter: false,
+  points_fidelite: 0,
 });
 
 const errors = ref({});
@@ -658,6 +676,7 @@ const openCreateModal = () => {
     date_naissance: '',
     relais_prefere: '',
     contacter: false,
+    points_fidelite: 0,
   };
   errors.value = {};
   isModalOpen.value = true;
@@ -677,6 +696,7 @@ const editClient = (client) => {
     date_naissance: client.date_naissance || '',
     relais_prefere: client.relais_prefere || '',
     contacter: client.contacter === 1,
+    points_fidelite: client.points_fidelite ?? 0,
   };
   errors.value = {};
   isModalOpen.value = true;
@@ -700,6 +720,7 @@ const handleSubmit = async () => {
     const clientData = {
       ...formData.value,
       contacter: formData.value.contacter ? 1 : 0,
+      points_fidelite: parseInt(formData.value.points_fidelite) || 0,
     };
     
     if (isEditing.value) {
@@ -1121,6 +1142,13 @@ onMounted(async () => {
   font-size: var(--font-size-sm);
   color: var(--foreground);
   margin: 0;
+}
+
+.fidelite-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--secondary);
 }
 
 .relais-value {
