@@ -51,17 +51,6 @@ export const clientsAPI = {
 };
 
 /**
- * API Collections
- */
-export const collectionsAPI = {
-  getAll: () => apiCall('/collections'),
-  getById: (id) => apiCall(`/collections/${id}`),
-  create: (data) => apiCall('/collections', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => apiCall(`/collections/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => apiCall(`/collections/${id}`, { method: 'DELETE' }),
-};
-
-/**
  * API Catalogues
  */
 export const cataloguesAPI = {
@@ -93,14 +82,6 @@ export const commandesAPI = {
   create: (data) => apiCall('/commandes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/commandes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => apiCall(`/commandes/${id}`, { method: 'DELETE' }),
-};
-
-/**
- * API Catalogues
- */
-export const cataloguesAPI = {
-  getAll: () => apiCall('/catalogues'),
-  getById: (id) => apiCall(`/catalogues/${id}`),
 };
 
 /**
