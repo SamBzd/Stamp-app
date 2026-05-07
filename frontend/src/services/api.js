@@ -91,18 +91,25 @@ export const groupesAPI = {
 export const commandesAPI = {
   getAll: () => apiCall('/commandes'),
   getById: (id) => apiCall(`/commandes/${id}`),
-  getComplet: (id) => apiCall(`/commandes/${id}/complet`),
-  getCollections: (id) => apiCall(`/commandes/${id}/collections`),
   create: (data) => apiCall('/commandes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/commandes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   delete: (id) => apiCall(`/commandes/${id}`, { method: 'DELETE' }),
-  addCollection: (commandeId, collectionId) => 
-    apiCall(`/commandes/${commandeId}/collections`, { 
-      method: 'POST', 
-      body: JSON.stringify({ collection_id: collectionId }) 
-    }),
-  removeCollection: (commandeId, collectionId) => 
-    apiCall(`/commandes/${commandeId}/collections/${collectionId}`, { method: 'DELETE' }),
+};
+
+/**
+ * API Catalogues
+ */
+export const cataloguesAPI = {
+  getAll: () => apiCall('/catalogues'),
+  getById: (id) => apiCall(`/catalogues/${id}`),
+};
+
+/**
+ * API Settings
+ */
+export const settingsAPI = {
+  get: () => apiCall('/settings'),
+  update: (data) => apiCall('/settings', { method: 'PUT', body: JSON.stringify(data) }),
 };
 
 /**

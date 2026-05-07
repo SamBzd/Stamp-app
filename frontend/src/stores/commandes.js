@@ -6,22 +6,11 @@ export const useCommandesStore = defineStore('commandes', {
     commandes: [],
     loading: false,
     error: null,
-    filterGroupeId: null,
   }),
 
   getters: {
     getCommandeById: (state) => (id) => {
       return state.commandes.find(commande => commande.id === id);
-    },
-
-    filteredCommandes: (state) => {
-      if (!state.filterGroupeId) {
-        return state.commandes;
-      }
-      // Filtrer les commandes qui contiennent des collections du groupe sélectionné
-      // Note: Cette logique nécessitera de charger les collections de chaque commande
-      // Pour l'instant, on retourne toutes les commandes
-      return state.commandes;
     },
   },
 
@@ -59,30 +48,12 @@ export const useCommandesStore = defineStore('commandes', {
       }
     },
 
-    async fetchCommandeComplet(id) {
-      try {
-        return await commandesAPI.getComplet(id);
-      } catch (error) {
-        this.error = error.message;
-        throw error;
-      }
-    },
-
-    async fetchCommandeCollections(commandeId) {
-      try {
-        return await commandesAPI.getCollections(commandeId);
-      } catch (error) {
-        this.error = error.message;
-        throw error;
-      }
-    },
-
-    async createCommande(commandeData) {
+    async createCommande(data) {
       this.loading = true;
       this.error = null;
       try {
-        const newCommande = await commandesAPI.create(commandeData);
-        this.commandes.push(newCommande);
+        const newCommande = await commandesAPI.create(data);
+        this.commandes.unshift(newCommande);
         return newCommande;
       } catch (error) {
         this.error = error.message;
@@ -92,11 +63,11 @@ export const useCommandesStore = defineStore('commandes', {
       }
     },
 
-    async updateCommande(id, commandeData) {
+    async updateCommande(id, data) {
       this.loading = true;
       this.error = null;
       try {
-        const updatedCommande = await commandesAPI.update(id, commandeData);
+        const updatedCommande = await commandesAPI.update(id, data);
         const index = this.commandes.findIndex(c => c.id === id);
         if (index !== -1) {
           this.commandes[index] = updatedCommande;
@@ -123,33 +94,5 @@ export const useCommandesStore = defineStore('commandes', {
         this.loading = false;
       }
     },
-
-    async addCollectionToCommande(commandeId, collectionId) {
-      try {
-        return await commandesAPI.addCollection(commandeId, collectionId);
-      } catch (error) {
-        this.error = error.message;
-        throw error;
-      }
-    },
-
-    async removeCollectionFromCommande(commandeId, collectionId) {
-      try {
-        await commandesAPI.removeCollection(commandeId, collectionId);
-      } catch (error) {
-        this.error = error.message;
-        throw error;
-      }
-    },
-
-    setFilterGroupe(groupeId) {
-      this.filterGroupeId = groupeId;
-    },
-
-    clearFilter() {
-      this.filterGroupeId = null;
-    },
   },
 });
-
-
