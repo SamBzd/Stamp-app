@@ -62,27 +62,26 @@ export const collectionsAPI = {
 };
 
 /**
- * API Groupes
+ * API Catalogues
  */
-export const groupesAPI = {
-  getAll: () => apiCall('/groupes'),
-  getById: (id) => apiCall(`/groupes/${id}`),
-  getCollections: (id) => apiCall(`/groupes/${id}/collections`),
-  create: (data) => apiCall('/groupes', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => apiCall(`/groupes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => apiCall(`/groupes/${id}`, { method: 'DELETE' }),
-  addCollection: (groupeId, collectionId, ordre) => 
-    apiCall(`/groupes/${groupeId}/collections`, { 
-      method: 'POST', 
-      body: JSON.stringify({ collection_id: collectionId, ordre }) 
-    }),
-  removeCollection: (groupeId, collectionId) => 
-    apiCall(`/groupes/${groupeId}/collections/${collectionId}`, { method: 'DELETE' }),
-  updateCollectionOrder: (groupeId, collectionId, ordre) => 
-    apiCall(`/groupes/${groupeId}/collections/${collectionId}/ordre`, { 
-      method: 'PUT', 
-      body: JSON.stringify({ ordre }) 
-    }),
+export const cataloguesAPI = {
+  getAll: () => apiCall('/catalogues'),
+  getById: (id) => apiCall(`/catalogues/${id}`),
+  create: (data) => apiCall('/catalogues', { method: 'POST', body: JSON.stringify(data) }),
+  update: (id, data) => apiCall(`/catalogues/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  delete: (id) => apiCall(`/catalogues/${id}`, { method: 'DELETE' }),
+  addCollection: (catalogueId, nom) => apiCall(`/catalogues/${catalogueId}/collections`, { method: 'POST', body: JSON.stringify({ nom }) }),
+  updateCollection: (id, nom) => apiCall(`/catalogues/collections/${id}`, { method: 'PUT', body: JSON.stringify({ nom }) }),
+  deleteCollection: (id) => apiCall(`/catalogues/collections/${id}`, { method: 'DELETE' }),
+  setPapiersCollection: (collectionId, papierIds) => apiCall(`/catalogues/collections/${collectionId}/papiers`, { method: 'PUT', body: JSON.stringify({ papier_ids: papierIds }) }),
+};
+
+/**
+ * API Papiers cartonnés
+ */
+export const papierCartonnesAPI = {
+  search: (q = '') => apiCall(`/papiers-cartonnes${q ? `?search=${encodeURIComponent(q)}` : ''}`),
+  create: (nom) => apiCall('/papiers-cartonnes', { method: 'POST', body: JSON.stringify({ nom }) }),
 };
 
 /**
