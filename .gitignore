@@ -26,10 +26,8 @@ dist-ssr
 BACKEND_PLAN.md
 CahierDesCharges.txt
 Mes questions Sur la structure.txt
-PlanV2.md
 RevuClemente.txt
 RevuCliente.txt
-GuideClaudeCode.md
 
 # SQLite WAL mode (fichiers transients)
 *.db-shm
