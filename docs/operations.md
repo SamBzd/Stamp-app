@@ -2,19 +2,27 @@
 
 ## État actuel
 
-L'application est conçue pour une utilisatrice et un NAS privé. Le dépôt ne contient pas encore de configuration de déploiement, de service système ni de reverse proxy : `npm run dev` est un outil de développement, pas une procédure de production.
+L'application est utilisée par une seule personne depuis un Mac, uniquement sur le réseau local. Elle s'exécute dans des conteneurs Docker sur un NAS Synology.
+
+La branche `production` reflète le code présent sur le NAS et contient sa configuration Docker. La branche `main`, issue de la v2, est la future base applicative mais ne contient pas encore une configuration de déploiement validée. `npm run dev` reste donc une commande de développement local, pas une procédure de production.
 
 ## Base SQLite
 
-`db/app.db` est une base contenant potentiellement des données personnelles.
+La base de production pourra être récupérée depuis le NAS lors d'une étape ultérieure. La copie locale `db/app.db` est obsolète et ne doit pas servir de référence métier ou opérationnelle. Elle peut néanmoins contenir des données personnelles.
 
 - Sauvegarde-la hors du dépôt avant toute opération de maintenance.
 - N'exécute `node db/reset_v2.js` que sur une base jetable ou après sauvegarde : le script supprime les données des commandes et catalogues v2.
-- Vérifie le schéma avec `db/schema.sql` après chaque évolution.
+- Ne remplace jamais la base du NAS par la copie locale.
+- Avant toute maintenance future, identifier le volume réellement monté par Docker et réaliser une sauvegarde vérifiable de la base du NAS.
+- Le `db/schema.sql` d'une branche décrit l'intention de cette branche ; il ne remplace pas l'inspection du schéma réel de production.
 
 ## Réseau et sécurité
 
-L'API accepte actuellement les origines CORS sans restriction et le frontend vise une URL `localhost` codée en dur. Ce montage n'est pas approprié tel quel pour un accès depuis un autre appareil du réseau. Avant un déploiement NAS, prévoir une origine API relative ou configurable, un reverse proxy et une politique CORS limitée à l'origine de l'interface.
+Les remarques sur l'URL `localhost` et CORS concernent le code repris dans `main`. Le service de production est limité au réseau local, mais sa configuration réseau exacte devra être vérifiée sur le NAS avant de conclure sur son exposition ou sa sécurité.
+
+## Procédure de production
+
+Aucune procédure de déploiement ou de restauration n'est encore considérée comme validée. Elle devra être documentée après inspection du NAS : versions d'images, ports, volumes, variables d'environnement, emplacement de la base, sauvegardes et méthode de retour arrière.
 
 ## À ne pas publier
 

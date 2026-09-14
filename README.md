@@ -1,10 +1,16 @@
 # Stamp App
 
-Application personnelle de gestion de clientes, catalogues, commandes et stocks. La version fonctionnelle visée est la v2 ; elle repose sur Vue 3, Express 5 et SQLite.
+Application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur le réseau local. La production est hébergée sur un NAS Synology avec Docker.
+
+> La branche `production` est le miroir du code présent sur le NAS. La branche `main` reprend la refonte v2 comme base de stabilisation ; elle n'est pas encore déployée.
 
 > Le dépôt contient actuellement une base SQLite réelle. Ne le diffuse pas sans suivre les précautions décrites dans la [documentation d'exploitation](docs/operations.md).
 
-## Démarrer en local
+## État du dépôt
+
+`main` constitue désormais la base commune pour stabiliser la refonte v2 avant son futur déploiement. Ses commandes de développement ne constituent pas la procédure d'exploitation du NAS. Consulte [l'état des versions](docs/project-state.md) avant toute intervention.
+
+## Développer `main` en local
 
 Prérequis : Node.js 18.20.0 et npm 8 ou supérieur.
 
@@ -32,6 +38,6 @@ docs/        documentation maintenue
 
 ## Documentation
 
-Commence par le [sommaire de la documentation](docs/README.md) : architecture, développement, modèle métier, exploitation, qualité et backlog connu.
+Commence par le [sommaire de la documentation](docs/README.md), puis par [l'état des versions](docs/project-state.md). La documentation distingue les faits confirmés, l'état observé du code et les sujets restant à vérifier avec le client.
 
 Les conventions destinées aux agents et assistants sont dans [AGENTS.md](AGENTS.md).

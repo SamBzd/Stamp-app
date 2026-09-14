@@ -1,4 +1,6 @@
-# Modèle de données et règles métier v2
+# Modèle de données repris dans `main`
+
+> Ce document restitue les règles encodées ou visées par la refonte v2, désormais reprise comme fondation de `main`. Il ne définit pas le comportement actuel de la production. Ces règles devront être revalidées avant le futur déploiement.
 
 ## Entités principales
 
@@ -28,4 +30,4 @@ Une commande hors kit porte un montant et peut avoir un cadeau. Un montant stric
 
 Les stocks sont calculés à la volée depuis les commandes. Le bilan mensuel ne compte que les commandes réglées et utilise la date enregistrée de la commande.
 
-Les règles ci-dessus constituent le contrat métier cible. Leur application côté API est suivie dans le [backlog](backlog.md).
+Les règles ci-dessus constituaient le contrat métier cible de la v2. Elles restent des hypothèses de travail pour `main` jusqu'à leur validation. Les écarts observés sont consignés dans les [constats techniques](backlog.md).

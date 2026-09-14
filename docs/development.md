@@ -1,5 +1,7 @@
 # Développement local
 
+> Ces instructions concernent `main`, issue du travail v2 et encore en stabilisation. Elles ne reproduisent pas nécessairement l'environnement Docker du NAS.
+
 ## Prérequis
 
 - Node.js 18.20.0 (voir `.nvmrc`)

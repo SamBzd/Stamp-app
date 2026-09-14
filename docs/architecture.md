@@ -1,12 +1,14 @@
 # Architecture
 
+> Périmètre : ce document décrit le code de `main`, issu de la refonte v2 et désormais retenu comme base de stabilisation. Il ne décrit pas la version actuellement déployée sur le NAS ; voir [État du projet](project-state.md).
+
 ## Vue d'ensemble
 
 ```text
 Navigateur → Vue 3 / Pinia → API Express → SQLite
 ```
 
-Le frontend se trouve dans `frontend/src/`, l'API dans `backend/src/` et la base SQLite dans `db/app.db`. `db/schema.sql` est la référence du schéma.
+Le frontend se trouve dans `frontend/src/`, l'API dans `backend/src/` et la base SQLite dans `db/app.db`. Dans une branche donnée, `db/schema.sql` décrit le schéma attendu par son code. La base locale actuelle étant obsolète, elle ne permet pas de conclure sur la production.
 
 ## Frontend
 
@@ -26,4 +28,4 @@ Le frontend se trouve dans `frontend/src/`, l'API dans `backend/src/` et la base
 
 La validation de données côté interface améliore l'expérience, mais l'API doit toujours faire respecter les règles métier. Les écritures qui touchent plusieurs tables doivent rester transactionnelles.
 
-Les anciens modules Groupes/Collections v1 sont hors du flux v2. Ils doivent être retirés ou migrés lors d'un chantier dédié, pas réutilisés par inadvertance.
+Les anciens modules Groupes/Collections v1 sont hors du flux repris dans `main`. Ils doivent être retirés ou migrés lors d'un chantier dédié, pas réutilisés par inadvertance.

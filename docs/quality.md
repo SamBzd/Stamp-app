@@ -1,5 +1,7 @@
 # Qualité et validation
 
+> Périmètre : état initial de `main`, issue de la v2 et encore en stabilisation. Ces contrôles ne valident ni le déploiement Docker ni les données du NAS.
+
 ## État de départ
 
 Le projet ne possède ni test automatisé, ni linter, ni intégration continue. Le build Vue valide la compilation, mais pas les règles métier ou les effets SQLite.
@@ -13,7 +15,7 @@ npm audit --omit=dev --prefix backend
 npm audit --omit=dev --prefix frontend
 ```
 
-## Cible minimale
+## Couverture à ajouter sur `main`
 
 1. Tests d'intégration de l'API sur une base SQLite temporaire.
 2. Cas de commande kit A/B/C valides et invalides, y compris les quantités et l'appartenance des papiers aux collections.
@@ -21,4 +23,4 @@ npm audit --omit=dev --prefix frontend
 4. Vérification du calcul de stock et du bilan mensuel.
 5. Exécution automatisée de ces tests et du build dans une CI.
 
-Toute anomalie de données existantes doit être corrigée par une migration ou une procédure explicitement réversible, jamais par une édition manuelle silencieuse.
+La stratégie de validation de `main` sera consolidée après confirmation des règles métier et inspection de la production. Toute anomalie de données devra être traitée par une migration ou une procédure explicitement réversible, jamais par une édition manuelle silencieuse.

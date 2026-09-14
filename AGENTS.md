@@ -2,7 +2,9 @@
 
 ## Contexte
 
-Stamp App est une application personnelle de gestion de clientes, catalogues et commandes, déployée localement sur un NAS. La version fonctionnelle courante est la v2. Les documents du dossier [`docs/`](docs/README.md) décrivent le produit et son exploitation ; le code et `db/schema.sql` restent les sources de vérité techniques.
+Stamp App est une application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur un réseau local. La production est hébergée dans des conteneurs Docker sur un NAS Synology. La branche `production` reflète le code du NAS. La branche `main` reprend le travail de la v2 comme base active de stabilisation, mais elle n'est pas encore déployée.
+
+Lis [`docs/project-state.md`](docs/project-state.md) avant toute intervention. Le code de la branche examinée et son `db/schema.sql` restent les sources de vérité techniques de cette branche ; ils ne prouvent pas l'état des données ni de la configuration actuellement présentes sur le NAS.
 
 ## Stack et structure
 
@@ -18,7 +20,7 @@ Les appels HTTP du frontend sont centralisés dans `frontend/src/services/api.js
 - Après un changement de schéma, mets à jour `db/schema.sql` et fournis une procédure de migration ou de reset adaptée.
 - Ne modifie jamais `db/app.db` à la main. `node db/reset_v2.js` est destructif pour les données v2 : il ne doit être lancé qu'avec un accord explicite.
 - N'ajoute pas de dépendance sans nécessité justifiée.
-- Préserve les contraintes métier documentées dans `docs/data-model.md`, côté API comme côté interface.
+- Ne transforme pas les règles consignées dans `docs/data-model.md` en exigences de production : elles sont héritées de la v2 et doivent être revalidées avant le futur déploiement de `main`.
 
 ## Vérification minimale
 
