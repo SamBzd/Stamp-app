@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Configurations locales ; les exemples restent versionnés
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -29,6 +34,9 @@ Mes questions Sur la structure.txt
 RevuClemente.txt
 RevuCliente.txt
 
-# SQLite WAL mode (fichiers transients)
-*.db-shm
-*.db-wal
+# Données SQLite locales : seul le schéma SQL est versionné
+db/*.db
+db/*.db.backup
+db/*.db-journal
+db/*.db-shm
+db/*.db-wal

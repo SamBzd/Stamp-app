@@ -8,9 +8,10 @@ La branche `production` reflète le code présent sur le NAS et contient sa conf
 
 ## Base SQLite
 
-La base de production pourra être récupérée depuis le NAS lors d'une étape ultérieure. La copie locale `db/app.db` est obsolète et ne doit pas servir de référence métier ou opérationnelle. Elle peut néanmoins contenir des données personnelles.
+La base de production pourra être récupérée depuis le NAS lors d'une étape ultérieure. Les copies locales `db/app.db` et `db/app.db.backup` sont ignorées par Git, obsolètes et ne doivent pas servir de référence métier ou opérationnelle. Elles peuvent néanmoins contenir des données personnelles.
 
-- Sauvegarde-la hors du dépôt avant toute opération de maintenance.
+- Ne les partage pas ni ne les remplace ; `npm run dev` utilise exclusivement `db/dev.db`.
+- Sauvegarde-les hors du dépôt avant toute opération de maintenance.
 - N'exécute `node db/reset_v2.js` que sur une base jetable ou après sauvegarde : le script supprime les données des commandes et catalogues v2.
 - Ne remplace jamais la base du NAS par la copie locale.
 - Avant toute maintenance future, identifier le volume réellement monté par Docker et réaliser une sauvegarde vérifiable de la base du NAS.
@@ -18,7 +19,9 @@ La base de production pourra être récupérée depuis le NAS lors d'une étape 
 
 ## Réseau et sécurité
 
-Les remarques sur l'URL `localhost` et CORS concernent le code repris dans `main`. Le service de production est limité au réseau local, mais sa configuration réseau exacte devra être vérifiée sur le NAS avant de conclure sur son exposition ou sa sécurité.
+Le frontend appelle `/api` par défaut et ne contient aucune adresse de déploiement. Le backend exige `STAMP_DB_PATH`, utilise `PORT=3000` par défaut et n'autorise aucune origine tierce tant que `CORS_ORIGIN` n'est pas renseignée. Une origine CORS ne doit être configurée que si le frontend et l'API sont servis depuis des origines différentes.
+
+Ces variables constituent le contrat de déploiement indépendamment du support choisi. Les valeurs réelles sont fournies par l'environnement et ne doivent pas être commitées.
 
 ## Procédure de production
 
@@ -26,4 +29,4 @@ Aucune procédure de déploiement ou de restauration n'est encore considérée c
 
 ## À ne pas publier
 
-Avant de partager ou pousser le dépôt vers un hébergeur tiers, retirer les bases SQLite réelles et leurs sauvegardes de l'historique Git, puis les ignorer. Utilise à la place un schéma et des données de démonstration anonymes.
+Avant de partager ou pousser le dépôt vers un hébergeur tiers, décider si les anciennes bases SQLite réelles et leurs sauvegardes doivent être retirées de l'historique Git. Cette réécriture sera un chantier séparé, avec une sauvegarde et une coordination explicites. Utilise à la place un schéma et des données de démonstration anonymes.

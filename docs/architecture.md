@@ -8,7 +8,7 @@
 Navigateur → Vue 3 / Pinia → API Express → SQLite
 ```
 
-Le frontend se trouve dans `frontend/src/`, l'API dans `backend/src/` et la base SQLite dans `db/app.db`. Dans une branche donnée, `db/schema.sql` décrit le schéma attendu par son code. La base locale actuelle étant obsolète, elle ne permet pas de conclure sur la production.
+Le frontend se trouve dans `frontend/src/` et l'API dans `backend/src/`. Le schéma SQLite versionné est `db/schema.sql`; les fichiers de données sous `db/` sont locaux et ignorés par Git. `npm run dev` utilise `db/dev.db`. Les données locales ne permettent pas de conclure sur la production.
 
 ## Frontend
 

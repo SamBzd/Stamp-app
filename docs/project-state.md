@@ -6,7 +6,7 @@
 - Elle est accessible uniquement sur le réseau local.
 - Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
 - La branche `production` est le miroir du code actuellement présent sur le NAS.
-- La base SQLite du poste de développement est obsolète. Elle ne représente pas les données de production.
+- Les copies SQLite locales sont ignorées par Git et ne représentent pas les données de production.
 - La v2 n'a jamais été déployée, mais son travail est conservé et repris comme fondation de `main`.
 - `main` est la base commune de stabilisation et ne représente pas encore la production.
 
@@ -17,7 +17,8 @@
 | `production` | Code déployé sur le NAS | Référence pour l'application en service |
 | `main` | Refonte v2 reprise et à stabiliser | Référence pour le développement futur |
 | archive de `v2` | État de la refonte avant son adoption par `main` | Référence historique uniquement |
-| `db/app.db` locale | Copie locale obsolète | Ne pas utiliser pour déduire l'état de production |
+| `db/dev.db` locale | Base vide générée pour le développement | Référence de développement uniquement |
+| `db/app.db` et sa sauvegarde locales | Copies obsolètes ignorées par Git | Ne pas utiliser pour déduire l'état de production |
 
 ## Ce que la documentation permet d'affirmer
 

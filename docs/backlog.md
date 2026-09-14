@@ -11,9 +11,9 @@ Les éléments ci-dessous proviennent de l'audit initial de la v2, désormais re
 
 ## Déploiement et données observés sur la v2
 
-- La v2 contient une URL API `localhost` codée en dur et une politique CORS permissive.
+- L'URL API codée en dur et la politique CORS permissive héritées de la v2 ont été remplacées sur `main` par une configuration générique.
 - La configuration Docker actuelle se trouve sur la branche `production` et devra être adaptée à `main` avant tout déploiement.
-- Retirer `db/app.db` et `db/app.db.backup` du dépôt, puis fournir une base de démonstration anonymisée.
+- Les anciennes bases `db/app.db` et `db/app.db.backup` ne sont plus suivies par Git. Prévoir, si nécessaire, des données de démonstration anonymisées.
 - Mettre à jour les dépendances signalées par `npm audit`.
 
 ## Maintenabilité observée

@@ -25,8 +25,7 @@ Les appels HTTP du frontend sont centralisés dans `frontend/src/services/api.js
 ## Vérification minimale
 
 ```bash
-find backend/src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
-npm run build --prefix frontend
+npm run check
 ```
 
-Il n'existe pas encore de suite de tests ou de CI : tout changement métier doit donc inclure les tests appropriés avant d'être considéré comme prêt à livrer.
+La suite couvre le démarrage de l'API sur une base temporaire et le build du frontend. Tout changement métier doit compléter cette couverture avant d'être considéré comme prêt à livrer.

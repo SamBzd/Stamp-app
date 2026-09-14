@@ -4,7 +4,7 @@ Application de gestion de clientes et de commandes utilisée par une seule perso
 
 > La branche `production` est le miroir du code présent sur le NAS. La branche `main` reprend la refonte v2 comme base de stabilisation ; elle n'est pas encore déployée.
 
-> Le dépôt contient actuellement une base SQLite réelle. Ne le diffuse pas sans suivre les précautions décrites dans la [documentation d'exploitation](docs/operations.md).
+> Les bases SQLite locales ne sont pas versionnées. L'historique Git contient encore d'anciennes copies : ne le diffuse pas sans suivre les précautions décrites dans la [documentation d'exploitation](docs/operations.md).
 
 ## État du dépôt
 
@@ -12,7 +12,7 @@ Application de gestion de clientes et de commandes utilisée par une seule perso
 
 ## Développer `main` en local
 
-Prérequis : Node.js 18.20.0 et npm 8 ou supérieur.
+Prérequis : Node.js 22.22.2 et npm 10 ou supérieur.
 
 ```bash
 npm ci
@@ -21,18 +21,28 @@ npm ci --prefix frontend
 npm run dev
 ```
 
+Cette commande crée si besoin puis utilise `db/dev.db`, une base locale vide et ignorée par Git. Elle ne lit ni ne modifie `db/app.db`.
+
 Le frontend de développement écoute sur `http://localhost:5173` et l'API sur le port 3000. Pour produire le bundle frontend :
 
 ```bash
 npm run build --prefix frontend
 ```
 
+Pour vérifier la syntaxe et le démarrage de l'API sur une base temporaire, puis compiler le frontend :
+
+```bash
+npm run check
+```
+
+Le frontend appelle `/api` par défaut. Pour un autre environnement, le backend reçoit `STAMP_DB_PATH`, `PORT` et éventuellement `CORS_ORIGIN`; le frontend peut recevoir `VITE_API_BASE_URL`. Voir [.env.example](.env.example) et [frontend/.env.example](frontend/.env.example).
+
 ## Structure
 
 ```text
 backend/     API Express et accès SQLite
 frontend/    interface Vue 3
-db/          schéma et base locale
+db/          schéma versionné et bases locales ignorées
 docs/        documentation maintenue
 ```
 

@@ -4,8 +4,8 @@
 
 ## Prérequis
 
-- Node.js 18.20.0 (voir `.nvmrc`)
-- npm 8 ou supérieur
+- Node.js 22.22.2 (voir `.nvmrc`)
+- npm 10 ou supérieur
 
 ## Installation
 
@@ -23,17 +23,42 @@ npm ci --prefix frontend
 npm run dev
 ```
 
+`npm run dev` utilise exclusivement `db/dev.db`. Si elle n'existe pas encore, elle est créée vide depuis `db/schema.sql`; `db/app.db` n'est ni lue ni modifiée.
+
+Tu peux aussi initialiser la base explicitement avant le premier démarrage :
+
+```bash
+npm run db:dev:init
+```
+
+Cette commande refuse d'écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
+
+```bash
+npm run db:dev:reset
+```
+
 En développement, l'API écoute sur le port 3000 et Vite sur le port 5173. La sonde locale est disponible à `GET /api/health`.
 
 ## Commandes utiles
 
 ```bash
-# Vérifier le frontend de production
-npm run build --prefix frontend
-
-# Vérifier la syntaxe CommonJS du backend
-find backend/src -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+# Vérifier l'API sur une base temporaire et compiler le frontend
+npm run check
 ```
+
+Les tests backend créent leur propre base SQLite dans le répertoire temporaire du système à partir de `db/schema.sql`. Ils n'ouvrent pas `db/app.db`.
+
+## Configuration
+
+Le développement courant ne nécessite aucun fichier `.env` : `npm run dev` fournit le chemin de la base et le frontend utilise le proxy Vite. Les fichiers `.env` locaux sont ignorés par Git.
+
+- `STAMP_DB_PATH` : chemin obligatoire de la base SQLite pour le backend.
+- `PORT` : port d'écoute du backend, `3000` par défaut.
+- `CORS_ORIGIN` : liste facultative d'origines séparées par des virgules. Sans valeur, aucune origine tierce n'est autorisée.
+- `VITE_API_BASE_URL` : URL de l'API vue par le navigateur, `/api` par défaut.
+- `VITE_DEV_API_TARGET` : cible du proxy Vite en développement, `http://127.0.0.1:3000` par défaut.
+
+Les fichiers `.env.example` documentent ces variables sans contenir de valeur propre à une machine. Le backend ne charge pas automatiquement un fichier `.env` : l'environnement d'exécution doit lui transmettre les valeurs.
 
 ## Conventions
 
