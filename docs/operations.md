@@ -25,7 +25,18 @@ Ces variables constituent le contrat de déploiement indépendamment du support 
 
 ## Procédure de production
 
-Aucune procédure de déploiement ou de restauration n'est encore considérée comme validée. Elle devra être documentée après inspection du NAS : versions d'images, ports, volumes, variables d'environnement, emplacement de la base, sauvegardes et méthode de retour arrière.
+Le projet fournit un déploiement Compose générique :
+
+```bash
+docker compose up --build -d
+```
+
+- `STAMP_HTTP_PORT` choisit le port HTTP publié, `8080` par défaut.
+- `STAMP_VOLUME_NAME` choisit le nom du volume persistant, `stamp-data` par défaut.
+- `VITE_API_BASE_URL` vaut `/api` par défaut et ne doit changer que si l'API est servie séparément.
+- `CORS_ORIGIN` reste vide pour un déploiement sur une origine unique.
+
+Au premier démarrage sur un volume vide, le backend crée le schéma et les paramètres initiaux. Une base existante au schéma incomplet bloque le démarrage : elle exige une migration explicite. La procédure de sauvegarde, de restauration et de migration des données réelles reste à définir pour chaque environnement avant sa mise en service.
 
 ## À ne pas publier
 

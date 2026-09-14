@@ -26,6 +26,7 @@ Les appels HTTP du frontend sont centralisés dans `frontend/src/services/api.js
 
 ```bash
 npm run check
+docker compose config
 ```
 
 La suite couvre le démarrage de l'API sur une base temporaire et le build du frontend. Tout changement métier doit compléter cette couverture avant d'être considéré comme prêt à livrer.

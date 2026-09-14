@@ -60,6 +60,14 @@ Le développement courant ne nécessite aucun fichier `.env` : `npm run dev` fou
 
 Les fichiers `.env.example` documentent ces variables sans contenir de valeur propre à une machine. Le backend ne charge pas automatiquement un fichier `.env` : l'environnement d'exécution doit lui transmettre les valeurs.
 
+## Vérifier la configuration Docker
+
+Sans construire ni lancer les images :
+
+```bash
+npm run check:docker
+```
+
 ## Conventions
 
 Utilise des versions exactes dans les manifestes npm. N'édite pas les lockfiles à la main. Toute évolution d'API met à jour sa documentation et ses tests.

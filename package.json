@@ -9,7 +9,8 @@
     "db:dev:init": "node backend/scripts/init-dev-db.js",
     "db:dev:ensure": "node backend/scripts/init-dev-db.js --ensure",
     "db:dev:reset": "node backend/scripts/init-dev-db.js --reset",
-    "check": "npm run check --prefix backend && npm run build --prefix frontend"
+    "check": "npm run check --prefix backend && npm run build --prefix frontend",
+    "check:docker": "docker compose config --quiet"
   },
   "dependencies": {
     "concurrently": "8.2.2"

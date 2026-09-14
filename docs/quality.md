@@ -10,6 +10,7 @@ Le projet possède un premier test d'intégration de l'API sur une base SQLite t
 
 ```bash
 npm run check
+docker compose config
 npm audit --omit=dev --prefix backend
 npm audit --omit=dev --prefix frontend
 ```

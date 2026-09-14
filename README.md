@@ -37,6 +37,16 @@ npm run check
 
 Le frontend appelle `/api` par défaut. Pour un autre environnement, le backend reçoit `STAMP_DB_PATH`, `PORT` et éventuellement `CORS_ORIGIN`; le frontend peut recevoir `VITE_API_BASE_URL`. Voir [.env.example](.env.example) et [frontend/.env.example](frontend/.env.example).
 
+## Lancer avec Docker
+
+Le déploiement Compose est générique et ne dépend d'aucune adresse machine :
+
+```bash
+docker compose up --build
+```
+
+L'interface est ensuite disponible sur `http://localhost:8080`. Les données sont conservées dans le volume Docker `stamp-data`. Le port HTTP et le nom du volume peuvent être remplacés avec `STAMP_HTTP_PORT` et `STAMP_VOLUME_NAME`.
+
 ## Structure
 
 ```text

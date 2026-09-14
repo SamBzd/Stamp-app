@@ -40,3 +40,6 @@ db/*.db.backup
 db/*.db-journal
 db/*.db-shm
 db/*.db-wal
+
+# Données persistantes d'un déploiement local hors volume Docker
+/data/

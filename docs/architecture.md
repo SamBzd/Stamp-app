@@ -10,6 +10,8 @@ Navigateur → Vue 3 / Pinia → API Express → SQLite
 
 Le frontend se trouve dans `frontend/src/` et l'API dans `backend/src/`. Le schéma SQLite versionné est `db/schema.sql`; les fichiers de données sous `db/` sont locaux et ignorés par Git. `npm run dev` utilise `db/dev.db`. Les données locales ne permettent pas de conclure sur la production.
 
+Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/api` au service backend sur le réseau interne ; seul le port HTTP du frontend est exposé. SQLite est stockée dans un volume persistant indépendant des images.
+
 ## Frontend
 
 - Les vues composent l'interface ; les composants partagés restent dans `frontend/src/components/`.

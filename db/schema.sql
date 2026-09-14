@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS settings (
   valeur TEXT NOT NULL
 );
 
+INSERT OR IGNORE INTO settings (cle, valeur) VALUES
+  ('prix_A', '35'),
+  ('prix_B', '40'),
+  ('prix_C', '45');
+
 -- ============================================================
 -- TABLE : papiers_cartonnes — bibliothèque globale
 -- ============================================================
