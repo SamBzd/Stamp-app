@@ -25,11 +25,25 @@ npm run dev
 
 `npm run dev` utilise exclusivement `db/dev.db`. Si elle n'existe pas encore, elle est créée vide depuis `db/schema.sql`; `db/app.db` n'est ni lue ni modifiée.
 
+Le schéma est versionné par les fichiers SQL de `db/migrations/`. Une migration
+déjà appliquée ne doit jamais être modifiée : ajoute le fichier numéroté suivant.
+
 Tu peux aussi initialiser la base explicitement avant le premier démarrage :
 
 ```bash
 npm run db:dev:init
 ```
+
+Pour consulter puis appliquer les migrations en attente sur la base de
+développement :
+
+```bash
+npm run db:dev:migrate:status
+npm run db:dev:migrate
+```
+
+L'application refuse de démarrer si une migration est en attente. Son
+application reste ainsi une opération explicite et testable.
 
 Cette commande refuse d'écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
 

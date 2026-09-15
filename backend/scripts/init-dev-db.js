@@ -3,6 +3,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Database = require('better-sqlite3');
+const {
+  applyMigrations,
+  assertNoPendingMigrations,
+  getMigrationStatus,
+  initializeSchemaAsCurrent
+} = require('../src/db/migrations');
+const {
+  assertMainBaselineCompatible,
+  assertMigrationSchemaCompatible
+} = require('../src/db/schema-compatibility');
 
 const mode = process.argv[2];
 const allowedModes = new Set([undefined, '--ensure', '--reset']);
@@ -28,6 +38,23 @@ if (fs.existsSync(databasePath)) {
     process.exit(1);
   }
 
+  const database = new Database(databasePath);
+
+  try {
+    const migrationStatus = getMigrationStatus(database);
+
+    if (migrationStatus.applied.length === 0) {
+      assertMainBaselineCompatible(database);
+      applyMigrations(database, { targetVersion: 1 });
+    }
+
+    const currentStatus = getMigrationStatus(database);
+    assertMigrationSchemaCompatible(database, currentStatus.applied.at(-1).version);
+    assertNoPendingMigrations(database);
+  } finally {
+    database.close();
+  }
+
   console.log(`Base de développement prête : ${databasePath}`);
   process.exit(0);
 }
@@ -36,7 +63,9 @@ const schema = fs.readFileSync(schemaPath, 'utf8');
 const database = new Database(databasePath);
 
 try {
-  database.exec(schema);
+  initializeSchemaAsCurrent(database, schema);
+  const migrationStatus = getMigrationStatus(database);
+  assertMigrationSchemaCompatible(database, migrationStatus.applied.at(-1).version);
   console.log(`Base de développement initialisée : ${databasePath}`);
 } finally {
   database.close();

@@ -1,21 +1,5 @@
--- Stamp App v2 — Schéma de référence
--- Ce fichier décrit l'état cible de la base de données.
--- Une base neuve est créée depuis ce fichier puis marquée à la version
--- courante par le mécanisme de migrations.
+-- Baseline immuable du schéma main au démarrage des migrations versionnées.
 
--- ============================================================
--- TABLE : schema_migrations — historique technique du schéma
--- ============================================================
-CREATE TABLE IF NOT EXISTS schema_migrations (
-  version    INTEGER PRIMARY KEY,
-  name       TEXT NOT NULL UNIQUE,
-  checksum   TEXT NOT NULL,
-  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- ============================================================
--- TABLE : clients
--- ============================================================
 CREATE TABLE IF NOT EXISTS clients (
   id                INTEGER PRIMARY KEY AUTOINCREMENT,
   nom               TEXT NOT NULL,
@@ -64,31 +48,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS ux_clients_email_norm ON clients(email_norm);
 CREATE INDEX IF NOT EXISTS ix_clients_nom_prenom ON clients(nom, prenom);
 CREATE INDEX IF NOT EXISTS ix_clients_ville ON clients(ville);
 
--- ============================================================
--- TABLE : settings — prix configurables (A, B, C)
--- ============================================================
 CREATE TABLE IF NOT EXISTS settings (
   cle    TEXT PRIMARY KEY,
   valeur TEXT NOT NULL
 );
 
-INSERT OR IGNORE INTO settings (cle, valeur) VALUES
-  ('prix_A', '35'),
-  ('prix_B', '40'),
-  ('prix_C', '45');
-
--- ============================================================
--- TABLE : papiers_cartonnes — bibliothèque globale
--- ============================================================
 CREATE TABLE IF NOT EXISTS papiers_cartonnes (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   nom        TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ============================================================
--- TABLE : catalogues — catalogue mensuel
--- ============================================================
 CREATE TABLE IF NOT EXISTS catalogues (
   id             INTEGER PRIMARY KEY AUTOINCREMENT,
   titre          TEXT NOT NULL UNIQUE,
@@ -98,9 +68,6 @@ CREATE TABLE IF NOT EXISTS catalogues (
   updated_at     TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
--- ============================================================
--- TABLE : collections — 3 ou 4 collections par catalogue
--- ============================================================
 CREATE TABLE IF NOT EXISTS collections (
   id           INTEGER PRIMARY KEY AUTOINCREMENT,
   catalogue_id INTEGER NOT NULL,
@@ -113,9 +80,6 @@ CREATE TABLE IF NOT EXISTS collections (
 
 CREATE INDEX IF NOT EXISTS ix_collections_catalogue_id ON collections(catalogue_id);
 
--- ============================================================
--- TABLE : collection_papiers — jusqu'à 5 papiers par collection
--- ============================================================
 CREATE TABLE IF NOT EXISTS collection_papiers (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   collection_id      INTEGER NOT NULL,
@@ -128,9 +92,6 @@ CREATE TABLE IF NOT EXISTS collection_papiers (
 
 CREATE INDEX IF NOT EXISTS ix_collection_papiers_collection_id ON collection_papiers(collection_id);
 
--- ============================================================
--- TABLE : commandes — kit et hors kit
--- ============================================================
 CREATE TABLE IF NOT EXISTS commandes (
   id                   INTEGER PRIMARY KEY AUTOINCREMENT,
   client_id            INTEGER NOT NULL,
@@ -162,9 +123,6 @@ CREATE INDEX IF NOT EXISTS ix_commandes_client_id ON commandes(client_id);
 CREATE INDEX IF NOT EXISTS ix_commandes_type ON commandes(type);
 CREATE INDEX IF NOT EXISTS ix_commandes_reglee ON commandes(reglee);
 
--- ============================================================
--- TABLE : commande_collections — collections impliquées dans un kit
--- ============================================================
 CREATE TABLE IF NOT EXISTS commande_collections (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   commande_id   INTEGER NOT NULL,
@@ -177,9 +135,6 @@ CREATE TABLE IF NOT EXISTS commande_collections (
 
 CREATE INDEX IF NOT EXISTS ix_commande_collections_commande_id ON commande_collections(commande_id);
 
--- ============================================================
--- TABLE : commande_papiers_selectionnes — papiers cartonnés d'un kit
--- ============================================================
 CREATE TABLE IF NOT EXISTS commande_papiers_selectionnes (
   id                 INTEGER PRIMARY KEY AUTOINCREMENT,
   commande_id        INTEGER NOT NULL,

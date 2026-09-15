@@ -8,6 +8,8 @@
     "dev": "npm run db:dev:ensure && STAMP_DB_PATH=\"$PWD/db/dev.db\" concurrently -n \"backend,frontend\" -c \"blue,green\" \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
     "db:dev:init": "node backend/scripts/init-dev-db.js",
     "db:dev:ensure": "node backend/scripts/init-dev-db.js --ensure",
+    "db:dev:migrate": "STAMP_DB_PATH=\"$PWD/db/dev.db\" npm run db:migrate --prefix backend",
+    "db:dev:migrate:status": "STAMP_DB_PATH=\"$PWD/db/dev.db\" npm run db:migrate:status --prefix backend",
     "db:dev:reset": "node backend/scripts/init-dev-db.js --reset",
     "check": "npm run check --prefix backend && npm run build --prefix frontend",
     "check:docker": "docker compose config --quiet"
