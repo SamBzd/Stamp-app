@@ -6,6 +6,8 @@
   "scripts": {
     "check": "npm run check:syntax && npm test",
     "check:syntax": "find src scripts -type f -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "db:migrate": "node scripts/migrate-db.js",
+    "db:migrate:status": "node scripts/migrate-db.js --status",
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
     "test": "node --test"

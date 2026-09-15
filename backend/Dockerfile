@@ -20,6 +20,7 @@ COPY backend/src ./src
 COPY backend/scripts ./scripts
 COPY backend/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY db/schema.sql /app/db/schema.sql
+COPY db/migrations /app/db/migrations
 
 RUN mkdir -p /data \
     && chown -R node:node /app /data \

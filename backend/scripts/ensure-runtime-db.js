@@ -4,46 +4,46 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Database = require('better-sqlite3');
 const { getDatabasePath } = require('../src/config');
+const {
+  applyMigrations,
+  assertNoPendingMigrations,
+  getMigrationStatus,
+  initializeSchemaAsCurrent
+} = require('../src/db/migrations');
+const {
+  assertMainBaselineCompatible,
+  assertMigrationSchemaCompatible,
+  getApplicationTables
+} = require('../src/db/schema-compatibility');
 
 const databasePath = getDatabasePath();
 const schemaPath = path.resolve(__dirname, '../../db/schema.sql');
-const requiredTables = [
-  'catalogues',
-  'clients',
-  'collection_papiers',
-  'collections',
-  'commande_collections',
-  'commande_papiers_selectionnes',
-  'commandes',
-  'papiers_cartonnes',
-  'settings'
-];
 
 fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 
 const database = new Database(databasePath);
 
 try {
-  const existingTables = new Set(
-    database.prepare(`
-      SELECT name
-      FROM sqlite_master
-      WHERE type = 'table' AND name NOT LIKE 'sqlite_%'
-    `).all().map(({ name }) => name)
-  );
+  const existingTables = getApplicationTables(database);
 
   if (existingTables.size === 0) {
-    database.exec(fs.readFileSync(schemaPath, 'utf8'));
+    initializeSchemaAsCurrent(database, fs.readFileSync(schemaPath, 'utf8'));
+    const migrationStatus = getMigrationStatus(database);
+    assertMigrationSchemaCompatible(database, migrationStatus.applied.at(-1).version);
     console.log(`Base SQLite initialisée : ${databasePath}`);
   } else {
-    const missingTables = requiredTables.filter((table) => !existingTables.has(table));
+    // Les bases main créées avant le mécanisme de migrations reçoivent
+    // uniquement la baseline, qui ne transforme aucune donnée.
+    const migrationStatus = getMigrationStatus(database);
 
-    if (missingTables.length > 0) {
-      throw new Error(
-        `La base SQLite existe mais son schéma est incomplet (${missingTables.join(', ')}). Une migration explicite est requise.`
-      );
+    if (migrationStatus.applied.length === 0) {
+      assertMainBaselineCompatible(database);
+      applyMigrations(database, { targetVersion: 1 });
     }
 
+    const currentStatus = getMigrationStatus(database);
+    assertMigrationSchemaCompatible(database, currentStatus.applied.at(-1).version);
+    assertNoPendingMigrations(database);
     console.log(`Base SQLite existante prête : ${databasePath}`);
   }
 } finally {
