@@ -36,7 +36,28 @@ docker compose up --build -d
 - `VITE_API_BASE_URL` vaut `/api` par défaut et ne doit changer que si l'API est servie séparément.
 - `CORS_ORIGIN` reste vide pour un déploiement sur une origine unique.
 
-Au premier démarrage sur un volume vide, le backend crée le schéma et les paramètres initiaux. Une base existante au schéma incomplet bloque le démarrage : elle exige une migration explicite. La procédure de sauvegarde, de restauration et de migration des données réelles reste à définir pour chaque environnement avant sa mise en service.
+Au premier démarrage sur un volume vide, le backend crée le schéma et les paramètres initiaux, puis enregistre la version courante dans `schema_migrations`. Une base existante au schéma incomplet ou avec une migration en attente bloque le démarrage : elle exige une migration explicite.
+
+Dans un environnement configuré avec `STAMP_DB_PATH`, l'état puis l'application
+des migrations se contrôlent avec :
+
+```bash
+npm run db:migrate:status --prefix backend
+npm run db:migrate --prefix backend
+```
+
+La commande de statut est strictement consultative et ne crée aucune table.
+
+Chaque migration est atomique et son empreinte est enregistrée. Un fichier déjà
+appliqué ne doit jamais être modifié. Au démarrage, la structure réelle est aussi
+comparée au schéma attendu pour la version enregistrée ; une base dégradée est
+refusée. Une base neuve reçoit directement le schéma courant ; les migrations
+servent à faire évoluer les bases existantes.
+
+La baseline `0001_main_baseline.sql` correspond au schéma actuel de `main`. Elle
+ne constitue pas la conversion de la base historique du NAS : cette conversion
+sera écrite et validée séparément sur une copie des données lorsque la cible de
+déploiement sera stabilisée.
 
 ## À ne pas publier
 
