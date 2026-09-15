@@ -12,8 +12,7 @@ const {
 } = require('../src/db/migrations');
 const {
   assertMainBaselineCompatible,
-  assertMigrationSchemaCompatible,
-  getApplicationTables
+  assertMigrationSchemaCompatible
 } = require('../src/db/schema-compatibility');
 
 const databasePath = getDatabasePath();
@@ -24,9 +23,14 @@ fs.mkdirSync(path.dirname(databasePath), { recursive: true });
 const database = new Database(databasePath);
 
 try {
-  const existingTables = getApplicationTables(database);
+  const hasSchemaObjects = Boolean(database.prepare(`
+    SELECT 1
+    FROM sqlite_master
+    WHERE name NOT LIKE 'sqlite_%'
+    LIMIT 1
+  `).get());
 
-  if (existingTables.size === 0) {
+  if (!hasSchemaObjects) {
     initializeSchemaAsCurrent(database, fs.readFileSync(schemaPath, 'utf8'));
     const migrationStatus = getMigrationStatus(database);
     assertMigrationSchemaCompatible(database, migrationStatus.applied.at(-1).version);

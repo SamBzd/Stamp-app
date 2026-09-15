@@ -490,3 +490,40 @@ test('le démarrage refuse une base versionnée dont le schéma a été dégrad�
     /ne correspond pas exactement au schéma déclaré en version 1/
   );
 });
+
+test('le démarrage refuse une base qui ne contient plus que son historique de migrations', () => {
+  const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'stamp-runtime-test-'));
+  const databasePath = path.join(tempDirectory, 'app.db');
+  const scriptPath = path.resolve(__dirname, '../scripts/ensure-runtime-db.js');
+  const spawnOptions = {
+    encoding: 'utf8',
+    env: { ...process.env, NODE_TEST_CONTEXT: undefined, STAMP_DB_PATH: databasePath }
+  };
+
+  tempDirectories.push(tempDirectory);
+
+  const initialization = spawnSync(process.execPath, [scriptPath], spawnOptions);
+  assert.equal(initialization.status, 0, initialization.stderr);
+
+  const database = new Database(databasePath);
+  database.exec(`
+    DROP TABLE settings;
+    DROP TABLE commande_papiers_selectionnes;
+    DROP TABLE commande_collections;
+    DROP TABLE commandes;
+    DROP TABLE collection_papiers;
+    DROP TABLE papiers_cartonnes;
+    DROP TABLE collections;
+    DROP TABLE catalogues;
+    DROP TABLE clients;
+  `);
+  database.close();
+
+  const restart = spawnSync(process.execPath, [scriptPath], spawnOptions);
+
+  assert.notEqual(restart.status, 0);
+  assert.match(
+    restart.stderr,
+    /ne correspond pas exactement au schéma déclaré en version 1/
+  );
+});
