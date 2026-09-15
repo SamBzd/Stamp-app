@@ -185,6 +185,127 @@ test('reconnaît exactement le schéma baseline réel de main', () => {
   }
 });
 
+test('reconnaît un schéma créé directement après une migration ALTER TABLE', () => {
+  const context = createTestContext([
+    `
+      CREATE TABLE exemple (
+        id INTEGER PRIMARY KEY,
+        valeur TEXT NOT NULL
+      );
+    `,
+    "ALTER TABLE exemple ADD COLUMN statut TEXT NOT NULL DEFAULT 'nouveau';"
+  ]);
+
+  try {
+    context.database.exec(`
+      CREATE TABLE exemple (
+        id INTEGER PRIMARY KEY,
+        valeur TEXT NOT NULL,
+        statut TEXT NOT NULL DEFAULT 'nouveau'
+      );
+    `);
+
+    const directSql = context.database.prepare(
+      "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'exemple'"
+    ).get().sql;
+    const migratedDatabase = new Database(':memory:');
+
+    try {
+      applyMigrations(migratedDatabase, context);
+      const migratedSql = migratedDatabase.prepare(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'exemple'"
+      ).get().sql;
+
+      assert.notEqual(directSql, migratedSql);
+    } finally {
+      migratedDatabase.close();
+    }
+
+    assert.doesNotThrow(() => assertMigrationSchemaCompatible(
+      context.database,
+      2,
+      context
+    ));
+  } finally {
+    context.database.close();
+  }
+});
+
+test('refuse une modification de contrainte ou d’expression générée', () => {
+  const context = createTestContext([
+    `
+      CREATE TABLE exemple (
+        valeur TEXT CHECK (length(valeur) > 0),
+        valeur_norm TEXT GENERATED ALWAYS AS (lower(valeur)) STORED
+      );
+    `
+  ]);
+
+  try {
+    context.database.exec(`
+      CREATE TABLE exemple (
+        valeur TEXT CHECK (length(valeur) > 1),
+        valeur_norm TEXT GENERATED ALWAYS AS (upper(valeur)) STORED
+      );
+    `);
+
+    assert.throws(
+      () => assertMigrationSchemaCompatible(context.database, 1, context),
+      /table:exemple/
+    );
+  } finally {
+    context.database.close();
+  }
+});
+
+test('refuse une modification du mode différé d’une clé étrangère', () => {
+  const context = createTestContext([
+    `
+      CREATE TABLE parent (id INTEGER PRIMARY KEY);
+      CREATE TABLE enfant (
+        id INTEGER PRIMARY KEY,
+        parent_id INTEGER REFERENCES parent(id) DEFERRABLE INITIALLY DEFERRED
+      );
+    `
+  ]);
+
+  try {
+    context.database.exec(`
+      CREATE TABLE parent (id INTEGER PRIMARY KEY);
+      CREATE TABLE enfant (
+        id INTEGER PRIMARY KEY,
+        parent_id INTEGER REFERENCES parent(id) NOT DEFERRABLE
+      );
+    `);
+
+    assert.throws(
+      () => assertMigrationSchemaCompatible(context.database, 1, context),
+      /table:enfant/
+    );
+  } finally {
+    context.database.close();
+  }
+});
+
+test('refuse une modification de politique ON CONFLICT', () => {
+  const context = createTestContext([
+    'CREATE TABLE exemple (valeur TEXT UNIQUE ON CONFLICT IGNORE);'
+  ]);
+
+  try {
+    context.database.exec(
+      'CREATE TABLE exemple (valeur TEXT UNIQUE ON CONFLICT ABORT);'
+    );
+
+    assert.throws(
+      () => assertMigrationSchemaCompatible(context.database, 1, context),
+      /table:exemple/
+    );
+  } finally {
+    context.database.close();
+  }
+});
+
 test('consulte les migrations sans créer de table dans la base', () => {
   const context = createTestContext([
     'CREATE TABLE exemple (id INTEGER PRIMARY KEY);'
