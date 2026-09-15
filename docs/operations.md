@@ -38,15 +38,21 @@ docker compose up --build -d
 
 Au premier démarrage sur un volume vide, le backend crée le schéma et les paramètres initiaux, puis enregistre la version courante dans `schema_migrations`. Une base existante au schéma incomplet ou avec une migration en attente bloque le démarrage : elle exige une migration explicite.
 
-Dans un environnement configuré avec `STAMP_DB_PATH`, l'état puis l'application
-des migrations se contrôlent avec :
+Avec le déploiement Compose, arrête le backend pour qu'il n'accède pas à SQLite
+pendant la maintenance. Contrôle ensuite l'état, applique les migrations dans un
+conteneur ponctuel relié au même volume, puis redémarre le service :
 
 ```bash
-npm run db:migrate:status --prefix backend
-npm run db:migrate --prefix backend
+docker compose stop backend
+docker compose run --rm backend npm run db:migrate:status
+docker compose run --rm backend npm run db:migrate
+docker compose up -d backend
 ```
 
-La commande de statut est strictement consultative et ne crée aucune table.
+Réalise une sauvegarde vérifiable de la base avant la commande de migration. La
+commande de statut ouvre la base en lecture seule et ne crée aucune table. Les
+conteneurs ponctuels utilisent `STAMP_DB_PATH=/data/app.db` et le même volume
+`stamp-data`, ou celui sélectionné par `STAMP_VOLUME_NAME`.
 
 Chaque migration est atomique et son empreinte est enregistrée. Un fichier déjà
 appliqué ne doit jamais être modifié. Au démarrage, la structure réelle est aussi
