@@ -11,7 +11,8 @@ const {
 } = require('../src/db/migrations');
 const {
   assertMainBaselineCompatible,
-  assertMigrationSchemaCompatible
+  assertMigrationSchemaCompatible,
+  getSchemaObjects
 } = require('../src/db/schema-compatibility');
 
 function parseArguments(args) {
@@ -56,6 +57,26 @@ const migrationOptions = {
   migrationsDirectory: cliOptions.migrationsDirectory
 };
 
+function getBaselinePath(status) {
+  const baselineMigration = status.pending.find(({ version }) => version === 1);
+
+  if (!baselineMigration) {
+    throw new Error('La migration de baseline version 1 est introuvable.');
+  }
+
+  return path.join(cliOptions.migrationsDirectory, baselineMigration.filename);
+}
+
+function assertUnversionedSchemaCompatible(database, status) {
+  if (getSchemaObjects(database).length === 0) {
+    return;
+  }
+
+  assertMainBaselineCompatible(database, {
+    baselinePath: getBaselinePath(status)
+  });
+}
+
 const databasePath = getDatabasePath();
 
 if (!fs.existsSync(databasePath)) {
@@ -63,7 +84,9 @@ if (!fs.existsSync(databasePath)) {
   process.exit(1);
 }
 
-const database = new Database(databasePath);
+const database = new Database(databasePath, cliOptions.mode === 'status'
+  ? { readonly: true, fileMustExist: true }
+  : undefined);
 
 try {
   if (cliOptions.mode === 'status') {
@@ -75,6 +98,8 @@ try {
         status.applied.at(-1).version,
         migrationOptions
       );
+    } else {
+      assertUnversionedSchemaCompatible(database, status);
     }
 
     console.log(`Migrations appliquées : ${status.applied.length}`);
@@ -87,13 +112,7 @@ try {
     const initialStatus = getMigrationStatus(database, migrationOptions);
 
     if (initialStatus.applied.length === 0) {
-      const baselineMigration = initialStatus.pending.find(({ version }) => version === 1);
-      assertMainBaselineCompatible(database, {
-        baselinePath: path.join(
-          cliOptions.migrationsDirectory,
-          baselineMigration.filename
-        )
-      });
+      assertMainBaselineCompatible(database, { baselinePath: getBaselinePath(initialStatus) });
     } else {
       assertMigrationSchemaCompatible(
         database,

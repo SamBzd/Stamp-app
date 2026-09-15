@@ -199,6 +199,92 @@ test('CLI refuse une base sans historique incompatible avec la baseline', () => 
   }
 });
 
+test('le statut refuse sans mutation une base non versionnée incompatible', () => {
+  const context = createContext();
+  const database = openDatabase(context);
+  database.exec('CREATE TABLE exemple (id INTEGER PRIMARY KEY, autre_colonne TEXT);');
+  database.close();
+
+  const result = runCli(context, ['--status']);
+  const verificationDatabase = openDatabase(context, { readonly: true });
+
+  try {
+    const migrationTableExists = verificationDatabase.prepare(`
+      SELECT 1
+      FROM sqlite_master
+      WHERE type = 'table' AND name = 'schema_migrations'
+    `).get();
+
+    assert.notEqual(result.status, 0);
+    assert.equal(migrationTableExists, undefined);
+    assert.deepEqual(getColumnNames(verificationDatabase), ['id', 'autre_colonne']);
+  } finally {
+    verificationDatabase.close();
+  }
+});
+
+test('le statut accepte sans mutation une baseline compatible non versionnée', () => {
+  const context = createContext();
+  const database = openDatabase(context);
+  database.exec(`
+    CREATE TABLE exemple (
+      id INTEGER PRIMARY KEY,
+      valeur TEXT NOT NULL
+    );
+    CREATE INDEX ix_exemple_valeur ON exemple(valeur);
+    INSERT INTO exemple (id, valeur) VALUES (1, 'préservée');
+  `);
+  database.close();
+
+  const result = runCli(context, ['--status']);
+  const verificationDatabase = openDatabase(context, { readonly: true });
+
+  try {
+    const migrationTableExists = verificationDatabase.prepare(`
+      SELECT 1
+      FROM sqlite_master
+      WHERE type = 'table' AND name = 'schema_migrations'
+    `).get();
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(migrationTableExists, undefined);
+    assert.equal(
+      verificationDatabase.prepare('SELECT valeur FROM exemple WHERE id = 1').get().valeur,
+      'préservée'
+    );
+  } finally {
+    verificationDatabase.close();
+  }
+});
+
+test('le statut contrôle aussi une base dont l’historique existe mais est vide', () => {
+  const context = createContext();
+  const database = openDatabase(context);
+  database.exec(`
+    CREATE TABLE schema_migrations (
+      version INTEGER PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      checksum TEXT NOT NULL,
+      applied_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE exemple (id INTEGER PRIMARY KEY, autre_colonne TEXT);
+  `);
+  database.close();
+
+  const result = runCli(context, ['--status']);
+  const verificationDatabase = openDatabase(context, { readonly: true });
+
+  try {
+    assert.notEqual(result.status, 0);
+    assert.equal(
+      verificationDatabase.prepare('SELECT COUNT(*) AS count FROM schema_migrations').get().count,
+      0
+    );
+  } finally {
+    verificationDatabase.close();
+  }
+});
+
 test('CLI refuse une migration déjà appliquée puis modifiée', () => {
   const context = createContext();
   seedVersionOne(context);
