@@ -9,6 +9,7 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [Catalogues et commandes kits](catalogue-metier.md) : règles validées le 16 septembre 2026 et scénarios d'acceptation à implémenter.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
+- [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.
 - [Constats techniques](backlog.md) : écarts hérités de la v2 à qualifier pendant la stabilisation.
 - [Archive du plan v2](archive/plan-v2.md) : plan historique, conservé sans valeur de feuille de route.
 
