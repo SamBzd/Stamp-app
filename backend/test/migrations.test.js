@@ -169,14 +169,14 @@ test('refuse une base qui a les bonnes tables mais une structure différente', (
   }
 });
 
-test('reconnaît exactement le schéma baseline réel de main', () => {
+test('reconnaît exactement le schéma baseline historique de main', () => {
   const tempDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'stamp-baseline-test-'));
   const database = new Database(path.join(tempDirectory, 'app.db'));
 
   tempDirectories.push(tempDirectory);
 
   try {
-    const schemaPath = path.resolve(__dirname, '../../db/schema.sql');
+    const schemaPath = path.resolve(__dirname, '../../db/migrations/0001_main_baseline.sql');
     database.exec(fs.readFileSync(schemaPath, 'utf8'));
 
     assert.doesNotThrow(() => assertMainBaselineCompatible(database));
@@ -458,7 +458,10 @@ test('le script de démarrage initialise une base neuve avec son historique', ()
     `).all();
 
     assert.equal(result.status, 0, result.stderr);
-    assert.deepEqual(appliedMigrations, [{ version: 1, name: 'main_baseline' }]);
+    assert.deepEqual(appliedMigrations, [
+      { version: 1, name: 'main_baseline' },
+      { version: 2, name: 'catalogue_target' }
+    ]);
   } finally {
     database.close();
   }
@@ -487,7 +490,7 @@ test('le démarrage refuse une base versionnée dont le schéma a été dégrad�
   assert.notEqual(restart.status, 0);
   assert.match(
     restart.stderr,
-    /ne correspond pas exactement au schéma déclaré en version 1/
+    /ne correspond pas exactement au schéma déclaré en version 2/
   );
 });
 
@@ -524,6 +527,6 @@ test('le démarrage refuse une base qui ne contient plus que son historique de m
   assert.notEqual(restart.status, 0);
   assert.match(
     restart.stderr,
-    /ne correspond pas exactement au schéma déclaré en version 1/
+    /ne correspond pas exactement au schéma déclaré en version 2/
   );
 });

@@ -45,6 +45,11 @@ npm run db:dev:migrate
 L'application refuse de démarrer si une migration est en attente. Son
 application reste ainsi une opération explicite et testable.
 
+La migration cible catalogues/kits refuse une base contenant des données métier
+anciennes. La [procédure schéma et import](schema-import-clients.md) décrit ce
+refus, les structures cibles et la création explicite d'un nouveau fichier avec
+les seules clientes. La création de kits attend le futur lot API correspondant.
+
 Cette commande refuse d'écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
 
 ```bash

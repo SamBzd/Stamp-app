@@ -5,14 +5,12 @@ const {
   getAllCatalogues,
   getCatalogueById,
   createCatalogue,
-  updateCatalogue,
-  deleteCatalogue
+  updateCatalogue
 } = require('../db/catalogues');
 
 const {
   addCollection,
   updateCollection,
-  deleteCollection,
   setPapiersCollection
 } = require('../db/collections');
 
@@ -100,24 +98,9 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// DELETE /:id — supprimer un catalogue (cascade gérée par la DB)
+// DELETE /:id — conservation : pas de suppression physique.
 router.delete('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const deleted = deleteCatalogue(id);
-    if (!deleted) {
-      return res.status(404).json({ error: 'Catalogue non trouvé' });
-    }
-
-    res.status(204).send();
-  } catch (err) {
-    console.error('Erreur suppression catalogue:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
+  res.set('Allow', 'GET, PUT').status(405).json({ error: 'Les catalogues doivent être archivés ; leur suppression est interdite.' });
 });
 
 // POST /:id/collections — ajouter une collection à un catalogue (max 4)
@@ -176,24 +159,9 @@ router.put('/collections/:id', (req, res) => {
   }
 });
 
-// DELETE /collections/:id — supprimer une collection
+// DELETE /collections/:id — sources conservées.
 router.delete('/collections/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const deleted = deleteCollection(id);
-    if (!deleted) {
-      return res.status(404).json({ error: 'Collection non trouvée' });
-    }
-
-    res.status(204).send();
-  } catch (err) {
-    console.error('Erreur suppression collection:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
+  res.set('Allow', 'PUT').status(405).json({ error: 'La suppression des collections est interdite.' });
 });
 
 // PUT /collections/:id/papiers — remplacer toute la liste des papiers (max 5)

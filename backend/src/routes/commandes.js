@@ -71,6 +71,9 @@ router.post('/', (req, res) => {
         res.status(201).json(newCommande);
     } catch (err) {
         console.error('Erreur création commande:', err);
+        if (err.message.includes('nouveau contrat de composition')) {
+            return res.status(409).json({ error: err.message });
+        }
 
         if (/non trou/.test(err.message)) {
             return res.status(404).json({ error: err.message });
@@ -109,6 +112,7 @@ router.put('/:id', (req, res) => {
         res.json(updated);
     } catch (err) {
         console.error('Erreur mise à jour commande:', err);
+        if (err.message.includes('immuable')) return res.status(409).json({ error: err.message });
         res.status(500).json({ error: 'Erreur interne serveur' });
     }
 });
@@ -125,6 +129,7 @@ router.delete('/:id', (req, res) => {
         res.status(204).send();
     } catch (err) {
         console.error('Erreur suppression commande:', err);
+        if (err.message.includes('ne peut pas etre supprimee')) return res.status(409).json({ error: err.message });
         res.status(500).json({ error: 'Erreur interne serveur' });
     }
 });

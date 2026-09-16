@@ -29,8 +29,10 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
 - Les règles métier, le modèle cible et le contrat API proposés pour les
   catalogues et kits ont été confirmés avec Sam le 16 septembre 2026 : voir
   [les règles et scénarios d'acceptation](catalogue-metier.md) et la
-  [proposition de modèle](catalogue-model-proposal.md). Leur implémentation
-  reste à réaliser.
+  [proposition de modèle](catalogue-model-proposal.md). Le schéma cible et
+  l'outillage d'import clientes sont implémentés en issue #5 : voir
+  [la procédure](schema-import-clients.md). Les parcours API/UI métier restent
+  à réaliser ; ce socle n'est pas prêt pour le déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.

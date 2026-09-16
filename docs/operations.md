@@ -60,7 +60,7 @@ comparée au schéma attendu pour la version enregistrée ; une base dégradée 
 refusée. Une base neuve reçoit directement le schéma courant ; les migrations
 servent à faire évoluer les bases existantes.
 
-La baseline `0001_main_baseline.sql` correspond au schéma actuel de `main`. Elle
+La baseline `0001_main_baseline.sql` correspond au schéma historique de `main`. Elle
 ne constitue pas la conversion de la base historique du NAS : cette conversion
 sera écrite et validée séparément sur une copie des données lorsque la cible de
 déploiement sera stabilisée.

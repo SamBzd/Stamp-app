@@ -22,9 +22,13 @@ router.put('/', (req, res) => {
 
     for (const key of allowed) {
       if (key in req.body) {
-        const val = Number(req.body[key]);
-        if (isNaN(val) || val <= 0) {
-          return res.status(400).json({ error: `La valeur de ${key} doit être un nombre > 0` });
+        const raw = req.body[key];
+        const val = Number(raw);
+        if (!['number', 'string'].includes(typeof raw) ||
+            (typeof raw === 'string' && raw.trim() === '') ||
+            !Number.isFinite(val) || val < 0 || val > 100 ||
+            Math.abs(val * 100 - Math.round(val * 100)) > 0.000001) {
+          return res.status(400).json({ error: `La valeur de ${key} doit être entre 0 et 100 euros, au centime` });
         }
         updates[key] = String(val);
       }
