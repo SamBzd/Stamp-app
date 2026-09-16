@@ -6,6 +6,8 @@ Les nouvelles règles validées pour les catalogues et kits sont décrites dans
 [catalogue-metier.md](catalogue-metier.md), avec leurs scénarios d'acceptation.
 Elles remplacent les intentions v2 contradictoires ci-dessous pour la prochaine
 implémentation, sans prétendre être déjà présentes dans le schéma ou le code.
+La proposition de modèle cible et de contrat API est documentée dans
+[catalogue-model-proposal.md](catalogue-model-proposal.md).
 
 ## Entités principales
 

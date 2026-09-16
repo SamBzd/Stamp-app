@@ -7,6 +7,7 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [Développement](development.md) : installation et commandes de la branche `main`.
 - [Modèle de données](data-model.md) : entités et règles héritées de la v2, à revalider.
 - [Catalogues et commandes kits](catalogue-metier.md) : règles validées le 16 septembre 2026 et scénarios d'acceptation à implémenter.
+- [Modèle cible catalogues et kits](catalogue-model-proposal.md) : décisions de l’issue #4, contrat de données et import limité aux clientes.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
 - [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.
