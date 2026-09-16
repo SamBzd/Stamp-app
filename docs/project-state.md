@@ -26,8 +26,12 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
 
 ## Informations encore ouvertes
 
-- besoin précis et priorité de l'amélioration demandée par le client ;
-- comportement métier réellement attendu, notamment pour les kits, stocks et points de fidélité ;
+- Les modifications du parcours catalogue et des kits ont été confirmées avec Sam le 16 septembre 2026 : voir [les règles et scénarios d'acceptation](catalogue-metier.md). Leur implémentation reste à réaliser.
+
+Informations encore à confirmer :
+
+- reprise des anciennes commandes et modalités de modification des prix et des catalogues ;
+- règles métier hors de ce périmètre, notamment les points de fidélité ;
 - versions, variables d'environnement, volumes et procédure de sauvegarde utilisés sur le NAS ;
 - contenu et état d'intégrité de la base de production ;
 - méthode souhaitée pour tester puis déployer `main`.
