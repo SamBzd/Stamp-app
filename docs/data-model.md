@@ -2,6 +2,11 @@
 
 > Ce document restitue les règles encodées ou visées par la refonte v2, désormais reprise comme fondation de `main`. Il ne définit pas le comportement actuel de la production. Ces règles devront être revalidées avant le futur déploiement.
 
+Le schéma de `main` a depuis évolué en issue #5 : archivage, tarifs en centimes,
+rubans et snapshots détaillés sont décrits dans
+[schéma et import clientes](schema-import-clients.md). Les descriptions v2
+ci-dessous sont historiques, et ne décrivent plus toutes les tables actuelles.
+
 Les nouvelles règles validées pour les catalogues et kits sont décrites dans
 [catalogue-metier.md](catalogue-metier.md), avec leurs scénarios d'acceptation.
 Elles remplacent les intentions v2 contradictoires ci-dessous pour la prochaine

@@ -6,8 +6,7 @@ const {
   getClientById,
   createClient,
   updateClient,
-  updatePointsFidelite,
-  deleteClient
+  updatePointsFidelite
 } = require('../db/client');
 
 // READ - Récupérer tous les clients
@@ -98,24 +97,9 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// DELETE - Supprimer un client
+// DELETE - La conservation impose un archivage, livré dans le lot dédié.
 router.delete('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const deleted = deleteClient(id);
-    if (!deleted) {
-      return res.status(404).json({ error: 'Client non trouvé' });
-    }
-
-    res.status(204).send();
-  } catch (err) {
-    console.error('Erreur suppression client SQLite:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
+  res.set('Allow', 'GET, PUT').status(405).json({ error: 'Les clientes doivent être archivées ; leur suppression est interdite.' });
 });
 
 // UPDATE - Mettre à jour les points de fidélité d'un client

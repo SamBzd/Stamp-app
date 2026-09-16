@@ -1,70 +1,32 @@
--- Stamp App — Schéma cible catalogues et kits
--- Ce fichier décrit l'état cible de la base de données.
--- Une base neuve est créée depuis ce fichier puis marquée à la version
--- courante par le mécanisme de migrations.
+-- Refus atomique des données métier sans historique fiable.
+CREATE TEMP TABLE catalogue_migration_guard (incompatible INTEGER);
+CREATE TEMP TRIGGER catalogue_migration_refus BEFORE INSERT ON catalogue_migration_guard
+WHEN NEW.incompatible != 0
+BEGIN SELECT RAISE(ABORT, 'Donnees metier incompatibles ou tarifs invalides : initialiser explicitement une base cible neuve'); END;
+INSERT INTO catalogue_migration_guard SELECT
+ (SELECT count(*) FROM catalogues) + (SELECT count(*) FROM collections)
+ + (SELECT count(*) FROM collection_papiers) + (SELECT count(*) FROM papiers_cartonnes)
+ + (SELECT count(*) FROM commandes) + (SELECT count(*) FROM commande_collections)
+ + (SELECT count(*) FROM commande_papiers_selectionnes)
+ + (SELECT count(*) FROM settings WHERE cle NOT IN ('prix_A','prix_B','prix_C')
+  OR trim(valeur) = '' OR trim(valeur) NOT GLOB '*[0-9]*'
+  OR trim(valeur) GLOB '*[^0-9.]*'
+  OR length(valeur) - length(replace(valeur,'.','')) > 1
+  OR CAST(valeur AS REAL) < 0 OR CAST(valeur AS REAL) > 100
+  OR abs(CAST(valeur AS REAL)*100 - round(CAST(valeur AS REAL)*100)) > 0.000001);
+DROP TRIGGER catalogue_migration_refus;
+DROP TABLE catalogue_migration_guard;
 
--- ============================================================
--- TABLE : schema_migrations — historique technique du schéma
--- ============================================================
-CREATE TABLE IF NOT EXISTS schema_migrations (
-  version    INTEGER PRIMARY KEY,
-  name       TEXT NOT NULL UNIQUE,
-  checksum   TEXT NOT NULL,
-  applied_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- ============================================================
--- TABLE : clients
--- ============================================================
-CREATE TABLE IF NOT EXISTS clients (
-  id                INTEGER PRIMARY KEY AUTOINCREMENT,
-  nom               TEXT NOT NULL,
-  prenom            TEXT NOT NULL,
-  date_naissance    TEXT,
-  adresse           TEXT,
-  code_postal       TEXT,
-  ville             TEXT,
-  email             TEXT,
-  telephone_raw     TEXT,
-  relais_prefere    TEXT,
-  contacter         INTEGER NOT NULL DEFAULT 0 CHECK (contacter IN (0,1)),
-  derniere_commande TEXT,
-  points_fidelite   INTEGER NOT NULL DEFAULT 0,
-  created_at        TEXT NOT NULL DEFAULT (datetime('now')),
-
-  email_norm TEXT GENERATED ALWAYS AS (
-    CASE WHEN email IS NULL THEN NULL ELSE lower(trim(email)) END
-  ) STORED,
-
-  telephone_e164 TEXT GENERATED ALWAYS AS (
-    CASE
-      WHEN telephone_raw IS NULL THEN NULL
-      WHEN replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','') = '' THEN NULL
-      ELSE
-        CASE
-          WHEN substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),1,1) = '+'
-            THEN replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','')
-          WHEN substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),1,2) = '00'
-            THEN '+' || substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),3)
-          WHEN substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),1,2) IN ('32','33')
-            THEN '+' || replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','')
-          WHEN substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),1,1) = '0'
-               AND length(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','')) = 10
-            THEN '+33' || substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),2)
-          WHEN length(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','')) = 9
-               AND substr(replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')',''),1,1) IN ('6','7')
-            THEN '+33' || replace(replace(replace(replace(replace(trim(telephone_raw),' ',''),'.',''),'-',''),'(',''),')','')
-          ELSE NULL
-        END
-    END
-  ) STORED,
-  archive INTEGER NOT NULL DEFAULT 0 CHECK (archive IN (0,1))
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS ux_clients_email_norm ON clients(email_norm);
-CREATE INDEX IF NOT EXISTS ix_clients_nom_prenom ON clients(nom, prenom);
-CREATE INDEX IF NOT EXISTS ix_clients_ville ON clients(ville);
-
+ALTER TABLE clients ADD COLUMN archive INTEGER NOT NULL DEFAULT 0 CHECK (archive IN (0,1));
+CREATE TEMP TABLE catalogue_old_settings AS SELECT * FROM settings;
+DROP TABLE commande_papiers_selectionnes;
+DROP TABLE commande_collections;
+DROP TABLE commandes;
+DROP TABLE collection_papiers;
+DROP TABLE collections;
+DROP TABLE catalogues;
+DROP TABLE papiers_cartonnes;
+DROP TABLE settings;
 
 CREATE TABLE settings (
   cle TEXT PRIMARY KEY CHECK (cle IN ('prix_catalogue_A_cents','prix_catalogue_B_cents','prix_catalogue_C_cents')),
@@ -236,3 +198,12 @@ BEGIN SELECT RAISE(ABORT, 'La composition reglee est immuable'); END;
 CREATE TRIGGER commande_rubans_reglees_delete
 BEFORE DELETE ON commande_rubans WHEN EXISTS (SELECT 1 FROM commandes WHERE id = OLD.commande_id AND reglee = 1)
 BEGIN SELECT RAISE(ABORT, 'La composition reglee est immuable'); END;
+
+UPDATE settings SET valeur = COALESCE((
+ SELECT CAST(round(CAST(old.valeur AS REAL)*100) AS INTEGER) FROM catalogue_old_settings old
+ WHERE old.cle = CASE settings.cle
+ WHEN 'prix_catalogue_A_cents' THEN 'prix_A'
+ WHEN 'prix_catalogue_B_cents' THEN 'prix_B'
+ ELSE 'prix_C' END
+), valeur);
+DROP TABLE catalogue_old_settings;

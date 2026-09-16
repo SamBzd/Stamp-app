@@ -33,21 +33,24 @@ function getCommandeById(id) {
 
     if (commande.type === 'kit') {
         commande.commande_collections = db.prepare(`
-            SELECT cc.id, cc.collection_id, cc.nb_feuilles, col.nom AS collection_nom
+            SELECT cc.id, cc.collection_id, cc.nb_feuilles, cc.collection_nom
             FROM commande_collections cc
-            JOIN collections col ON col.id = cc.collection_id
             WHERE cc.commande_id = ?
         `).all(id);
 
         commande.papiers_selectionnes = db.prepare(`
-            SELECT cps.id, cps.papier_cartonne_id, pc.nom
+            SELECT cps.id, cps.commande_collection_id, cps.papier_cartonne_id, cps.papier_nom AS nom, cps.quantite_base
             FROM commande_papiers_selectionnes cps
-            JOIN papiers_cartonnes pc ON pc.id = cps.papier_cartonne_id
-            WHERE cps.commande_id = ?
+            JOIN commande_collections cc ON cc.id = cps.commande_collection_id
+            WHERE cc.commande_id = ?
         `).all(id);
+        commande.ruban = db.prepare(`
+            SELECT ruban_id, ruban_nom, quantite FROM commande_rubans WHERE commande_id = ?
+        `).get(id) || null;
     } else {
         commande.commande_collections = [];
         commande.papiers_selectionnes = [];
+        commande.ruban = null;
     }
 
     return commande;
@@ -67,107 +70,9 @@ const createCommande = db.transaction(function(data) {
     let commandeId;
 
     if (type === 'kit') {
-        const {
-            format_type,
-            methode_paiement,
-            papier_supplementaire = 0,
-            produit_promo_texte = null,
-            produit_promo_prix = null,
-            autres_texte = null,
-            autres_prix = null,
-            reglee = 0,
-            collections: collectionsData = [],
-            papiers_selectionnes: papiersData = []
-        } = data;
-
-        if (!format_type || !['A', 'B', 'C'].includes(format_type)) {
-            throw new Error("format_type doit être 'A', 'B' ou 'C'");
-        }
-        if (!methode_paiement || !['Paypal', 'chèque', 'virement'].includes(methode_paiement)) {
-            throw new Error("methode_paiement est obligatoire et doit être 'Paypal', 'chèque' ou 'virement'");
-        }
-
-        // Validation des collections
-        if (format_type === 'C') {
-            if (!collectionsData || collectionsData.length !== 1) {
-                throw new Error('Format C requiert exactement 1 collection');
-            }
-            if (collectionsData[0].nb_feuilles !== 5) {
-                throw new Error('Format C : nb_feuilles doit être 5');
-            }
-        } else {
-            // Format A ou B : 2 collections, total nb_feuilles = 5 (2+3)
-            if (!collectionsData || collectionsData.length !== 2) {
-                throw new Error('Format A/B requiert exactement 2 collections');
-            }
-            const nbTotal = collectionsData.reduce((sum, c) => sum + c.nb_feuilles, 0);
-            if (nbTotal !== 5) {
-                throw new Error('Format A/B : le total de nb_feuilles doit être 5 (2+3)');
-            }
-            const validNbFeuilles = collectionsData.every(c => [2, 3].includes(c.nb_feuilles));
-            if (!validNbFeuilles) {
-                throw new Error('Format A/B : nb_feuilles doit être 2 ou 3 pour chaque collection');
-            }
-
-            // Valider que les 2 collections appartiennent au même catalogue
-            const catIds = collectionsData.map(c => {
-                const col = db.prepare('SELECT catalogue_id FROM collections WHERE id = ?').get(c.collection_id);
-                if (!col) throw new Error(`Collection ${c.collection_id} non trouvée`);
-                return col.catalogue_id;
-            });
-            if (catIds[0] !== catIds[1]) {
-                throw new Error('Les 2 collections doivent appartenir au même catalogue');
-            }
-        }
-
-        // Insérer la commande
-        const result = db.prepare(`
-            INSERT INTO commandes
-              (client_id, type, format_type, papier_supplementaire,
-               produit_promo_texte, produit_promo_prix,
-               autres_texte, autres_prix,
-               methode_paiement, reglee)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-            client_id, type, format_type, papier_supplementaire,
-            produit_promo_texte, produit_promo_prix,
-            autres_texte, autres_prix,
-            methode_paiement, reglee
-        );
-        commandeId = result.lastInsertRowid;
-
-        // Insérer les commande_collections
-        const insertCC = db.prepare(`
-            INSERT INTO commande_collections (commande_id, collection_id, nb_feuilles)
-            VALUES (?, ?, ?)
-        `);
-        for (const c of collectionsData) {
-            insertCC.run(commandeId, c.collection_id, c.nb_feuilles);
-        }
-
-        // Insérer les papiers sélectionnés
-        const insertPS = db.prepare(`
-            INSERT OR IGNORE INTO commande_papiers_selectionnes (commande_id, papier_cartonne_id)
-            VALUES (?, ?)
-        `);
-
-        if (format_type === 'C') {
-            // Format C : récupérer automatiquement les papiers de la collection
-            const collectionId = collectionsData[0].collection_id;
-            const papiers = db.prepare(`
-                SELECT papier_cartonne_id FROM collection_papiers WHERE collection_id = ?
-            `).all(collectionId);
-            for (const p of papiers) {
-                insertPS.run(commandeId, p.papier_cartonne_id);
-            }
-        } else {
-            // Format A/B : insérer les papiers fournis (dédupliqués via INSERT OR IGNORE)
-            const uniquePapiers = [...new Set(papiersData)];
-            for (const pcId of uniquePapiers) {
-                insertPS.run(commandeId, pcId);
-            }
-        }
-
+        // Le parcours de création cible est livré dans le lot commandes kits.
+        // Refuser le contrat v2 évite des commandes sans snapshots historiques.
+        throw new Error('La creation de kits attend le nouveau contrat de composition');
     } else {
         // type === 'hors_kit'
         const {
@@ -220,8 +125,8 @@ function updateCommande(id, data) {
     // Champs autorisés (scalaires uniquement, pas les collections/papiers)
     const allowed = [
         'format_type', 'papier_supplementaire',
-        'produit_promo_texte', 'produit_promo_prix',
-        'autres_texte', 'autres_prix',
+        'produit_promo_texte', 'produit_promo_prix_cents',
+        'autres_texte', 'autres_prix_cents',
         'montant', 'date_commande', 'cadeau_texte', 'cadeau_valeur',
         'methode_paiement', 'reglee'
     ];

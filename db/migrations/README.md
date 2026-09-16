@@ -3,7 +3,7 @@
 Les fichiers SQL de ce dossier décrivent, dans l'ordre, les évolutions d'une
 base existante de `main`.
 
-- Utiliser un nom séquentiel `0002_description.sql`.
+- Utiliser le numéro séquentiel suivant, par exemple `0003_description.sql`.
 - Ne jamais modifier ni renommer une migration déjà appliquée.
 - Mettre à jour `db/schema.sql` dans le même changement : il représente l'état
   final attendu pour une base neuve.
@@ -17,3 +17,9 @@ Elle ne doit pas remplacer le dossier versionné du projet en exploitation.
 base sans historique ne reçoit cette version que si toute sa structure lui
 correspond exactement. Elle ne convertit pas la base historique du NAS vers le
 schéma de `main`.
+
+`0002_catalogue_target.sql` prépare le modèle catalogues/kits et convertit les
+tarifs par défaut en centimes. Elle refuse toute donnée métier ancienne non
+convertible sans inventer d'historique ; les clientes locales sont conservées.
+L'initialisation d'une base neuve avec les seules clientes est décrite dans
+[la procédure d'import](../../docs/schema-import-clients.md).

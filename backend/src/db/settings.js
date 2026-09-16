@@ -4,7 +4,9 @@ const db = require('./connection');
 function getSettings() {
   const rows = db.prepare('SELECT cle, valeur FROM settings').all();
   return rows.reduce((acc, row) => {
-    acc[row.cle] = row.valeur;
+    // Adaptateur du contrat euros historique jusqu'au lot API paramètres.
+    const format = /^prix_catalogue_([ABC])_cents$/.exec(row.cle);
+    if (format) acc[`prix_${format[1]}`] = String(row.valeur / 100);
     return acc;
   }, {});
 }
@@ -16,7 +18,12 @@ function updateSettings(updates) {
 
   const updateMany = db.transaction((entries) => {
     for (const [cle, valeur] of entries) {
-      updateStmt.run(String(valeur), cle);
+      const cents = Math.round(Number(valeur) * 100);
+      if (!Number.isFinite(Number(valeur)) || cents < 0 || cents > 10000 ||
+          Math.abs(Number(valeur) * 100 - cents) > 0.000001) {
+        throw new Error('Tarif invalide : montant entre 0 et 100 euros, au centime');
+      }
+      updateStmt.run(cents, `prix_catalogue_${cle.slice(-1)}_cents`);
     }
   });
 
