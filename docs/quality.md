@@ -4,7 +4,7 @@
 
 ## État de départ
 
-Le projet possède un premier test d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Il ne possède pas encore de linter ni d'intégration continue, et les règles métier restent très peu couvertes.
+Le projet possède des tests d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Le workflow GitHub Actions `.github/workflows/ci.yml` exécute ces contrôles à chaque push sur `main` et pour chaque pull request vers `main`. Il ne possède pas encore de linter, et les règles métier restent très peu couvertes.
 
 ## Contrôles disponibles
 
@@ -14,6 +14,10 @@ docker compose config
 npm audit --omit=dev --prefix backend
 npm audit --omit=dev --prefix frontend
 ```
+
+La CI utilise Node.js dans la version indiquée par `.nvmrc`, installe séparément
+les dépendances racine, backend et frontend avec `npm ci`, puis exécute
+`npm run check` et `npm run check:docker`.
 
 ## Couverture à ajouter sur `main`
 
