@@ -18,6 +18,8 @@
 - Modifier une commande non réglée recalcule son prix depuis les tarifs alors
   enregistrés dans son catalogue. Une correction manuelle explicite du montant
   reste possible et est mémorisée comme telle.
+- Les données métier ne sont jamais supprimées par l’application : elles sont
+  archivables et restent disponibles pour l’historique, les stocks et le bilan.
 - Un catalogue utilisable qui redevient incomplet repasse automatiquement en
   brouillon et ne peut plus servir à une nouvelle commande.
 - Les papiers cartonnés appartiennent à une bibliothèque globale et sont
@@ -52,8 +54,10 @@ Le titre est libre. Un brouillon peut être incomplet. La publication vérifie :
 - au plus deux rubans.
 
 Un catalogue publié avec une seule collection ne propose que C. Avec au moins
-deux collections, A, B et C sont disponibles. Une modification qui ne satisfait
-plus un minimum requis remet le catalogue en brouillon dans la même transaction.
+deux collections, A, B et C sont disponibles. Un brouillon techniquement valide
+reste brouillon : seul l’endpoint de publication peut le rendre disponible.
+Une modification qui ne satisfait plus un minimum requis remet un catalogue
+publié en brouillon dans la même transaction.
 À l’inverse, une opération qui dépasserait un maximum (cinquième collection,
 sixième papier ou troisième ruban) est refusée et annulée : elle ne transforme
 pas le catalogue en brouillon.
@@ -100,15 +104,18 @@ La création doit refuser un catalogue brouillon. La modification complète de
 la composition est autorisée uniquement tant que `reglee = 0`; le passage à
 `reglee = 1` fige la commande.
 
-## Conservation et suppression explicite
+## Conservation et archivage
 
-Les actions métier ordinaires ne suppriment ni les papiers, ni les catalogues,
-collections ou rubans. Les commandes réglées restent consultables grâce à leurs
-snapshots, même si l’utilisatrice demande un jour une suppression explicite
-d’une source. Cette suppression devra être une action séparée, confirmée dans
-l’interface ; elle ne doit jamais réécrire une commande. Elle est refusée tant
-que la source est référencée par une commande non réglée, afin que cette
-commande reste modifiable et validable.
+L’application ne supprime jamais les données métier : clientes, commandes,
+catalogues, collections, papiers et rubans sont archivables. L’archivage retire
+l’objet des choix destinés aux nouvelles créations, sans effacer ses données ni
+réécrire une commande existante.
+
+Une commande réglée est immuable et peut uniquement être archivée. Son archive
+n’altère ni l’historique, ni les stocks, ni le bilan. Une cliente ayant des
+commandes réglées est également archivable, jamais supprimable ; ses commandes
+et leurs snapshots restent rattachés à elle. Les relations ne doivent donc pas
+utiliser de suppression en cascade pour les clientes et les commandes.
 
 ## Import clientes vers le NAS
 
@@ -142,24 +149,36 @@ moment de la bascule ; ils ne se déduisent pas de `main`.
   par la fonction transactionnelle qui recalcule le statut du catalogue.
 - Les opérations qui dépassent une cardinalité maximale répondent `400` et
   annulent la mutation ; elles ne modifient pas le statut du catalogue.
-- Une suppression explicite de source répond `409` lorsqu’une commande non
-  réglée la référence.
-- `POST /api/commandes` reçoit un `catalogue_id`, le format et la composition.
+- Les endpoints `DELETE` métier sont remplacés par des actions d’archivage ;
+  une commande réglée et une cliente sont consultables mais non supprimables.
+- `POST /api/commandes` conserve le contrat existant pour `type = hors_kit`.
+  Pour `type = kit`, il reçoit un `catalogue_id`, le format et la composition.
   Le serveur reconstruit et valide les snapshots dans une transaction, puis
-  calcule le prix appliqué depuis les tarifs du catalogue et l’option. Un
-  `prix_applique_cents` optionnel autorise une correction manuelle explicite ;
-  le serveur le valide comme montant entier positif ou nul et mémorise que son
-  origine est manuelle.
+  calcule le prix appliqué depuis les tarifs du catalogue, l’option et les
+  suppléments. Un `prix_applique_cents` optionnel autorise une correction
+  manuelle explicite ; le serveur le valide comme montant entier positif ou nul
+  et mémorise que son origine est manuelle.
 - `PUT /api/commandes/:id` remplace de façon atomique la composition d’une
-  commande non réglée ; il recalcule le prix depuis le catalogue, sauf si la
-  requête porte une correction manuelle explicite. Une commande réglée répond
-  `409`.
+  commande kit non réglée ; il recalcule le prix depuis le catalogue, sauf si
+  la requête porte une correction manuelle explicite. Une commande réglée
+  répond `409`. Le contrat des commandes `hors_kit` reste inchangé.
 - `PATCH /api/commandes/:id/reglement` fait uniquement passer une commande non
   réglée à l’état réglé. Il ne remplace pas sa composition et ne recalcule ni
   son prix ni ses snapshots.
+- `PATCH /api/:ressource/:id/archivage` archive ou restaure une donnée métier
+  selon la ressource autorisée, sans effacement physique.
 
 Les noms de champs définitifs seront arrêtés avec le schéma SQL afin que les
 routes, le service API Vue et les tests utilisent le même contrat.
+
+## Suppléments de kit
+
+Les champs existants `produit_promo` et `autres` sont conservés pour les kits.
+Chaque supplément mémorise son libellé et son prix en centimes. Le prix calculé
+d’un kit est la somme du tarif de format, de l’option papier et de ces
+suppléments ; le bilan conserve leurs catégories et montants. Une correction
+manuelle explicite de `prix_applique_cents` remplace ce total calculé, sans
+effacer les lignes de supplément qui expliquent la commande.
 
 ## Matrice de recette à transformer en tests API
 
@@ -186,3 +205,6 @@ routes, le service API Vue et les tests utilisent le même contrat.
 | Tarifs propres à deux catalogues | API catalogue/commande : prix copié et appliqué |
 | Paramètres modifiés après création d’un catalogue | API paramètres/catalogue/commande : ancien tarif préservé |
 | Source renommée ou modifiée après commande | API commande, stock et détail : snapshot inchangé |
+| Brouillon devenu valide | API catalogue : reste brouillon jusqu’à publication explicite |
+| Commande réglée ou cliente associée | API : archivage possible, suppression refusée, bilan inchangé |
+| Supplément promo ou autre | API commande et bilan : montant inclus et catégorie conservée |

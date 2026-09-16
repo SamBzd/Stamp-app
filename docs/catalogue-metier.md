@@ -123,12 +123,11 @@ des tests exécutables ou une validation du code actuel.
 4. Aligner les détails de commande, les stocks et le bilan sur les données de
    commande, puis compléter les tests métier et les contrôles CI.
 
-Avant la migration, définir la reprise des anciennes commandes : le modèle
-actuel ne conserve pas leur prix d'origine ni tous les matériaux historiques.
-Ne pas inventer ces informations à partir des valeurs courantes. La conversion
-des données réelles du NAS reste une étape distincte, sur une copie contrôlée.
+Les anciens catalogues, collections, commandes, stocks et bilans de production
+ne seront pas repris. Seules les clientes sont importées dans une base neuve,
+sur une copie contrôlée et après sauvegarde vérifiée du NAS.
 
-Les modalités de saisie ou de correction du prix réellement appliqué, les
-bornes tarifaires et le traitement d'une modification rendant un catalogue
-utilisable incomplet restent à préciser lors de la conception. Ces choix ne
-sont pas implicitement autorisés par les règles ci-dessus.
+Les décisions de conception complémentaires sont fixées dans la
+[proposition de modèle](catalogue-model-proposal.md) : modification d’une
+commande non réglée, correction manuelle explicite du prix, retour au brouillon
+d’un catalogue devenu incomplet, archivage des données et contrat API.
