@@ -2,13 +2,18 @@
 
 > Ce document restitue les règles encodées ou visées par la refonte v2, désormais reprise comme fondation de `main`. Il ne définit pas le comportement actuel de la production. Ces règles devront être revalidées avant le futur déploiement.
 
+Les nouvelles règles validées pour les catalogues et kits sont décrites dans
+[catalogue-metier.md](catalogue-metier.md), avec leurs scénarios d'acceptation.
+Elles remplacent les intentions v2 contradictoires ci-dessous pour la prochaine
+implémentation, sans prétendre être déjà présentes dans le schéma ou le code.
+
 ## Entités principales
 
 - `clients` : coordonnées, préférences et points de fidélité.
 - `catalogues` : un catalogue mensuel, avec papier spécial et embellissement.
 - `collections` et `collection_papiers` : collections d'un catalogue et leurs papiers cartonnés issus de la bibliothèque globale `papiers_cartonnes`.
 - `commandes` : commande `kit` ou `hors_kit`.
-- `commande_collections` et `commande_papiers_selectionnes` : composition figée d'un kit au moment de sa création.
+- `commande_collections` et `commande_papiers_selectionnes` : collections, contributions et identifiants des papiers d'un kit. Le modèle actuel ne conserve pas de quantité par papier ni un historique autonome de toutes les désignations et matériaux.
 - `settings` : prix globaux des formats A, B et C.
 
 ## Composition d'un catalogue
