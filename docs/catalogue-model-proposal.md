@@ -102,7 +102,14 @@ Une commande A/B a exactement deux lignes de collection distinctes du catalogue
 soumis, de contributions 2 et 3. Une commande C en a une du catalogue soumis,
 de contribution 5. Le ruban retenu appartient aussi à ce catalogue. Les
 validations vérifient également que chaque papier appartient à la collection
-indiquée et que le total des quantités correspond à sa contribution.
+indiquée et que le total des quantités correspond à sa contribution. Pour le
+format C, chaque papier distinct de la collection doit en outre apparaître au
+moins une fois dans la composition : il est impossible de commander cinq fois
+un seul papier d’une collection qui en contient plusieurs.
+
+Le serveur applique aussi la cardinalité de rubans du catalogue : avec zéro
+ruban, aucun ruban n’est accepté ; avec un ruban, il l’ajoute
+automatiquement ; avec deux rubans, la requête doit en choisir exactement un.
 
 La création doit refuser un catalogue brouillon. La modification complète de
 la composition est autorisée uniquement tant que `reglee = 0`; le passage à
@@ -176,11 +183,13 @@ moment de la bascule ; ils ne se déduisent pas de `main`.
   nul et mémorise que son origine est manuelle.
 - `PUT /api/commandes/:id` remplace de façon atomique la composition d’une
   commande kit non réglée ; il recalcule le prix depuis le catalogue, sauf si
-  la requête porte une correction manuelle explicite. Une commande réglée
-  répond `409`. Le contrat des commandes `hors_kit` reste inchangé.
+  la requête porte une correction manuelle explicite. Toute commande réglée,
+  kit ou hors-kit, répond `409` à une modification. Les champs métier des
+  commandes hors-kit restent par ailleurs inchangés.
 - `PATCH /api/commandes/:id/reglement` fait uniquement passer une commande non
-  réglée à l’état réglé. Il ne remplace pas sa composition et ne recalcule ni
-  son prix ni ses snapshots.
+  réglée, kit ou hors-kit, à l’état réglé. Il ne remplace pas sa composition et
+  ne recalcule ni son prix ni ses snapshots. La propriété `reglee` n’est pas
+  modifiable par l’endpoint général `PUT`.
 
 Les noms de champs définitifs seront arrêtés avec le schéma SQL afin que les
 routes, le service API Vue et les tests utilisent le même contrat.
@@ -193,6 +202,11 @@ d’un kit est la somme du tarif de format, de l’option papier et de ces
 suppléments ; le bilan conserve leurs catégories et montants. Une correction
 manuelle explicite de `prix_applique_cents` remplace ce total calculé, sans
 effacer les lignes de supplément qui expliquent la commande.
+
+Pour chaque catégorie, libellé et prix sont indissociables : ils sont tous deux
+absents, ou le libellé est non vide et le prix est un entier positif ou nul en
+centimes. Ces validations sont appliquées par `POST` et `PUT` avant le calcul
+du prix et l’écriture de la commande.
 
 ## Matrice de recette à transformer en tests API
 
@@ -224,3 +238,6 @@ effacer les lignes de supplément qui expliquent la commande.
 | Commande non réglée supprimée | API et stock : composition supprimée, quantités retirées |
 | Commande réglée supprimée | API : refus `409`, historique et bilan inchangés |
 | Supplément promo ou autre | API commande et bilan : montant inclus et catégorie conservée |
+| C avec papier de collection omis | API commande : refus serveur |
+| Supplément sans libellé, prix négatif ou décimal | API commande : refus serveur |
+| Hors-kit réglée modifiée | API : refus `409`, règlement uniquement par endpoint dédié |
