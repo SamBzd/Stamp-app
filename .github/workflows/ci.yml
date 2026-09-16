@@ -1,0 +1,51 @@
+name: Validation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Tests, build et configuration Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            backend/package-lock.json
+            frontend/package-lock.json
+
+      - name: Installer les dépendances racine
+        run: npm ci
+
+      - name: Installer les dépendances backend
+        run: npm ci --prefix backend
+
+      - name: Installer les dépendances frontend
+        run: npm ci --prefix frontend
+
+      - name: Exécuter les tests et compiler le frontend
+        run: npm run check
+
+      - name: Vérifier la configuration Docker Compose
+        run: npm run check:docker
