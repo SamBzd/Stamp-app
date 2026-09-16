@@ -52,19 +52,23 @@ Le titre est libre. Un brouillon peut être incomplet. La publication vérifie :
 - au plus deux rubans.
 
 Un catalogue publié avec une seule collection ne propose que C. Avec au moins
-deux collections, A, B et C sont disponibles. Toute modification qui fait
-échouer ces règles remet le catalogue en brouillon dans la même transaction.
-Cette vérification est appelée par la même fonction transactionnelle après
-toute mutation d’un catalogue, d’une collection, de ses associations de
-papiers ou de ses rubans ; elle ne dépend donc pas du seul endpoint de
-catalogue.
+deux collections, A, B et C sont disponibles. Une modification qui ne satisfait
+plus un minimum requis remet le catalogue en brouillon dans la même transaction.
+À l’inverse, une opération qui dépasserait un maximum (cinquième collection,
+sixième papier ou troisième ruban) est refusée et annulée : elle ne transforme
+pas le catalogue en brouillon.
+
+Cette vérification est appelée par la même fonction transactionnelle après toute
+mutation d’un catalogue, d’une collection, de ses associations de papiers ou de
+ses rubans ; elle ne dépend donc pas du seul endpoint de catalogue.
 
 ## Commande kit autonome
 
 Une commande kit référence son catalogue pour la navigation, mais sa lecture
 historique ne dépend jamais de ses données courantes. Elle conserve :
 
-- l’identifiant et le titre du catalogue au moment de la création ;
+- les identifiants source du catalogue, des collections, des papiers et du
+  ruban lorsqu’ils existent, ainsi que leurs désignations figées ;
 - le format, le prix de format en centimes, le prix de l’option et le prix
   réellement appliqué ;
 - le choix de l’option et son effet sur les quantités ;
@@ -75,11 +79,17 @@ historique ne dépend jamais de ses données courantes. Elle conserve :
   figés et leur quantité.
 
 La table de composition papier doit être rattachée à la **ligne de collection
-de commande**, et non directement à la commande. Elle contient une quantité
-strictement positive. Cette structure autorise le même papier de bibliothèque
-dans deux collections et préserve sa répartition 2/3. Les stocks additionnent
-ensuite les quantités de ces lignes, multipliées par deux seulement lorsque
-l’option est choisie.
+de commande**, et non directement à la commande. Chaque ligne de collection et
+chaque ligne de ruban conservent aussi leur identifiant source nullable. Elle
+contient une quantité strictement positive. Cette structure autorise le même
+papier de bibliothèque dans deux collections et préserve sa répartition 2/3.
+Les stocks additionnent ensuite les quantités de ces lignes, multipliées par
+deux seulement lorsque l’option est choisie.
+
+Les références source des snapshots sont en `ON DELETE SET NULL` : une
+suppression explicite d’une source n’altère pas le snapshot d’une commande
+réglée. Elle est toutefois refusée avant suppression lorsqu’une commande non
+réglée référence l’identifiant source concerné.
 
 Une commande A/B a exactement deux lignes de collection distinctes du même
 catalogue, de contributions 2 et 3. Une commande C en a une, de contribution
@@ -130,6 +140,8 @@ moment de la bascule ; ils ne se déduisent pas de `main`.
 - `POST /api/catalogues/:id/publication` publie uniquement un catalogue valide.
 - Les mutations de collections, de leurs papiers et des rubans passent toutes
   par la fonction transactionnelle qui recalcule le statut du catalogue.
+- Les opérations qui dépassent une cardinalité maximale répondent `400` et
+  annulent la mutation ; elles ne modifient pas le statut du catalogue.
 - Une suppression explicite de source répond `409` lorsqu’une commande non
   réglée la référence.
 - `POST /api/commandes` reçoit un `catalogue_id`, le format et la composition.
@@ -142,6 +154,9 @@ moment de la bascule ; ils ne se déduisent pas de `main`.
   commande non réglée ; il recalcule le prix depuis le catalogue, sauf si la
   requête porte une correction manuelle explicite. Une commande réglée répond
   `409`.
+- `PATCH /api/commandes/:id/reglement` fait uniquement passer une commande non
+  réglée à l’état réglé. Il ne remplace pas sa composition et ne recalcule ni
+  son prix ni ses snapshots.
 
 Les noms de champs définitifs seront arrêtés avec le schéma SQL afin que les
 routes, le service API Vue et les tests utilisent le même contrat.

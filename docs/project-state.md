@@ -26,11 +26,17 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
 
 ## Informations encore ouvertes
 
-- Les modifications du parcours catalogue et des kits ont été confirmées avec Sam le 16 septembre 2026 : voir [les règles et scénarios d'acceptation](catalogue-metier.md). Leur implémentation reste à réaliser.
+- Les règles métier, le modèle cible et le contrat API proposés pour les
+  catalogues et kits ont été confirmés avec Sam le 16 septembre 2026 : voir
+  [les règles et scénarios d'acceptation](catalogue-metier.md) et la
+  [proposition de modèle](catalogue-model-proposal.md). Leur implémentation
+  reste à réaliser.
+- Les anciens catalogues, collections, commandes, stocks et bilans de
+  production ne seront pas repris. Seules les clientes seront importées dans
+  une base neuve selon la procédure documentée.
 
 Informations encore à confirmer :
 
-- reprise des anciennes commandes et modalités de modification des prix et des catalogues ;
 - règles métier hors de ce périmètre, notamment les points de fidélité ;
 - versions, variables d'environnement, volumes et procédure de sauvegarde utilisés sur le NAS ;
 - contenu et état d'intégrité de la base de production ;
