@@ -81,6 +81,24 @@ export const useCommandesStore = defineStore('commandes', {
       }
     },
 
+    async markCommandeReglee(id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const updatedCommande = await commandesAPI.markReglee(id);
+        const index = this.commandes.findIndex(c => c.id === id);
+        if (index !== -1) {
+          this.commandes[index] = updatedCommande;
+        }
+        return updatedCommande;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
     async deleteCommande(id) {
       this.loading = true;
       this.error = null;

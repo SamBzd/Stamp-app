@@ -1,5 +1,5 @@
 <template>
-  <Layout>
+  <Layout @new-order="openKitForm">
     <div class="commandes-view">
       <!-- Page Header -->
       <header class="page-header">
@@ -28,6 +28,8 @@
           </Button>
         </div>
       </header>
+
+      <p v-if="operationError" class="form-error-global" role="alert">{{ operationError }}</p>
 
       <!-- States -->
       <div v-if="commandesStore.loading" class="loading-state">
@@ -64,6 +66,10 @@
           class="commande-card"
           :style="{ animationDelay: `${index * 0.04}s` }"
           @click="viewCommande(commande)"
+          @keydown.enter="viewCommande(commande)"
+          @keydown.space.prevent="viewCommande(commande)"
+          role="button"
+          tabindex="0"
         >
           <!-- Badge type -->
           <span :class="['type-badge', commande.type === 'kit' ? 'type-badge-kit' : 'type-badge-hors-kit']">
@@ -75,7 +81,7 @@
             <div class="client-avatar-sm">
               {{ getClientInitials(commande) }}
             </div>
-            <span class="client-name">{{ commande.client_prenom }} {{ commande.client_nom }}</span>
+            <span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span>
           </div>
 
           <!-- Infos principales -->
@@ -84,9 +90,7 @@
               Format {{ commande.format_type }}
             </span>
             <span class="commande-montant">
-              {{ commande.type === 'kit'
-                ? (commande.prix_total !== undefined ? `${commande.prix_total}€` : '—')
-                : (commande.montant !== undefined ? `${commande.montant}€` : '—') }}
+              {{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}
             </span>
           </div>
 
@@ -109,10 +113,15 @@
       <!-- SlidePanel détail commande -->
       <SlidePanel
         :is-open="isViewPanelOpen"
-        title=""
+        :title="selectedCommande ? `Commande #${selectedCommande.id}` : 'Détail de la commande'"
         @close="closeViewPanel"
         max-width="540px"
       >
+        <div v-if="detailError" class="form-error-global" role="alert"><p>{{ detailError }}</p><Button v-if="detailCommandeId" variant="secondary" @click="viewCommande({ id: detailCommandeId })">Recharger le détail</Button></div>
+        <div v-else-if="loadingDetail" class="loading-state">
+          <div class="loading-spinner"></div>
+          <span class="loading-state-text">Chargement du détail…</span>
+        </div>
         <div v-if="selectedCommande" class="commande-detail">
           <!-- Header détail -->
           <div class="detail-header">
@@ -155,6 +164,21 @@
                 <span class="detail-label">Paiement</span>
                 <span>{{ selectedCommande.methode_paiement }}</span>
               </div>
+              <div class="detail-row">
+                <span class="detail-label">Catalogue</span>
+                <span>{{ selectedCommande.catalogue_titre }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Prix appliqué</span>
+                <span class="detail-price">{{ formatMoney(selectedCommande.prix_applique_cents) }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Origine du prix</span>
+                <span>{{ selectedCommande.prix_origine === 'manuelle' ? 'Correction manuelle' : 'Automatique' }}</span>
+              </div>
+              <div class="detail-row"><span class="detail-label">Tarif historique du format</span><span>{{ formatMoney(selectedCommande.prix_format_cents) }}</span></div>
+              <div class="detail-row"><span class="detail-label">Option historique</span><span>{{ formatMoney(selectedCommande.prix_option_cents) }}</span></div>
+              <div v-if="selectedCommande.date_commande" class="detail-row"><span class="detail-label">Date commande</span><span>{{ formatDateLong(selectedCommande.date_commande) }}</span></div>
               <div v-if="selectedCommande.papier_supplementaire" class="detail-row">
                 <span class="detail-label">Papier suppl.</span>
                 <span class="badge badge-neutral">Oui</span>
@@ -162,42 +186,54 @@
               <div v-if="selectedCommande.produit_promo_texte" class="detail-row">
                 <span class="detail-label">Promo</span>
                 <span>{{ selectedCommande.produit_promo_texte }}
-                  <span v-if="selectedCommande.produit_promo_prix"> — {{ selectedCommande.produit_promo_prix }}€</span>
+                  <span v-if="selectedCommande.produit_promo_prix_cents !== null"> — {{ formatMoney(selectedCommande.produit_promo_prix_cents) }}</span>
                 </span>
               </div>
               <div v-if="selectedCommande.autres_texte" class="detail-row">
                 <span class="detail-label">Autres</span>
                 <span>{{ selectedCommande.autres_texte }}
-                  <span v-if="selectedCommande.autres_prix"> — {{ selectedCommande.autres_prix }}€</span>
+                  <span v-if="selectedCommande.autres_prix_cents !== null"> — {{ formatMoney(selectedCommande.autres_prix_cents) }}</span>
                 </span>
               </div>
             </div>
 
-            <!-- Collections -->
-            <div v-if="selectedCommande.commande_collections?.length" class="detail-collections">
+            <div v-if="selectedCommande.ruban" class="detail-row">
+              <span class="detail-label">Ruban</span>
+              <span>{{ selectedCommande.ruban.ruban_nom }} ×{{ selectedCommande.ruban.quantite }}</span>
+            </div>
+            <div v-if="selectedCommande.papier_spe_nom" class="detail-row">
+              <span class="detail-label">Papier spécial</span>
+              <span>{{ selectedCommande.papier_spe_nom }} ×{{ selectedCommande.papier_spe_quantite }}</span>
+            </div>
+            <div v-if="selectedCommande.embellissement_nom" class="detail-row">
+              <span class="detail-label">Embellissement</span>
+              <span>{{ selectedCommande.embellissement_nom }} ×{{ selectedCommande.embellissement_quantite }}</span>
+            </div>
+
+            <!-- Collections et papiers : exclusivement les snapshots de la commande -->
+            <div v-if="kitComposition.length" class="detail-collections">
               <span class="detail-label">Collections</span>
               <div class="collections-chips">
                 <span
-                  v-for="cc in selectedCommande.commande_collections"
+                  v-for="cc in kitComposition"
                   :key="cc.id"
                   class="collection-chip"
                 >
                   {{ cc.collection_nom }}
-                  <span class="chip-count">×{{ cc.nb_feuilles }}</span>
+                  <span class="chip-count">{{ cc.nb_feuilles }} de base → {{ cc.nb_feuilles * (selectedCommande.papier_supplementaire ? 2 : 1) }} à préparer</span>
                 </span>
               </div>
             </div>
 
-            <!-- Papiers sélectionnés -->
-            <div v-if="selectedCommande.papiers_selectionnes?.length" class="detail-papiers">
-              <span class="detail-label">Papiers</span>
+            <div v-for="cc in kitComposition" :key="`papers-${cc.id}`" class="detail-papiers">
+              <span class="detail-label">Papiers — {{ cc.collection_nom }}</span>
               <div class="papiers-list">
                 <span
-                  v-for="p in selectedCommande.papiers_selectionnes"
+                  v-for="p in cc.papiers"
                   :key="p.id"
                   class="papier-chip"
                 >
-                  {{ p.nom }}
+                  {{ p.nom }} : {{ p.quantite_base }} de base → {{ p.quantite_finale }} à préparer
                 </span>
               </div>
             </div>
@@ -209,7 +245,7 @@
             <div class="detail-rows">
               <div class="detail-row">
                 <span class="detail-label">Montant</span>
-                <span class="detail-price">{{ selectedCommande.montant }}€</span>
+                <span class="detail-price">{{ formatEuro(selectedCommande.montant) }}</span>
               </div>
               <div v-if="selectedCommande.methode_paiement" class="detail-row">
                 <span class="detail-label">Paiement</span>
@@ -222,7 +258,7 @@
               <div v-if="selectedCommande.cadeau_texte" class="detail-row">
                 <span class="detail-label">Cadeau</span>
                 <span>{{ selectedCommande.cadeau_texte }}
-                  <span v-if="selectedCommande.cadeau_valeur"> — {{ selectedCommande.cadeau_valeur }}€</span>
+                  <span v-if="selectedCommande.cadeau_valeur !== null"> — {{ formatEuro(selectedCommande.cadeau_valeur) }}</span>
                 </span>
               </div>
             </div>
@@ -235,7 +271,19 @@
         </div>
 
         <template #footer>
-          <Button variant="danger" @click="confirmDeleteFromView">Supprimer</Button>
+          <p v-if="selectedCommande?.reglee" class="detail-label">Commande réglée : prix et composition figés.</p>
+          <Button
+            v-if="selectedCommande && !selectedCommande.reglee"
+            variant="danger"
+            :disabled="markingReglee"
+            @click="confirmDeleteFromView"
+          >Supprimer</Button>
+          <Button
+            v-if="selectedCommande && !selectedCommande.reglee"
+            variant="secondary"
+            :disabled="markingReglee"
+            @click="editSelectedCommande"
+          >Modifier</Button>
           <Button
             v-if="selectedCommande && !selectedCommande.reglee"
             @click="marquerReglee"
@@ -249,6 +297,7 @@
       <!-- Modal Kit -->
       <CommandeKitForm
         :is-open="isKitFormOpen"
+        :commande="editingCommande"
         @close="isKitFormOpen = false"
         @saved="onCommandeSaved"
       />
@@ -256,6 +305,7 @@
       <!-- Modal Hors Kit -->
       <CommandeHorsKitForm
         :is-open="isHorsKitFormOpen"
+        :commande="editingCommande"
         @close="isHorsKitFormOpen = false"
         @saved="onCommandeSaved"
       />
@@ -267,6 +317,7 @@
         :message="`Supprimer la commande #${commandeToDelete?.id} ? Cette action est irréversible.`"
         confirm-text="Supprimer"
         variant="danger"
+        :loading="deletingCommande"
         @confirm="deleteCommande"
         @cancel="isDeleteDialogOpen = false"
       />
@@ -275,7 +326,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
 import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
@@ -283,9 +335,15 @@ import ConfirmDialog from '../components/ConfirmDialog.vue';
 import CommandeKitForm from '../components/CommandeKitForm.vue';
 import CommandeHorsKitForm from '../components/CommandeHorsKitForm.vue';
 import { useCommandesStore } from '../stores/commandes';
-import { commandesAPI } from '../services/api';
+import { useStocksStore } from '../stores/stocks';
+import { useClientsStore } from '../stores/clients';
+import { formatMoney, historicalComposition } from '../utils/commande-kit';
 
 const commandesStore = useCommandesStore();
+const stocksStore = useStocksStore();
+const clientsStore = useClientsStore();
+const route = useRoute();
+const router = useRouter();
 
 const isKitFormOpen = ref(false);
 const isHorsKitFormOpen = ref(false);
@@ -294,12 +352,47 @@ const isDeleteDialogOpen = ref(false);
 const selectedCommande = ref(null);
 const commandeToDelete = ref(null);
 const markingReglee = ref(false);
+const deletingCommande = ref(false);
+const editingCommande = ref(null);
+const detailError = ref('');
+const loadingDetail = ref(false);
+const operationError = ref('');
+const detailCommandeId = ref(null);
+let detailGeneration = 0;
 
-const openKitForm = () => { isKitFormOpen.value = true; };
-const openHorsKitForm = () => { isHorsKitFormOpen.value = true; };
+const kitComposition = computed(() => selectedCommande.value?.type === 'kit'
+  ? historicalComposition(selectedCommande.value)
+  : []);
 
-const onCommandeSaved = () => {
-  commandesStore.fetchCommandes();
+const openKitForm = () => {
+  editingCommande.value = null;
+  isKitFormOpen.value = true;
+};
+const openHorsKitForm = () => {
+  editingCommande.value = null;
+  isHorsKitFormOpen.value = true;
+};
+
+const onCommandeSaved = async (commande) => {
+  operationError.value = '';
+  if (commande) {
+    ++detailGeneration;
+    detailCommandeId.value = commande.id;
+    selectedCommande.value = commande;
+    isViewPanelOpen.value = true;
+    detailError.value = '';
+    await router.replace({ query: { ...route.query, commande: String(commande.id) } });
+  }
+  editingCommande.value = null;
+  await refreshDependentData();
+};
+
+const refreshDependentData = async () => {
+  // Ces stores peuvent déjà être affichés dans une autre vue : rafraîchir leurs
+  // snapshots évite de laisser stocks, bilan ou fidélité avec des données périmées.
+  const requests = [stocksStore.fetchStocks(), clientsStore.fetchClients()];
+  if (stocksStore.bilan?.mois) requests.push(stocksStore.fetchBilan(stocksStore.bilan.mois));
+  await Promise.allSettled(requests);
 };
 
 const getClientInitials = (commande) => {
@@ -326,48 +419,86 @@ const formatDateLong = (dateStr) => {
   }
 };
 
+const formatEuro = (amount) => amount === undefined || amount === null
+  ? '—'
+  : `${Number(amount).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}\u00a0€`;
+
 const viewCommande = async (commande) => {
-  // Charger le détail complet (avec collections + papiers)
-  try {
-    const detail = await commandesAPI.getById(commande.id);
-    selectedCommande.value = detail;
-  } catch {
-    selectedCommande.value = commande;
-  }
+  const generation = ++detailGeneration;
+  detailCommandeId.value = commande.id;
+  detailError.value = '';
+  loadingDetail.value = true;
+  selectedCommande.value = null;
   isViewPanelOpen.value = true;
+  try {
+    const detail = await commandesStore.fetchCommande(commande.id);
+    if (generation !== detailGeneration || !isViewPanelOpen.value) return;
+    selectedCommande.value = detail;
+    if (route.query.commande !== String(commande.id)) {
+      await router.replace({ query: { ...route.query, commande: String(commande.id) } });
+    }
+  } catch (error) {
+    if (generation === detailGeneration) detailError.value = error.message || 'Impossible de charger le détail complet de cette commande.';
+  } finally {
+    if (generation === detailGeneration) loadingDetail.value = false;
+  }
 };
 
-const closeViewPanel = () => {
+const closeViewPanel = async () => {
+  if (markingReglee.value) return;
+  ++detailGeneration;
+  loadingDetail.value = false;
   isViewPanelOpen.value = false;
   selectedCommande.value = null;
+  detailError.value = '';
+  if (route.query.commande) {
+    const query = { ...route.query };
+    delete query.commande;
+    await router.replace({ query });
+  }
 };
 
 const marquerReglee = async () => {
-  if (!selectedCommande.value) return;
+  if (!selectedCommande.value || selectedCommande.value.reglee || markingReglee.value) return;
   markingReglee.value = true;
   try {
-    const updated = await commandesStore.updateCommande(selectedCommande.value.id, { reglee: 1 });
-    selectedCommande.value = { ...selectedCommande.value, reglee: 1, ...updated };
+    operationError.value = '';
+    const updated = await commandesStore.markCommandeReglee(selectedCommande.value.id);
+    selectedCommande.value = updated;
+    await refreshDependentData();
   } catch (error) {
-    console.error('Erreur lors du marquage réglée:', error);
+    detailError.value = error.message || 'Impossible de marquer cette commande réglée.';
   } finally {
     markingReglee.value = false;
   }
 };
 
 const confirmDeleteFromView = () => {
+  if (!selectedCommande.value || selectedCommande.value.reglee || markingReglee.value) return;
   commandeToDelete.value = selectedCommande.value;
   closeViewPanel();
   isDeleteDialogOpen.value = true;
 };
 
+const editSelectedCommande = async () => {
+  if (!selectedCommande.value || selectedCommande.value.reglee || markingReglee.value) return;
+  editingCommande.value = selectedCommande.value;
+  await closeViewPanel();
+  if (editingCommande.value.type === 'kit') isKitFormOpen.value = true;
+  else isHorsKitFormOpen.value = true;
+};
+
 const deleteCommande = async () => {
-  if (!commandeToDelete.value) return;
+  if (!commandeToDelete.value || commandeToDelete.value.reglee || deletingCommande.value) return;
+  deletingCommande.value = true;
   try {
+    operationError.value = '';
     await commandesStore.deleteCommande(commandeToDelete.value.id);
+    await refreshDependentData();
   } catch (error) {
-    console.error('Erreur lors de la suppression:', error);
+    operationError.value = error.message || 'Impossible de supprimer cette commande.';
   } finally {
+    deletingCommande.value = false;
     isDeleteDialogOpen.value = false;
     commandeToDelete.value = null;
   }
@@ -375,6 +506,10 @@ const deleteCommande = async () => {
 
 onMounted(async () => {
   await commandesStore.fetchCommandes();
+  const id = Number(route.query.commande);
+  if (Number.isInteger(id) && id > 0) {
+    await viewCommande({ id });
+  }
 });
 </script>
 
@@ -386,6 +521,14 @@ onMounted(async () => {
 
 .page-title {
   font-family: var(--font-heading);
+}
+
+.form-error-global {
+  margin: var(--spacing-4) 0;
+  padding: var(--spacing-3);
+  border-radius: var(--border-radius);
+  background: var(--error-light, #fde8e8);
+  color: var(--error, #c0392b);
 }
 
 /* === Header actions === */
@@ -428,6 +571,9 @@ onMounted(async () => {
   box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
+
+.commande-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.collection-chip, .papier-chip { overflow-wrap: anywhere; max-width: 100%; }
 
 .commande-card:hover .arrow-indicator {
   opacity: 1;
