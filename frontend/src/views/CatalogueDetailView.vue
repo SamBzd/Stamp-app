@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
 import Button from '../components/Button.vue';
@@ -176,6 +176,16 @@ async function setArchive() {
 const leave = () => !dirty.value || window.confirm('Des modifications ne sont pas enregistrées. Quitter ce catalogue ?');
 onBeforeRouteLeave(leave);
 onBeforeRouteUpdate(leave);
+function warnBeforeUnload(event) {
+  if (!dirty.value) return;
+  event.preventDefault();
+  event.returnValue = '';
+}
+watch(dirty, isDirty => {
+  if (isDirty) window.addEventListener('beforeunload', warnBeforeUnload);
+  else window.removeEventListener('beforeunload', warnBeforeUnload);
+}, { immediate: true });
+onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload));
 </script>
 
 <style scoped>

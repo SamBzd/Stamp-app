@@ -21,7 +21,7 @@
       <p v-if="searching" role="status">Recherche…</p>
       <p v-if="searchError" class="catalogue-error" role="alert">{{ searchError }}</p>
       <div v-if="selected.length < 5" class="catalogue-search-results">
-        <button v-for="paper in results" :key="paper.id" type="button" :disabled="disabled || selected.some(item => item.id === paper.id)" @click="choose(paper)">{{ paper.nom }}{{ selected.some(item => item.id === paper.id) ? ' — déjà sélectionné' : '' }}</button>
+        <button v-for="paper in results" :key="paper.id" type="button" :disabled="disabled || creating || selected.some(item => item.id === paper.id)" @click="choose(paper)">{{ paper.nom }}{{ selected.some(item => item.id === paper.id) ? ' — déjà sélectionné' : '' }}</button>
         <button v-if="query.trim() && !exactMatch" type="button" :disabled="disabled || searching || creating || Boolean(searchError)" @click="createPaper">{{ creating ? 'Création…' : `Créer « ${query.trim()} » dans la bibliothèque` }}</button>
         <p v-if="!searching && !results.length && !query.trim()" class="catalogue-hint">Recherchez un papier par son nom.</p>
       </div>
@@ -81,14 +81,14 @@ async function rename() {
 }
 function startEdit() { selected.value = [...props.collection.papiers]; editing.value = true; query.value = ''; results.value = []; localError.value = ''; }
 function cancelEdit() { editing.value = false; query.value = ''; version++; clearTimeout(timer); searching.value = false; }
-function choose(paper) {
-  if (props.disabled || selected.value.length >= 5 || selected.value.some(item => item.id === paper.id)) return;
+function choose(paper, { allowWhileBusy = false } = {}) {
+  if ((!allowWhileBusy && props.disabled) || selected.value.length >= 5 || selected.value.some(item => item.id === paper.id)) return;
   selected.value.push(paper); query.value = ''; results.value = [];
 }
 async function createPaper() {
   if (props.disabled || creating.value || searching.value || selected.value.length >= 5 || !query.value.trim()) return;
   creating.value = true; localError.value = '';
-  try { choose(await papierCartonnesAPI.create(query.value.trim())); }
+  try { choose(await papierCartonnesAPI.create(query.value.trim()), { allowWhileBusy: true }); }
   catch (failure) { localError.value = failure.message; }
   finally { creating.value = false; }
 }

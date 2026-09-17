@@ -31,6 +31,7 @@
 
 <script setup>
 import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
+import { lockBodyScroll } from '../composables/useBodyScrollLock';
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -41,7 +42,7 @@ const props = defineProps({
 const emit = defineEmits(['close']);
 const dialog = ref(null);
 let previousFocus;
-let previousOverflow = '';
+let releaseScrollLock;
 
 // Escape key handler
 const onKeydown = (e) => {
@@ -64,12 +65,12 @@ const onKeydown = (e) => {
 watch(() => props.isOpen, async (open) => {
   if (open) {
     previousFocus = document.activeElement;
-    previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    releaseScrollLock = lockBodyScroll();
     await nextTick();
     dialog.value?.querySelector('button')?.focus();
   } else {
-    document.body.style.overflow = previousOverflow;
+    releaseScrollLock?.();
+    releaseScrollLock = undefined;
     previousFocus?.focus();
   }
 });
@@ -80,7 +81,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeydown);
-  if (props.isOpen) document.body.style.overflow = previousOverflow;
+  releaseScrollLock?.();
 });
 </script>
 
