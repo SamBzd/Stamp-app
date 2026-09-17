@@ -1,193 +1,46 @@
-const express = require('express');
-const router = express.Router();
-
-const {
-  getAllCatalogues,
-  getCatalogueById,
-  createCatalogue,
-  updateCatalogue
-} = require('../db/catalogues');
-
-const {
-  addCollection,
-  updateCollection,
-  setPapiersCollection
-} = require('../db/collections');
-
-// GET / — liste tous les catalogues
-router.get('/', (req, res) => {
-  try {
-    const catalogues = getAllCatalogues();
-    res.json(catalogues);
-  } catch (err) {
-    console.error('Erreur lecture catalogues:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// GET /:id — détail avec collections + papiers
-router.get('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const catalogue = getCatalogueById(id);
-    if (!catalogue) {
-      return res.status(404).json({ error: 'Catalogue non trouvé' });
-    }
-
-    res.json(catalogue);
-  } catch (err) {
-    console.error('Erreur lecture catalogue:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// POST / — créer un catalogue
-router.post('/', (req, res) => {
-  try {
-    const { titre } = req.body;
-
-    if (!titre) {
-      return res.status(400).json({ error: 'Le champ titre est obligatoire' });
-    }
-
-    const catalogue = createCatalogue(req.body);
-    res.status(201).json(catalogue);
-  } catch (err) {
-    console.error('Erreur création catalogue:', err);
-
-    if (err.message && err.message.includes('Format de titre invalide')) {
-      return res.status(400).json({ error: err.message });
-    }
-    if (err.message && err.message.includes('UNIQUE constraint')) {
-      return res.status(409).json({ error: 'Un catalogue avec ce titre existe déjà' });
-    }
-
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// PUT /:id — mise à jour partielle d'un catalogue
-router.put('/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const catalogue = updateCatalogue(id, req.body);
-    if (!catalogue) {
-      return res.status(404).json({ error: 'Catalogue non trouvé' });
-    }
-
-    res.json(catalogue);
-  } catch (err) {
-    console.error('Erreur mise à jour catalogue:', err);
-
-    if (err.message && err.message.includes('Format de titre invalide')) {
-      return res.status(400).json({ error: err.message });
-    }
-    if (err.message && err.message.includes('UNIQUE constraint')) {
-      return res.status(409).json({ error: 'Un catalogue avec ce titre existe déjà' });
-    }
-
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// DELETE /:id — conservation : pas de suppression physique.
-router.delete('/:id', (req, res) => {
-  res.set('Allow', 'GET, PUT').status(405).json({ error: 'Les catalogues doivent être archivés ; leur suppression est interdite.' });
-});
-
-// POST /:id/collections — ajouter une collection à un catalogue (max 4)
-router.post('/:id/collections', (req, res) => {
-  try {
-    const catalogueId = parseInt(req.params.id);
-    if (isNaN(catalogueId)) {
-      return res.status(400).json({ error: 'ID catalogue invalide' });
-    }
-
-    const { nom } = req.body;
-    if (!nom) {
-      return res.status(400).json({ error: 'Le champ nom est obligatoire' });
-    }
-
-    const catalogue = getCatalogueById(catalogueId);
-    if (!catalogue) {
-      return res.status(404).json({ error: 'Catalogue non trouvé' });
-    }
-
-    const collection = addCollection(catalogueId, nom);
-    res.status(201).json(collection);
-  } catch (err) {
-    console.error('Erreur ajout collection:', err);
-
-    if (err.message && err.message.includes('plus de 4 collections')) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// PUT /collections/:id — modifier le nom d'une collection
-router.put('/collections/:id', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const { nom } = req.body;
-    if (!nom) {
-      return res.status(400).json({ error: 'Le champ nom est obligatoire' });
-    }
-
-    const collection = updateCollection(id, nom);
-    if (!collection) {
-      return res.status(404).json({ error: 'Collection non trouvée' });
-    }
-
-    res.json(collection);
-  } catch (err) {
-    console.error('Erreur mise à jour collection:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// DELETE /collections/:id — sources conservées.
-router.delete('/collections/:id', (req, res) => {
-  res.set('Allow', 'PUT').status(405).json({ error: 'La suppression des collections est interdite.' });
-});
-
-// PUT /collections/:id/papiers — remplacer toute la liste des papiers (max 5)
-router.put('/collections/:id/papiers', (req, res) => {
-  try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'ID invalide' });
-    }
-
-    const { papier_ids } = req.body;
-    if (!Array.isArray(papier_ids)) {
-      return res.status(400).json({ error: 'papier_ids doit être un tableau' });
-    }
-
-    setPapiersCollection(id, papier_ids);
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Erreur mise à jour papiers collection:', err);
-
-    if (err.message && err.message.includes('plus de 5 papiers')) {
-      return res.status(400).json({ error: err.message });
-    }
-
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
+const router = require('express').Router();
+const cat = require('../db/catalogues');
+const col = require('../db/collections');
+const rubans = require('../db/rubans');
+const v = require('../db/source-validation');
+const { route, id, flag, readOnlyDelete } = require('./helpers/sources');
+router.get('/', route((req, res) => res.json(cat.getAllCatalogues({
+  includeArchives: flag(req.query, 'include_archives'), utilisables: flag(req.query, 'utilisables')
+}))));
+router.get('/:id', route((req, res) => {
+  const catalogue = cat.getCatalogueById(id(req));
+  if (!catalogue) v.invalid('Catalogue non trouvé', 404);
+  res.json(catalogue);
+}));
+router.post('/', route((req, res) => res.status(201).json(cat.createCatalogue(req.body))));
+router.put('/:id', route((req, res) => res.json(cat.updateCatalogue(id(req), req.body))));
+router.post('/:id/publication', route((req, res) => {
+  v.fields(req.body ?? {}, []);
+  res.json(cat.publishCatalogue(id(req)));
+}));
+router.patch('/:id/archivage', route((req, res) => res.json(cat.archiveCatalogue(id(req), req.body))));
+router.post('/:id/collections', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.status(201).json(col.addCollection(id(req), req.body.nom));
+}));
+router.put('/collections/:id', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.json(col.updateCollection(id(req), req.body.nom));
+}));
+router.put('/collections/:id/papiers', route((req, res) => {
+  v.fields(req.body, ['papier_ids']);
+  const collection = col.setPapiersCollection(id(req), req.body.papier_ids);
+  res.json({ success: true, catalogue: cat.getCatalogueById(collection.catalogue_id) });
+}));
+router.post('/:id/rubans', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.status(201).json(rubans.addRuban(id(req), req.body.nom));
+}));
+router.put('/rubans/:id', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.json(rubans.updateRuban(id(req), req.body.nom));
+}));
+readOnlyDelete(router, '/:id', 'GET, PUT');
+readOnlyDelete(router, '/collections/:id', 'PUT');
+readOnlyDelete(router, '/rubans/:id', 'PUT');
 module.exports = router;

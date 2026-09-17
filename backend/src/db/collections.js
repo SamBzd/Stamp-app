@@ -1,67 +1,44 @@
 const db = require('./connection');
-
-// Ajoute une collection à un catalogue (max 4, ordre auto = MAX(ordre)+1)
-function addCollection(catalogueId, nom) {
-  const count = db.prepare(
-    'SELECT COUNT(*) AS cnt FROM collections WHERE catalogue_id = ?'
-  ).get(catalogueId);
-
-  if (count.cnt >= 4) {
-    throw new Error('Un catalogue ne peut pas avoir plus de 4 collections');
-  }
-
-  const maxOrdre = db.prepare(
-    'SELECT COALESCE(MAX(ordre), 0) AS max_ordre FROM collections WHERE catalogue_id = ?'
-  ).get(catalogueId);
-
-  const ordre = maxOrdre.max_ordre + 1;
-
-  const stmt = db.prepare(`
-    INSERT INTO collections (catalogue_id, nom, ordre)
-    VALUES (?, ?, ?)
-  `);
-
-  const result = stmt.run(catalogueId, nom, ordre);
-  return db.prepare('SELECT * FROM collections WHERE id = ?').get(result.lastInsertRowid);
-}
-
-// Modifie le nom d'une collection
-function updateCollection(id, nom) {
-  const stmt = db.prepare('UPDATE collections SET nom = ? WHERE id = ?');
-  const result = stmt.run(nom, id);
-  if (result.changes === 0) return null;
+const v = require('./source-validation');
+const { mutateCatalogue } = require('./catalogues');
+function getCollectionById(id) {
   return db.prepare('SELECT * FROM collections WHERE id = ?').get(id);
 }
-
-// Supprime une collection
-function deleteCollection(id) {
-  const stmt = db.prepare('DELETE FROM collections WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+function getAllCollections() {
+  return db.prepare('SELECT * FROM collections ORDER BY nom, id').all();
 }
-
-// Remplace toute la liste des papiers d'une collection
-// papierIds = tableau d'ids dans l'ordre voulu (max 5)
-// Opération atomique : DELETE puis INSERT dans une transaction
-function setPapiersCollection(collectionId, papierIds) {
-  if (papierIds.length > 5) {
-    throw new Error('Une collection ne peut pas avoir plus de 5 papiers');
-  }
-
-  const transaction = db.transaction(() => {
-    db.prepare('DELETE FROM collection_papiers WHERE collection_id = ?').run(collectionId);
-
-    const insertStmt = db.prepare(`
-      INSERT INTO collection_papiers (collection_id, papier_cartonne_id, ordre)
-      VALUES (?, ?, ?)
-    `);
-
-    papierIds.forEach((papierId, index) => {
-      insertStmt.run(collectionId, papierId, index + 1);
-    });
+function requireCollection(id) {
+  const col = getCollectionById(id);
+  if (!col) v.invalid('Collection non trouvée', 404);
+  return col;
+}
+function addCollection(catalogueId, nom) {
+  nom = v.name(nom);
+  const id = mutateCatalogue(catalogueId, () => {
+    const count = db.prepare('SELECT COUNT(*) AS n FROM collections WHERE catalogue_id = ?').get(catalogueId).n;
+    if (count >= 4) v.invalid('Un catalogue ne peut pas avoir plus de 4 collections');
+    return db.prepare('INSERT INTO collections(catalogue_id,nom,ordre) VALUES (?,?,?)').run(catalogueId, nom, count + 1).lastInsertRowid;
   });
-
-  transaction();
+  return getCollectionById(id);
 }
-
-module.exports = { addCollection, updateCollection, deleteCollection, setPapiersCollection };
+function updateCollection(id, nom) {
+  const col = requireCollection(id);
+  nom = v.name(nom);
+  mutateCatalogue(col.catalogue_id, () => db.prepare('UPDATE collections SET nom = ? WHERE id = ?').run(nom, id));
+  return getCollectionById(id);
+}
+function setPapiersCollection(id, papierIds) {
+  const col = requireCollection(id);
+  if (!Array.isArray(papierIds) || papierIds.length > 5) v.invalid('papier_ids doit contenir au plus 5 papiers');
+  papierIds.forEach(v.id);
+  if (new Set(papierIds).size !== papierIds.length) v.invalid('Les papiers doivent être différents');
+  mutateCatalogue(col.catalogue_id, () => {
+    for (const papierId of papierIds) {
+      if (!db.prepare('SELECT id FROM papiers_cartonnes WHERE id = ?').get(papierId)) v.invalid('Papier non trouvé', 404);
+    }
+    db.prepare('DELETE FROM collection_papiers WHERE collection_id = ?').run(id);
+    papierIds.forEach((papierId, index) => db.prepare('INSERT INTO collection_papiers(collection_id,papier_cartonne_id,ordre) VALUES (?,?,?)').run(id, papierId, index + 1));
+  });
+  return getCollectionById(id);
+}
+module.exports = { getCollectionById, getAllCollections, addCollection, updateCollection, setPapiersCollection };
