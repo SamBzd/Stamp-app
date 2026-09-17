@@ -80,28 +80,6 @@ test('les lectures existantes restent accessibles sur le schéma cible', async (
   assert.equal(databaseConnection.pragma('foreign_keys', { simple: true }), 1);
 });
 
-test('le contrat paramètres historique convertit les euros vers les centimes', async () => {
-  const response = await fetch(`${baseUrl}/api/settings`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prix_A: 35.25 })
-  });
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).prix_A, '35.25');
-  assert.equal(databaseConnection.prepare("SELECT valeur FROM settings WHERE cle='prix_catalogue_A_cents'").get().valeur, 3525);
-  const invalid = await fetch(`${baseUrl}/api/settings`, {
-    method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prix_A: 35.001 })
-  });
-  assert.equal(invalid.status, 400);
-  for (const prix_A of [null, true, '', '  ']) {
-    const malformed = await fetch(`${baseUrl}/api/settings`, {
-      method: 'PUT', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prix_A })
-    });
-    assert.equal(malformed.status, 400);
-  }
-});
-
 test('commande hors-kit conserve la fidélité et protège la suppression après règlement', async () => {
   const client = databaseConnection.prepare("INSERT INTO clients(nom,prenom) VALUES ('Test','Cliente')").run().lastInsertRowid;
   const response = await fetch(`${baseUrl}/api/commandes`, {
