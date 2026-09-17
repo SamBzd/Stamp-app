@@ -4,7 +4,14 @@
 
 ## État de départ
 
-Le projet possède des tests d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Le workflow GitHub Actions `.github/workflows/ci.yml` exécute ces contrôles à chaque push sur `main` et pour chaque pull request vers `main`. Il ne possède pas encore de linter. Les tests `backend/test/catalogue-api.test.js` couvrent les tarifs en centimes, publication/démotion, maxima atomiques, archivage/restauration et invariance des snapshots, stocks et bilan lors des mutations source. La composition des nouveaux kits reste à couvrir en #7.
+Le projet possède des tests d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Le workflow GitHub Actions `.github/workflows/ci.yml` exécute ces contrôles à chaque push sur `main` et pour chaque pull request vers `main`. Il ne possède pas encore de linter. Les tests `backend/test/catalogue-api.test.js` couvrent les tarifs en centimes, publication/démotion, maxima atomiques, archivage/restauration et invariance des snapshots, stocks et bilan lors des mutations source.
+
+`backend/test/commandes-kit-api.test.js` couvre les compositions A/B/C,
+répétitions et appartenance des papiers, rubans 0/1/2, option et suppléments,
+prix manuel, refus atomiques et rollback après échec SQL simulé, remplacement
+complet, conservation historique, règlement dédié, immutabilité, suppression,
+stocks et bilan limité aux commandes réglées. Ces tests utilisent une base
+temporaire et ne touchent aucune base locale du projet ni le NAS.
 
 ## Contrôles disponibles
 
@@ -21,9 +28,8 @@ les dépendances racine, backend et frontend avec `npm ci`, puis exécute
 
 ## Couverture à ajouter sur `main`
 
-1. Cas de commande kit A/B/C valides et invalides, y compris les quantités et l'appartenance des papiers aux collections.
-2. Tests des points de fidélité lors de création, modification et suppression.
-3. Vérification du calcul de stock et du bilan mensuel.
-4. Exécution automatisée des tests et du build dans une CI.
+1. Recette des parcours Vue catalogue/commande après adaptation des interfaces.
+2. Tests des points de fidélité lors de modification et suppression, après validation de ces règles métier.
+3. Recette de livraison Docker et contrôles sur copie des données du NAS.
 
 La stratégie de validation de `main` sera consolidée après confirmation des règles métier et inspection de la production. Toute anomalie de données devra être traitée par une migration ou une procédure explicitement réversible, jamais par une édition manuelle silencieuse.

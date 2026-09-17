@@ -3,7 +3,7 @@ const router = express.Router();
 
 const { getStocks, getBilanMensuel } = require('../db/stocks');
 
-// GET / — retourne l'objet structuré complet (papiers, papier_spe, embellissement, collections)
+// GET / — quantités à préparer, rubans compris, depuis les snapshots
 router.get('/', (req, res) => {
     try {
         const stocks = getStocks();

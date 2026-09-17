@@ -1,4 +1,6 @@
 const db = require('./connection');
+const v = require('./source-validation');
+const kit = require('./commande-kit');
 
 // READ - Toutes les commandes avec infos client
 function getAllCommandes() {
@@ -36,6 +38,7 @@ function getCommandeById(id) {
             SELECT cc.id, cc.collection_id, cc.nb_feuilles, cc.collection_nom
             FROM commande_collections cc
             WHERE cc.commande_id = ?
+            ORDER BY cc.id
         `).all(id);
 
         commande.papiers_selectionnes = db.prepare(`
@@ -43,6 +46,7 @@ function getCommandeById(id) {
             FROM commande_papiers_selectionnes cps
             JOIN commande_collections cc ON cc.id = cps.commande_collection_id
             WHERE cc.commande_id = ?
+            ORDER BY cps.id
         `).all(id);
         commande.ruban = db.prepare(`
             SELECT ruban_id, ruban_nom, quantite FROM commande_rubans WHERE commande_id = ?
@@ -56,109 +60,102 @@ function getCommandeById(id) {
     return commande;
 }
 
-// CREATE - Créer une commande (transaction complète)
-const createCommande = db.transaction(function(data) {
-    const { client_id, type } = data;
+const horsKitFields = ['montant', 'methode_paiement', 'date_commande', 'cadeau_texte', 'cadeau_valeur'];
 
-    if (!client_id) throw new Error('client_id est obligatoire');
-    if (!type) throw new Error('type est obligatoire');
-    if (!['kit', 'hors_kit'].includes(type)) throw new Error("type doit être 'kit' ou 'hors_kit'");
-
-    const client = db.prepare('SELECT id, points_fidelite, archive FROM clients WHERE id = ?').get(client_id);
-    if (!client) throw new Error('Client non trouvé');
-    if (client.archive) require('./source-validation').invalid('Une cliente archivée ne peut pas recevoir de nouvelle commande', 409);
-
-    let commandeId;
-
-    if (type === 'kit') {
-        // Le parcours de création cible est livré dans le lot commandes kits.
-        // Refuser le contrat v2 évite des commandes sans snapshots historiques.
-        throw new Error('La creation de kits attend le nouveau contrat de composition');
-    } else {
-        // type === 'hors_kit'
-        const {
-            montant,
-            methode_paiement = null,
-            date_commande = null,
-            cadeau_texte = null,
-            cadeau_valeur = null,
-            reglee = 0
-        } = data;
-
-        if (montant === undefined || montant === null) {
-            throw new Error('montant est obligatoire pour une commande hors_kit');
-        }
-
-        const result = db.prepare(`
-            INSERT INTO commandes
-              (client_id, type, montant, date_commande,
-               cadeau_texte, cadeau_valeur,
-               methode_paiement, reglee)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `).run(
-            client_id, type, montant, date_commande,
-            cadeau_texte, cadeau_valeur,
-            methode_paiement, reglee
-        );
-        commandeId = result.lastInsertRowid;
-
-        // +1 point fidélité si montant > 70
-        if (montant > 70) {
-            db.prepare(`
-                UPDATE clients SET points_fidelite = points_fidelite + 1 WHERE id = ?
-            `).run(client_id);
-        }
+function horsKitScalars(data, existing = {}) {
+    const merged = { methode_paiement: null, date_commande: null, cadeau_texte: null, cadeau_valeur: null, ...existing, ...data };
+    if (typeof merged.montant !== 'number' || !Number.isFinite(merged.montant)) v.invalid('montant doit être un nombre fini pour une commande hors_kit');
+    if (merged.cadeau_valeur !== null && (typeof merged.cadeau_valeur !== 'number' || !Number.isFinite(merged.cadeau_valeur))) {
+        v.invalid('cadeau_valeur doit être un nombre fini ou null');
     }
+    return {
+        montant: merged.montant, methode_paiement: kit.payment(merged.methode_paiement),
+        date_commande: kit.optionalText(merged.date_commande, 'date_commande'),
+        cadeau_texte: kit.optionalText(merged.cadeau_texte, 'cadeau_texte'), cadeau_valeur: merged.cadeau_valeur
+    };
+}
 
-    // Mettre à jour derniere_commande
-    db.prepare(`
-        UPDATE clients SET derniere_commande = datetime('now') WHERE id = ?
-    `).run(client_id);
+function writeComposition(id, composition, ruban) {
+    const collectionStmt = db.prepare('INSERT INTO commande_collections(commande_id,collection_id,collection_nom,nb_feuilles) VALUES (?,?,?,?)');
+    const paperStmt = db.prepare('INSERT INTO commande_papiers_selectionnes(commande_collection_id,papier_cartonne_id,papier_nom,quantite_base) VALUES (?,?,?,?)');
+    for (const line of composition) {
+        const lineId = collectionStmt.run(id, line.collection_id, line.collection_nom, line.nb_feuilles).lastInsertRowid;
+        for (const paper of line.papiers) paperStmt.run(lineId, paper.papier_cartonne_id, paper.papier_nom, paper.quantite_base);
+    }
+    if (ruban) db.prepare('INSERT INTO commande_rubans(commande_id,ruban_id,ruban_nom) VALUES (?,?,?)').run(id, ruban.ruban_id, ruban.ruban_nom);
+}
 
-    return getCommandeById(commandeId);
+function insertOrder(scalars) {
+    // Les clés proviennent exclusivement des objets construits côté serveur.
+    const keys = Object.keys(scalars);
+    return db.prepare(`INSERT INTO commandes(${keys.join(',')}) VALUES (${keys.map(() => '?').join(',')})`)
+        .run(...Object.values(scalars)).lastInsertRowid;
+}
+
+// CREATE - Sources, prix, snapshots et effets sur la cliente sont atomiques.
+const createCommande = db.transaction(data => {
+    v.object(data);
+    if (!['kit', 'hors_kit'].includes(data.type)) v.invalid("type doit être 'kit' ou 'hors_kit'");
+    v.fields(data, ['client_id', 'type', ...(data.type === 'kit' ? kit.fields : [...horsKitFields, 'reglee'])]);
+    const clientId = v.id(data.client_id);
+    const client = db.prepare('SELECT archive FROM clients WHERE id=?').get(clientId);
+    if (!client) v.invalid('Cliente non trouvée', 404);
+    if (client.archive) v.invalid('Une cliente archivée ne peut pas recevoir de nouvelle commande', 409);
+
+    let id;
+    if (data.type === 'kit') {
+        const { scalars, composition, ruban } = kit.buildKit(data);
+        id = insertOrder({ client_id: clientId, type: 'kit', ...scalars });
+        writeComposition(id, composition, ruban);
+    } else {
+        const scalars = horsKitScalars(data);
+        const reglee = kit.flag(data.reglee === undefined ? 0 : data.reglee, 'reglee');
+        id = insertOrder({ client_id: clientId, type: 'hors_kit', ...scalars, reglee });
+        // Règle de fidélité hors-kit historique, conservée sans extension.
+        if (scalars.montant > 70) db.prepare('UPDATE clients SET points_fidelite=points_fidelite+1 WHERE id=?').run(clientId);
+    }
+    db.prepare("UPDATE clients SET derniere_commande=datetime('now') WHERE id=?").run(clientId);
+    return getCommandeById(id);
 });
 
-// UPDATE - Mise à jour partielle des champs scalaires
-function updateCommande(id, data) {
-    const existing = db.prepare('SELECT * FROM commandes WHERE id = ?').get(id);
+// UPDATE - Remplacement complet pour un kit ; champs partiels pour hors-kit.
+const updateCommande = db.transaction((id, data) => {
+    const existing = db.prepare('SELECT * FROM commandes WHERE id=?').get(id);
     if (!existing) return null;
-
-    // Champs autorisés (scalaires uniquement, pas les collections/papiers)
-    const allowed = [
-        'format_type', 'papier_supplementaire',
-        'produit_promo_texte', 'produit_promo_prix_cents',
-        'autres_texte', 'autres_prix_cents',
-        'montant', 'date_commande', 'cadeau_texte', 'cadeau_valeur',
-        'methode_paiement', 'reglee'
-    ];
-
-    const updates = [];
-    const values = [];
-
-    for (const field of allowed) {
-        if (data[field] !== undefined) {
-            updates.push(`${field} = ?`);
-            values.push(data[field]);
-        }
+    if (existing.reglee) v.invalid('Une commande réglée est immuable', 409);
+    v.fields(data, existing.type === 'kit' ? kit.fields : horsKitFields);
+    let scalars;
+    if (existing.type === 'kit') {
+        const replacement = kit.buildKit(data, existing);
+        scalars = replacement.scalars;
+        db.prepare('DELETE FROM commande_collections WHERE commande_id=?').run(id);
+        db.prepare('DELETE FROM commande_rubans WHERE commande_id=?').run(id);
+        writeComposition(id, replacement.composition, replacement.ruban);
+    } else {
+        if (Object.keys(data).length === 0) return getCommandeById(id);
+        scalars = horsKitScalars(data, existing);
     }
-
-    if (updates.length === 0) return getCommandeById(id);
-
-    updates.push("updated_at = datetime('now')");
-    values.push(id);
-
-    db.prepare(`
-        UPDATE commandes SET ${updates.join(', ')} WHERE id = ?
-    `).run(...values);
-
+    db.prepare(`UPDATE commandes SET ${Object.keys(scalars).map(key => `${key}=?`).join(',')},updated_at=datetime('now') WHERE id=?`)
+        .run(...Object.values(scalars), id);
     return getCommandeById(id);
-}
+});
 
-// DELETE - Supprimer une commande
-function deleteCommande(id) {
-    const result = db.prepare('DELETE FROM commandes WHERE id = ?').run(id);
-    return result.changes > 0;
-}
+// Le règlement ne relit aucune source et ne reconstruit aucun snapshot.
+const regleCommande = db.transaction((id, data = {}) => {
+    const existing = db.prepare('SELECT * FROM commandes WHERE id=?').get(id);
+    if (!existing) return null;
+    if (existing.reglee) v.invalid('Une commande réglée est immuable', 409);
+    v.fields(data, []);
+    db.prepare("UPDATE commandes SET reglee=1,updated_at=datetime('now') WHERE id=?").run(id);
+    return getCommandeById(id);
+});
+
+const deleteCommande = db.transaction(id => {
+    const existing = db.prepare('SELECT reglee FROM commandes WHERE id=?').get(id);
+    if (!existing) return false;
+    if (existing.reglee) v.invalid('Une commande réglée ne peut pas être supprimée', 409);
+    return db.prepare('DELETE FROM commandes WHERE id=?').run(id).changes > 0;
+});
 
 module.exports = {
     getAllCommandes,
@@ -166,5 +163,6 @@ module.exports = {
     getCommandesByClientId,
     createCommande,
     updateCommande,
+    regleCommande,
     deleteCommande
 };

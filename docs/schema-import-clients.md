@@ -34,9 +34,10 @@ sur copie contrôlée de production appartient à l'issue #13.
   et toute mutation de ses lignes de composition.
 
 Les règles de publication sont validées par [l’API catalogues](catalogue-api.md)
-du lot #6. La composition complète A/B/C et le choix du ruban seront validés
-par le lot commandes #7. Ces règles ne se déduisent pas des seuls CHECK SQL. Une commande doit être construite non réglée avec sa composition avant de
-passer à l'état réglé.
+du lot #6. La composition complète A/B/C et le choix du ruban sont validés
+par [le lot commandes #7](commandes-kit-api.md). Ces règles ne se déduisent pas
+des seuls CHECK SQL. Une commande kit doit être construite non réglée avec sa
+composition avant de passer à l'état réglé.
 
 ## Transition applicative
 
@@ -50,20 +51,19 @@ collection, et le bilan lit le montant appliqué mémorisé.
 Le détail d'un kit expose aussi `ruban` (objet contenant `ruban_id`, `ruban_nom`
 et `quantite`, ou NULL), lu exclusivement depuis son snapshot.
 
-La création de kits par l'ancien contrat v2 est explicitement refusée (`409`) :
-elle ne peut pas produire les snapshots requis. Le futur parcours kit sera
-livré dans son lot. Ce lot est un socle de développement, pas une version
-prête à déployer. Les champs et la règle de fidélité hors-kit sont conservés.
+La création de kits utilise désormais le contrat #7 pour produire les snapshots
+requis ; un ancien corps v2 incomplet est refusé (`400`). Ce lot est un socle de
+développement, pas une version prête à déployer. Les champs et la règle de
+fidélité hors-kit sont conservés.
 Les anciens endpoints DELETE des clientes, catalogues et collections (y compris
 la route historique `/api/collections/:id`) répondent `405` et ne suppriment
 aucune ligne, même sans référence. Les endpoints d’archivage/restauration
 clientes et catalogues sont disponibles en #6 : corps `{ archive: boolean }`,
 conservation des données et restauration sans publication automatique.
-Le règlement reste accessible par le contrat PUT historique pour les commandes
-non réglées pendant cette transition. Son remplacement par
-`PATCH /api/commandes/:id/reglement` et le refus de `reglee` dans PUT relèvent
-explicitement de l'issue #7. Les triggers bloquent déjà toute modification
-ultérieure et empêchent le retour d'une commande réglée vers non réglée.
+Le règlement utilise désormais `PATCH /api/commandes/:id/reglement`, pour les
+kits et les commandes hors-kit. Le champ `reglee` est refusé dans PUT.
+Les triggers bloquent toute modification ultérieure et empêchent le retour
+d'une commande réglée vers non réglée.
 
 ## Migration d'une base locale compatible
 

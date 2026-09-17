@@ -10,6 +10,7 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [Modèle cible catalogues et kits](catalogue-model-proposal.md) : décisions de l’issue #4, contrat de données et import limité aux clientes.
 - [Schéma et import clientes](schema-import-clients.md) : structures de l’issue #5, migration et préparation d’une base neuve.
 - [API catalogues et archivage](catalogue-api.md) : endpoints, tarifs en centimes, publication, démotion et erreurs de l’issue #6.
+- [API commandes kits](commandes-kit-api.md) : compositions A/B/C, snapshots, prix, règlement, stocks et bilan de l’issue #7.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
 - [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.
