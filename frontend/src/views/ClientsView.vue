@@ -33,6 +33,9 @@
           />
         </div>
         <div class="toolbar-actions">
+          <label class="archive-filter" for="clients-archive-filter">Afficher
+            <select id="clients-archive-filter" v-model="archiveFilter"><option value="actifs">Clients actifs</option><option value="archives">Clients archivés</option></select>
+          </label>
           <button
             :class="['favorites-toggle', { 'favorites-toggle-active': showOnlyFavorites }]"
             @click="showOnlyFavorites = !showOnlyFavorites"
@@ -58,7 +61,7 @@
 
       <div v-else-if="clientsStore.error" class="error-state">
         <p>{{ clientsStore.error }}</p>
-        <Button variant="secondary" @click="clientsStore.fetchClients()">Réessayer</Button>
+        <Button variant="secondary" @click="loadClients">Réessayer</Button>
       </div>
 
       <div v-else-if="filteredClients.length === 0" class="empty-state">
@@ -71,12 +74,12 @@
           </svg>
         </div>
         <h3 class="empty-state-title">
-          {{ searchQuery ? 'Aucun résultat' : showOnlyFavorites ? 'Aucun client favori' : 'Aucun client' }}
+          {{ searchQuery ? 'Aucun résultat' : archiveFilter === 'archives' ? 'Aucun client archivé' : showOnlyFavorites ? 'Aucun client favori' : 'Aucun client' }}
         </h3>
         <p class="empty-state-description">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche' : showOnlyFavorites ? 'Aucun client n\'est marqué comme favori pour le moment' : 'Commencez par ajouter votre premier client' }}
+          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche' : archiveFilter === 'archives' ? 'Les clients archivés restent consultables et peuvent être restaurés.' : showOnlyFavorites ? 'Aucun client n\'est marqué comme favori pour le moment' : 'Commencez par ajouter votre premier client' }}
         </p>
-        <Button v-if="!searchQuery && !showOnlyFavorites" @click="openCreateModal">Ajouter un client</Button>
+        <Button v-if="!searchQuery && !showOnlyFavorites && archiveFilter === 'actifs'" @click="openCreateModal">Ajouter un client</Button>
       </div>
 
       <div v-else class="clients-grid">
@@ -84,6 +87,10 @@
           v-for="(client, index) in filteredClients"
           :key="client.id"
           class="client-card"
+          role="button"
+          tabindex="0"
+          @keydown.enter.self="viewClient(client)"
+          @keydown.space.self.prevent="viewClient(client)"
           :style="{ animationDelay: `${index * 0.05}s` }"
           @click="viewClient(client)"
         >
@@ -92,6 +99,7 @@
           </div>
           <div class="client-info">
             <h3 class="client-name">{{ client.prenom }} {{ client.nom }}</h3>
+            <span v-if="client.archive" class="badge badge-neutral">Archivé</span>
             <div v-if="client.email" class="client-detail">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
@@ -126,11 +134,14 @@
       <!-- Panel consultation client -->
       <SlidePanel
         :is-open="isViewModalOpen"
-        title=""
+        :title="selectedClient ? `${selectedClient.prenom} ${selectedClient.nom}` : 'Client'"
         @close="closeViewModal"
         max-width="560px"
       >
         <div v-if="selectedClient" class="client-profile">
+          <p v-if="selectedClient.archive" class="archive-notice">Client archivé : les coordonnées et commandes restent consultables. Restaurez-le avant une nouvelle commande.</p>
+          <p v-if="archiveError" class="archive-error" role="alert">{{ archiveError }}</p>
+          <p v-if="archiveNotice" class="archive-notice" role="status">{{ archiveNotice }}</p>
           <!-- Header avec avatar et infos principales -->
           <div class="profile-header">
             <div class="profile-avatar">
@@ -323,9 +334,9 @@
           </div>
         </div>
         <template #footer>
-          <Button variant="danger" @click="confirmDeleteFromView">Supprimer</Button>
+          <Button variant="secondary" :disabled="archiving" @click="confirmArchiveFromView">{{ selectedClient?.archive ? 'Restaurer' : 'Archiver' }}</Button>
           <Button variant="secondary" @click="editClientFromView">Modifier</Button>
-          <Button @click="newOrderForClient">Nouvelle commande</Button>
+          <Button :disabled="Boolean(selectedClient?.archive)" @click="newOrderForClient">Nouvelle commande</Button>
         </template>
       </SlidePanel>
 
@@ -463,15 +474,15 @@
         </template>
       </SlidePanel>
 
-      <!-- Confirm Delete Dialog -->
+      <!-- Archivage réversible -->
       <ConfirmDialog
-        :is-open="isDeleteDialogOpen"
-        title="Supprimer le client"
-        :message="`Êtes-vous sûr de vouloir supprimer ${clientToDelete?.prenom} ${clientToDelete?.nom} ? Cette action est irréversible.`"
-        confirm-text="Supprimer"
-        variant="danger"
-        @confirm="deleteClient"
-        @cancel="isDeleteDialogOpen = false"
+        :is-open="isArchiveDialogOpen"
+        :title="selectedClient?.archive ? 'Restaurer le client' : 'Archiver le client'"
+        :message="selectedClient?.archive ? 'Ce client pourra à nouveau recevoir des commandes.' : 'Ce client sera retiré des nouvelles commandes. Ses coordonnées et son historique seront conservés.'"
+        :confirm-text="selectedClient?.archive ? 'Restaurer' : 'Archiver'"
+        :loading="archiving"
+        @confirm="archiveClient"
+        @cancel="isArchiveDialogOpen = false"
       />
     </div>
   </Layout>
@@ -494,13 +505,16 @@ const clientsStore = useClientsStore();
 
 const searchQuery = ref('');
 const showOnlyFavorites = ref(false);
+const archiveFilter = ref('actifs');
+const archiving = ref(false);
+const archiveError = ref('');
+const archiveNotice = ref('');
 const isModalOpen = ref(false);
 const isViewModalOpen = ref(false);
-const isDeleteDialogOpen = ref(false);
+const isArchiveDialogOpen = ref(false);
 const isEditing = ref(false);
 const editingClientId = ref(null);
 const selectedClient = ref(null);
-const clientToDelete = ref(null);
 const clientCommandes = ref([]);
 const commandesLoading = ref(false);
 const saving = ref(false);
@@ -531,7 +545,7 @@ const hasAddress = computed(() => {
 });
 
 const filteredClients = computed(() => {
-  let clients = clientsStore.clients;
+  let clients = clientsStore.clients.filter(client => Boolean(client.archive) === (archiveFilter.value === 'archives'));
   
   // Filtrer par favoris si activé
   if (showOnlyFavorites.value) {
@@ -598,6 +612,7 @@ const calculateAge = (dateStr) => {
 };
 
 const viewClient = async (client) => {
+  archiveError.value = ''; archiveNotice.value = '';
   selectedClient.value = client;
   commandesLoading.value = true;
   isViewModalOpen.value = true;
@@ -651,15 +666,15 @@ const editClientFromView = () => {
 
 const newOrderForClient = () => {
   const client = selectedClient.value;
+  if (!client || client.archive) return;
   closeViewModal();
   // Navigate to home (orders) with client pre-selected via query param
   router.push({ path: '/', query: { client: client.id } });
 };
 
-const confirmDeleteFromView = () => {
-  const client = selectedClient.value;
-  closeViewModal();
-  confirmDelete(client);
+const confirmArchiveFromView = () => {
+  archiveError.value = '';
+  isArchiveDialogOpen.value = true;
 };
 
 const openCreateModal = () => {
@@ -736,29 +751,36 @@ const handleSubmit = async () => {
   }
 };
 
-const confirmDelete = (client) => {
-  clientToDelete.value = client;
-  isDeleteDialogOpen.value = true;
-};
-
-const deleteClient = async () => {
-  if (!clientToDelete.value) return;
+const archiveClient = async () => {
+  if (!selectedClient.value || archiving.value) return;
+  archiving.value = true;
+  archiveError.value = '';
   try {
-    await clientsStore.deleteClient(clientToDelete.value.id);
+    selectedClient.value = await clientsStore.setArchive(selectedClient.value.id, !selectedClient.value.archive);
+    archiveNotice.value = selectedClient.value.archive ? 'Client archivé. Son historique est conservé.' : 'Client restauré.';
+    isArchiveDialogOpen.value = false;
   } catch (error) {
-    console.error('Erreur lors de la suppression:', error);
+    archiveError.value = error.message;
+    clientsStore.error = null;
+    isArchiveDialogOpen.value = false;
   } finally {
-    isDeleteDialogOpen.value = false;
-    clientToDelete.value = null;
+    archiving.value = false;
   }
 };
 
+const loadClients = () => clientsStore.fetchClients({ includeArchives: true });
 onMounted(async () => {
-  await clientsStore.fetchClients();
+  await loadClients();
 });
 </script>
 
 <style scoped>
+.archive-filter { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-2); color: var(--text-secondary); }
+.archive-filter select { min-height: 40px; max-width: 100%; border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); padding: var(--spacing-2); }
+.archive-notice { padding: var(--spacing-4); border-radius: var(--border-radius); background: var(--muted); margin-bottom: var(--spacing-4); }
+.archive-error { color: var(--error-dark); }
+.toolbar-actions { flex-wrap: wrap; }
+.client-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .clients-view {
   max-width: var(--content-max-width);
   animation: fadeInUp 0.4s ease-out;
