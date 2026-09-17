@@ -15,6 +15,13 @@ temporaire et ne touchent aucune base locale du projet ni le NAS.
 
 ## Contrôles disponibles
 
+`npm run check` exécute aussi les tests frontend natifs
+(`frontend/test/catalogue.test.js`) : saisies tarifaires, bornes 0–100 €,
+refus des arrondis implicites, conversion aller-retour pour chaque centime de
+la plage, et explication des conditions de publication. Ils complètent les
+tests API ; la [recette navigateur](catalogue-ui.md#vérification) contrôle les
+interactions et la persistance réelles.
+
 ```bash
 npm run check
 docker compose config

@@ -21,6 +21,8 @@
         :max="max"
         :step="step"
         :autocomplete="autocomplete"
+        :aria-invalid="Boolean(error)"
+        :aria-describedby="error || hint ? `${inputId}-feedback` : undefined"
         class="form-input"
         @input="handleInput"
         @focus="handleFocus"
@@ -31,13 +33,13 @@
         <slot name="suffix"></slot>
       </span>
     </div>
-    <p v-if="error" class="form-error">{{ error }}</p>
-    <p v-else-if="hint" class="form-hint">{{ hint }}</p>
+    <p v-if="error" :id="`${inputId}-feedback`" class="form-error" role="alert">{{ error }}</p>
+    <p v-else-if="hint" :id="`${inputId}-feedback`" class="form-hint">{{ hint }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, useId } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -94,7 +96,7 @@ const props = defineProps({
   },
 });
 
-const inputId = computed(() => `input-${Math.random().toString(36).substr(2, 9)}`);
+const inputId = useId();
 const inputRef = ref(null);
 const isFocused = ref(false);
 

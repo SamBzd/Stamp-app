@@ -29,7 +29,7 @@ Le frontend de développement écoute sur `http://localhost:5173` et l'API sur l
 npm run build --prefix frontend
 ```
 
-Pour vérifier la syntaxe et le démarrage de l'API sur une base temporaire, puis compiler le frontend :
+Pour vérifier la syntaxe et le démarrage de l'API sur une base temporaire, les conversions tarifaires du frontend, puis compiler Vue :
 
 ```bash
 npm run check

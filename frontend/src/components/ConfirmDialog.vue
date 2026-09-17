@@ -21,10 +21,10 @@
       <p class="confirm-message">{{ message }}</p>
     </div>
     <template #footer>
-      <Button variant="secondary" @click="handleCancel">
+      <Button variant="secondary" :disabled="loading" @click="handleCancel">
         {{ cancelText }}
       </Button>
-      <Button :variant="confirmVariant" @click="handleConfirm">
+      <Button :variant="confirmVariant" :loading="loading" @click="handleConfirm">
         {{ confirmText }}
       </Button>
     </template>
@@ -37,6 +37,7 @@ import Modal from './Modal.vue';
 import Button from './Button.vue';
 
 const props = defineProps({
+  loading: { type: Boolean, default: false },
   isOpen: {
     type: Boolean,
     default: false,
@@ -79,6 +80,7 @@ const handleConfirm = () => {
 };
 
 const handleCancel = () => {
+  if (props.loading) return;
   emit('cancel');
 };
 </script>

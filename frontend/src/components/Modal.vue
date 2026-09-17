@@ -2,10 +2,10 @@
   <Teleport to="body">
     <Transition name="modal">
       <div v-if="isOpen" class="modal-overlay" @click.self="handleClose">
-        <div class="modal-container" :style="{ maxWidth: maxWidth }">
+        <div ref="dialog" class="modal-container" :style="{ maxWidth: maxWidth }" role="dialog" aria-modal="true" :aria-labelledby="titleId" tabindex="-1">
           <!-- Barre de titre -->
           <div class="modal-header">
-            <h2 class="modal-title">{{ title }}</h2>
+            <h2 :id="titleId" class="modal-title">{{ title }}</h2>
             <button class="modal-close" @click="handleClose" title="Fermer">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -30,7 +30,7 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onUnmounted } from 'vue';
+import { ref, useId, nextTick, watch, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
   isOpen: {
@@ -52,6 +52,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const dialog = ref(null);
+const titleId = useId();
+let previousFocus;
+let previousOverflow = '';
 
 const handleClose = () => {
   emit('close');
@@ -59,17 +63,31 @@ const handleClose = () => {
 
 // Fermer avec la touche Escape
 const handleKeydown = (e) => {
-  if (e.key === 'Escape' && props.isOpen) {
+  if (!props.isOpen || !dialog.value) return;
+  if (e.key === 'Escape') {
     handleClose();
+  }
+  if (e.key === 'Tab') {
+    const controls = [...dialog.value.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]')].filter(element => element.getClientRects().length);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (!first) { e.preventDefault(); dialog.value.focus(); }
+    else if (e.shiftKey && (document.activeElement === first || !dialog.value.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !dialog.value.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
   }
 };
 
 // Empêcher le scroll du body quand la modal est ouverte
-watch(() => props.isOpen, (isOpen) => {
+watch(() => props.isOpen, async (isOpen) => {
   if (isOpen) {
+    previousFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
+    await nextTick();
+    dialog.value?.querySelector('button')?.focus();
   } else {
-    document.body.style.overflow = '';
+    document.body.style.overflow = previousOverflow;
+    previousFocus?.focus();
   }
 });
 
@@ -79,7 +97,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown);
-  document.body.style.overflow = '';
+  if (props.isOpen) document.body.style.overflow = previousOverflow;
 });
 </script>
 
