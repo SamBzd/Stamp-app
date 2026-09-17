@@ -64,8 +64,9 @@ const createCommande = db.transaction(function(data) {
     if (!type) throw new Error('type est obligatoire');
     if (!['kit', 'hors_kit'].includes(type)) throw new Error("type doit être 'kit' ou 'hors_kit'");
 
-    const client = db.prepare('SELECT id, points_fidelite FROM clients WHERE id = ?').get(client_id);
+    const client = db.prepare('SELECT id, points_fidelite, archive FROM clients WHERE id = ?').get(client_id);
     if (!client) throw new Error('Client non trouvé');
+    if (client.archive) require('./source-validation').invalid('Une cliente archivée ne peut pas recevoir de nouvelle commande', 409);
 
     let commandeId;
 

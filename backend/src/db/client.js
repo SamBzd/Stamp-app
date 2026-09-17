@@ -1,9 +1,9 @@
 const db = require('./connection');
 
 // READ - Récupérer tous les clients
-function getAllClients() {
-  const stmt = db.prepare('SELECT * FROM clients ORDER BY nom, prenom');
-  return stmt.all();
+function getAllClients({ includeArchives = false } = {}) {
+  const stmt = db.prepare('SELECT * FROM clients WHERE (? = 1 OR archive = 0) ORDER BY nom, prenom');
+  return stmt.all(Number(includeArchives));
 }
 
 // READ - Récupérer un client par son ID
@@ -138,11 +138,11 @@ function updatePointsFidelite(id, points) {
   return getClientById(id);
 }
 
-// DELETE - Supprimer un client
-function deleteClient(id) {
-  const stmt = db.prepare('DELETE FROM clients WHERE id = ?');
-  const result = stmt.run(id);
-  return result.changes > 0;
+function archiveClient(id, data) {
+  const archive = require('./source-validation').archive(data);
+  const result = db.prepare('UPDATE clients SET archive = ? WHERE id = ?').run(Number(archive), id);
+  if (!result.changes) require('./source-validation').invalid('Client non trouvé', 404);
+  return getClientById(id);
 }
 
 module.exports = {
@@ -152,5 +152,5 @@ module.exports = {
   updateClient,
   updateDerniereCommande,
   updatePointsFidelite,
-  deleteClient
+  archiveClient
 };
