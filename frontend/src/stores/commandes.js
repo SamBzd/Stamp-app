@@ -29,8 +29,6 @@ export const useCommandesStore = defineStore('commandes', {
     },
 
     async fetchCommande(id) {
-      this.loading = true;
-      this.error = null;
       try {
         const commande = await commandesAPI.getById(id);
         const index = this.commandes.findIndex(c => c.id === id);
@@ -41,10 +39,7 @@ export const useCommandesStore = defineStore('commandes', {
         }
         return commande;
       } catch (error) {
-        this.error = error.message;
         throw error;
-      } finally {
-        this.loading = false;
       }
     },
 

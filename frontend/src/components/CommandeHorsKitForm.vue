@@ -77,11 +77,14 @@
             type="button"
             role="radio"
             :aria-checked="form.methode_paiement === p"
+            :tabindex="form.methode_paiement === p ? 0 : -1"
             :disabled="locked"
             :class="['paiement-radio', { selected: form.methode_paiement === p }]"
             @click="selectPayment(p)"
-            @keydown.left.prevent="movePayment(-1)"
-            @keydown.right.prevent="movePayment(1)"
+            @keydown.left.prevent="movePayment(-1, $event)"
+            @keydown.up.prevent="movePayment(-1, $event)"
+            @keydown.right.prevent="movePayment(1, $event)"
+            @keydown.down.prevent="movePayment(1, $event)"
           >
             {{ p }}
           </button>
@@ -89,11 +92,14 @@
             type="button"
             role="radio"
             :aria-checked="!form.methode_paiement"
+            :tabindex="!form.methode_paiement ? 0 : -1"
             :disabled="locked"
             :class="['paiement-radio', { selected: !form.methode_paiement }]"
             @click="selectPayment('')"
-            @keydown.left.prevent="movePayment(-1)"
-            @keydown.right.prevent="movePayment(1)"
+            @keydown.left.prevent="movePayment(-1, $event)"
+            @keydown.up.prevent="movePayment(-1, $event)"
+            @keydown.right.prevent="movePayment(1, $event)"
+            @keydown.down.prevent="movePayment(1, $event)"
           >Aucun</button>
         </div>
       </div>
@@ -107,7 +113,7 @@
     </form>
 
     <template #footer>
-      <Button variant="secondary" :disabled="locked" @click="requestClose">Annuler</Button>
+      <Button variant="secondary" :disabled="saving || Boolean(props.commande?.reglee)" @click="requestClose">Annuler</Button>
       <Button :disabled="locked || Boolean(clientLoadError)" @click="handleSubmit" :loading="saving">{{ isEditing ? 'Enregistrer' : 'Créer' }}</Button>
     </template>
   </Modal>
@@ -227,11 +233,13 @@ function selectPayment(payment) {
   if (!locked.value) form.value.methode_paiement = payment;
 }
 
-function movePayment(direction) {
+function movePayment(direction, event) {
   if (locked.value) return;
-  const values = [...paiementOptions, ''];
-  const index = values.indexOf(form.value.methode_paiement);
-  selectPayment(values[(index + direction + values.length) % values.length]);
+  const buttons = [...event.currentTarget.parentElement.querySelectorAll('[role="radio"]:not(:disabled)')];
+  const index = buttons.indexOf(event.currentTarget);
+  const target = buttons[(index + direction + buttons.length) % buttons.length];
+  target.click();
+  target.focus();
 }
 
 function formFromCommande(commande) {
@@ -246,7 +254,7 @@ function formFromCommande(commande) {
 }
 
 function requestClose() {
-  if (saving.value || loadingClients.value) return;
+  if (saving.value) return;
   if (dirty.value) confirmClose.value = true;
   else emit('close');
 }
@@ -294,7 +302,7 @@ watch(() => props.isOpen, async (open) => {
 
 onBeforeRouteLeave(() => {
   if (!props.isOpen) return;
-  if (saving.value || loadingClients.value) return false;
+  if (saving.value) return false;
   if (dirty.value) return window.confirm('Quitter et abandonner les saisies de cette commande ?');
 });
 </script>
