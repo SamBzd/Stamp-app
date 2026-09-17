@@ -4,7 +4,7 @@
 
 ## État de départ
 
-Le projet possède des tests d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Le workflow GitHub Actions `.github/workflows/ci.yml` exécute ces contrôles à chaque push sur `main` et pour chaque pull request vers `main`. Il ne possède pas encore de linter, et les règles métier restent très peu couvertes.
+Le projet possède des tests d'intégration de l'API sur une base SQLite temporaire et un contrôle de build Vue. Le workflow GitHub Actions `.github/workflows/ci.yml` exécute ces contrôles à chaque push sur `main` et pour chaque pull request vers `main`. Il ne possède pas encore de linter. Les tests `backend/test/catalogue-api.test.js` couvrent les tarifs en centimes, publication/démotion, maxima atomiques, archivage/restauration et invariance des snapshots, stocks et bilan lors des mutations source. La composition des nouveaux kits reste à couvrir en #7.
 
 ## Contrôles disponibles
 

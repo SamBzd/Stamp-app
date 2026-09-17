@@ -70,6 +70,7 @@ router.post('/', (req, res) => {
         const newCommande = createCommande(req.body);
         res.status(201).json(newCommande);
     } catch (err) {
+        if (err.status) return res.status(err.status).json({ error: err.message });
         console.error('Erreur création commande:', err);
         if (err.message.includes('nouveau contrat de composition')) {
             return res.status(409).json({ error: err.message });

@@ -1,94 +1,21 @@
-const express = require('express');
-const router = express.Router();
-
-const {
-    getAllCollections,
-    getCollectionById,
-    createCollection,
-    updateCollection
-} = require('../db/collection');
-
-// READ - Récupérer toutes les collections
-router.get('/', (req, res) => {
-    try{
-        const collections = getAllCollections();
-        res.json(collections);
-    } catch (err){
-        console.error('Erreur lecture collection SQLite:', err);
-        res.status(500).json({ error: 'Erreur interne serveur' });
-    }
-});
-
-// READ - Récupérer une collection par son ID
-router.get('/:id', (req, res) => {
-    try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)){
-            return res.status(400).json({ error: 'ID invalide' });
-        }
-
-        const collection = getCollectionById(id);
-        if (!collection){
-            return res.status(404).json({ error: 'Collection non trouvé' });
-        }
-
-        res.json(collection);
-    } catch (err) {
-        console.error('Erreur lecture collection SQLite:', err);
-        res.status(500).json({ error: 'Erreur interne serveur' });
-    }
-});
-
-// CREATE - Créer une nouvelle collection
-router.post('/', (req, res) => {
-    try {
-        const { nom } = req.body;
-
-        if (!nom){
-            return res.status(400).json({ error: 'Le champ nom est obligatoire' });
-        }
-
-        const newCollection = createCollection(req.body);
-        res.status(201).json(newCollection);
-    } catch (err) {
-        console.error('Erreur création collection SQLite:', err);
-        res.status(500).json({ error: 'Erreur interne serveur' });
-    }
-});
-
-// UPDATE - Mettre à jour une collection
-router.put('/:id', (req, res) => {
-    try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)){
-            return res.status(400).json({ error: 'ID invalide' });
-        }
-        
-        const { nom } = req.body;
-
-        if (!nom){
-            return res.status(400).json({ error: 'Le champ nom est obligatoire' });
-        }
-
-        const updatedCollection = updateCollection(id, req.body);
-        if (!updatedCollection){
-            return res.status(404).json({ error: 'Collection non trouvé' });
-        }
-
-        res.json(updatedCollection);
-    } catch (err) {
-        console.error('Erreur mise à jour collection SQLite:', err);
-        
-        if (err.message && err.message.includes('UNIQUE constraint')) {
-            return res.status(409).json({ error: 'Une collection avec ce nom existe déjà' });
-        }
-        
-        res.status(500).json({ error: 'Erreur interne serveur' });
-    }
-});
-
-// DELETE - Sources conservées.
-router.delete('/:id', (req, res) => {
-  res.set('Allow', 'GET, PUT').status(405).json({ error: 'La suppression des collections est interdite.' });
-});
+const router = require('express').Router();
+const col = require('../db/collection');
+const { setPapiersCollection } = require('../db/collections');
+const { getCatalogueById } = require('../db/catalogues');
+const v = require('../db/source-validation');
+const { route, id, readOnlyDelete } = require('./helpers/sources');
+router.get('/', route((req, res) => res.json(col.getAllCollections())));
+router.get('/:id', route((req, res) => {
+  const collection = col.getCollectionById(id(req));
+  if (!collection) v.invalid('Collection non trouvée', 404);
+  res.json(collection);
+}));
+router.post('/', route((req, res) => res.status(201).json(col.createCollection(req.body))));
+router.put('/:id', route((req, res) => res.json(col.updateCollection(id(req), req.body))));
+router.put('/:id/papiers', route((req, res) => {
+  v.fields(req.body, ['papier_ids']);
+  const collection = setPapiersCollection(id(req), req.body.papier_ids);
+  res.json({ success: true, catalogue: getCatalogueById(collection.catalogue_id) });
+}));
+readOnlyDelete(router, '/:id', 'GET, PUT');
 module.exports = router;

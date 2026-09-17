@@ -1,20 +1,23 @@
 const express = require('express');
 const router = express.Router();
+const { route, id: sourceId, flag } = require('./helpers/sources');
 
 const {
   getAllClients,
   getClientById,
   createClient,
   updateClient,
-  updatePointsFidelite
+  updatePointsFidelite,
+  archiveClient
 } = require('../db/client');
 
 // READ - Récupérer tous les clients
 router.get('/', (req, res) => {
   try {
-    const clients = getAllClients();
+    const clients = getAllClients({ includeArchives: flag(req.query, 'include_archives') });
     res.json(clients);
   } catch (err) {
+    if (err.status) return res.status(err.status).json({ error: err.message });
     console.error('Erreur lecture clients SQLite:', err);
     res.status(500).json({ error: 'Erreur interne serveur' });
   }
@@ -97,7 +100,9 @@ router.put('/:id', (req, res) => {
   }
 });
 
-// DELETE - La conservation impose un archivage, livré dans le lot dédié.
+router.patch('/:id/archivage', route((req, res) => res.json(archiveClient(sourceId(req), req.body))));
+
+// DELETE - Les clientes sont conservées.
 router.delete('/:id', (req, res) => {
   res.set('Allow', 'GET, PUT').status(405).json({ error: 'Les clientes doivent être archivées ; leur suppression est interdite.' });
 });

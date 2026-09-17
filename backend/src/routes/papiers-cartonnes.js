@@ -1,40 +1,15 @@
-const express = require('express');
-const router = express.Router();
-
-const { searchPapiersCartonnes, createPapierCartonne } = require('../db/papiers_cartonnes');
-
-// READ — GET /?search= — retourne un tableau de papiers cartonnés
-router.get('/', (req, res) => {
-  try {
-    const search = req.query.search || '';
-    const results = searchPapiersCartonnes(search);
-    res.json(results);
-  } catch (err) {
-    console.error('Erreur lecture papiers_cartonnes SQLite:', err);
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
-// CREATE — POST / — body { nom } — nom obligatoire, 409 si doublon
-router.post('/', (req, res) => {
-  try {
-    const { nom } = req.body;
-
-    if (!nom || String(nom).trim() === '') {
-      return res.status(400).json({ error: 'Le champ nom est obligatoire' });
-    }
-
-    const papier = createPapierCartonne(nom);
-    res.status(201).json(papier);
-  } catch (err) {
-    console.error('Erreur création papier_cartonné SQLite:', err);
-
-    if (err.message && err.message.includes('UNIQUE constraint')) {
-      return res.status(409).json({ error: 'Un papier cartonné avec ce nom existe déjà' });
-    }
-
-    res.status(500).json({ error: 'Erreur interne serveur' });
-  }
-});
-
+const router = require('express').Router();
+const papiers = require('../db/papiers_cartonnes');
+const v = require('../db/source-validation');
+const { route, id, readOnlyDelete } = require('./helpers/sources');
+router.get('/', route((req, res) => res.json(papiers.searchPapiersCartonnes(req.query.search))));
+router.post('/', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.status(201).json(papiers.createPapierCartonne(req.body.nom));
+}));
+router.put('/:id', route((req, res) => {
+  v.fields(req.body, ['nom']);
+  res.json(papiers.updatePapierCartonne(id(req), req.body.nom));
+}));
+readOnlyDelete(router, '/:id', 'PUT');
 module.exports = router;

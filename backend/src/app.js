@@ -36,4 +36,12 @@ app.use('/api/stocks', stocksRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/papiers-cartonnes', papiersCartonnesRoutes);
 
+// Les corps JSON malformés conservent le format d’erreur des endpoints API.
+app.use((error, req, res, next) => {
+  if (error.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Corps JSON invalide : un objet JSON est requis' });
+  }
+  next(error);
+});
+
 module.exports = app;
