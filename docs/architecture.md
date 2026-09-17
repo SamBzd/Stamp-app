@@ -21,7 +21,7 @@ Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/a
 
 ## Backend
 
-- `backend/src/index.js` configure Express et enregistre les routes.
+- `backend/src/app.js` configure Express et enregistre les routes ; `index.js` démarre le serveur.
 - Chaque ressource a une route dans `backend/src/routes/`.
 - Les requêtes SQLite et transactions sont isolées dans `backend/src/db/`.
 - Les réponses sont JSON ; les erreurs client utilisent un code HTTP explicite.
@@ -30,4 +30,4 @@ Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/a
 
 La validation de données côté interface améliore l'expérience, mais l'API doit toujours faire respecter les règles métier. Les écritures qui touchent plusieurs tables doivent rester transactionnelles.
 
-Les anciens modules Groupes/Collections v1 sont hors du flux repris dans `main`. Ils doivent être retirés ou migrés lors d'un chantier dédié, pas réutilisés par inadvertance.
+Les anciens modules Groupes v1 sont hors du flux repris dans `main` et restent à retirer lors d’un chantier dédié. L’endpoint Collections historique est désormais un alias des mutations catalogue, avec catalogue obligatoire et validation transactionnelle commune ; voir [le contrat API](catalogue-api.md).

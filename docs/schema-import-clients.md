@@ -33,16 +33,18 @@ sur copie contrôlée de production appartient à l'issue #13.
   Les triggers refusent toute modification ou suppression d'une commande réglée
   et toute mutation de ses lignes de composition.
 
-Les règles de publication, la composition complète A/B/C et le choix du ruban
-seront validés par les futurs lots API. Ils ne se déduisent pas des seuls CHECK
-SQL. Une commande doit être construite non réglée avec sa composition avant de
+Les règles de publication sont validées par [l’API catalogues](catalogue-api.md)
+du lot #6. La composition complète A/B/C et le choix du ruban seront validés
+par le lot commandes #7. Ces règles ne se déduisent pas des seuls CHECK SQL. Une commande doit être construite non réglée avec sa composition avant de
 passer à l'état réglé.
 
 ## Transition applicative
 
-Le frontend et l'API paramètres existants conservent provisoirement leurs clés
-`prix_A/B/C` exprimées en euros ; l'accès SQL les convertit en centimes. Le
-contrat API cible en centimes sera livré dans le lot paramètres/catalogues.
+L’API paramètres/catalogues utilise maintenant uniquement les champs
+`prix_A_cents`, `prix_B_cents`, `prix_C_cents`, avec des nombres entiers en
+centimes. Le frontend conserve encore son ancien contrat en euros : son
+adaptation reste dans les lots UI #8/#9 ; le build seul ne valide pas ces
+parcours. Voir [le contrat API #6](catalogue-api.md).
 Les lectures commandes et stocks sont adaptées à la relation papier/ligne de
 collection, et le bilan lit le montant appliqué mémorisé.
 Le détail d'un kit expose aussi `ruban` (objet contenant `ruban_id`, `ruban_nom`
@@ -54,8 +56,9 @@ livré dans son lot. Ce lot est un socle de développement, pas une version
 prête à déployer. Les champs et la règle de fidélité hors-kit sont conservés.
 Les anciens endpoints DELETE des clientes, catalogues et collections (y compris
 la route historique `/api/collections/:id`) répondent `405` et ne suppriment
-aucune ligne, même sans référence. Les endpoints d'archivage seront livrés dans
-leur lot dédié.
+aucune ligne, même sans référence. Les endpoints d’archivage/restauration
+clientes et catalogues sont disponibles en #6 : corps `{ archive: boolean }`,
+conservation des données et restauration sans publication automatique.
 Le règlement reste accessible par le contrat PUT historique pour les commandes
 non réglées pendant cette transition. Son remplacement par
 `PATCH /api/commandes/:id/reglement` et le refus de `reglee` dans PUT relèvent
