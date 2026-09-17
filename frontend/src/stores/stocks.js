@@ -1,55 +1,50 @@
 import { defineStore } from 'pinia';
-import { stocksAPI } from '../services/api';
+import { stocksAPI } from '../services/api.js';
 
 export const useStocksStore = defineStore('stocks', {
   state: () => ({
-    stocks: null,   // { papiers_cartonnes, papier_spe, embellissement, collections }
+    stocks: null,   // { papiers_cartonnes, papier_spe, embellissement, collections, rubans }
     bilan: null,
-    loading: false,
-    error: null,
+    loadingStocks: false,
+    stocksError: null,
+    loadingBilan: false,
+    bilanError: null,
+    stocksRequest: 0,
+    bilanRequest: 0,
   }),
 
   actions: {
     async fetchStocks() {
-      this.loading = true;
-      this.error = null;
+      const request = ++this.stocksRequest;
+      this.loadingStocks = true;
+      this.stocksError = null;
       try {
-        this.stocks = await stocksAPI.get();
+        const stocks = await stocksAPI.get();
+        if (request === this.stocksRequest) this.stocks = stocks;
       } catch (error) {
-        this.error = error.message || 'Erreur lors de la récupération des stocks';
+        if (request !== this.stocksRequest) return;
+        this.stocksError = error.message || 'Erreur lors de la récupération des stocks';
         console.error('Erreur lors de la récupération des stocks:', error);
         this.stocks = null;
       } finally {
-        this.loading = false;
+        if (request === this.stocksRequest) this.loadingStocks = false;
       }
     },
 
     async fetchBilan(mois) {
-      this.loading = true;
-      this.error = null;
+      const request = ++this.bilanRequest;
+      this.loadingBilan = true;
+      this.bilanError = null;
       try {
-        this.bilan = await stocksAPI.getBilan(mois);
+        const bilan = await stocksAPI.getBilan(mois);
+        if (request === this.bilanRequest) this.bilan = bilan;
       } catch (error) {
-        this.error = error.message || 'Erreur lors de la récupération du bilan';
+        if (request !== this.bilanRequest) return;
+        this.bilanError = error.message || 'Erreur lors de la récupération du bilan';
         console.error('Erreur lors de la récupération du bilan:', error);
         this.bilan = null;
       } finally {
-        this.loading = false;
-      }
-    },
-
-    async recalculate() {
-      this.loading = true;
-      this.error = null;
-      try {
-        await stocksAPI.recalculate();
-        await this.fetchStocks();
-      } catch (error) {
-        this.error = error.message || 'Erreur lors du recalcul des stocks';
-        console.error('Erreur lors du recalcul des stocks:', error);
-        throw error;
-      } finally {
-        this.loading = false;
+        if (request === this.bilanRequest) this.loadingBilan = false;
       }
     },
   },
