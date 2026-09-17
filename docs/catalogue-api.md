@@ -2,9 +2,8 @@
 
 Cette API vise la future version, pas le NAS actuellement déployé. Le schéma
 cible de l’issue #5 suffit : aucune migration supplémentaire. Les parcours Vue
-et la validation/création des compositions kit restent respectivement dans les
-issues #8/#9 et #7. La création de kits reste explicitement refusée (`409`)
-jusqu’à la livraison du nouveau contrat.
+restent dans les issues #8/#9. Le backend compositions kit et règlement est
+livré en #7 : voir [le contrat commandes](commandes-kit-api.md).
 
 ## Champs et conventions
 
@@ -86,10 +85,10 @@ ne sont ni archivables ni supprimables : on peut modifier les noms et remplacer
 les associations de papiers, mais pas effacer les objets source. Les tarifs et
 sources modifiés ne réécrivent aucun prix ni snapshot de commande.
 
-Une nouvelle commande hors kit pour une cliente archivée est refusée avant
-insertion et avant toute mise à jour de fidélité/date. Les kits étant encore
-refusés, aucun catalogue brouillon ou archivé ne peut être utilisé pour créer
-un kit ; la vérification métier du nouveau parcours sera livrée en #7.
+Une nouvelle commande, kit ou hors kit, pour une cliente archivée est refusée
+avant insertion et avant toute mise à jour de fidélité/date. Un catalogue
+brouillon ou archivé ne peut pas servir à créer un kit ; le parcours #7 vérifie
+également sa composition dans la transaction de commande.
 
 ## Erreurs
 
@@ -100,8 +99,8 @@ Les erreurs métier ont la forme JSON `{ error: "message" }`.
   dépassée ; publication d’un catalogue incomplet.
 - `404` : catalogue, collection, ruban, papier ou cliente inexistant.
 - `409` : titre catalogue ou nom papier déjà utilisé ; publication d’un
-  catalogue archivé ; nouvelle commande pour une cliente archivée ; création
-  kit en attente du contrat #7.
+  catalogue archivé ; nouvelle commande pour une cliente archivée ou création
+  kit à partir d’un catalogue indisponible.
 - `405` : les chemins `DELETE` des clientes/catalogues/collections/papiers/rubans
   refusent toute suppression, y compris pour une source non référencée.
 - `500` : erreur interne inattendue, sans détails SQL dans la réponse.

@@ -32,9 +32,10 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   [proposition de modèle](catalogue-model-proposal.md). Le schéma cible et
   l'outillage d'import clientes sont implémentés en issue #5 : voir
   [la procédure](schema-import-clients.md). Les API sources/settings, publication/démotion et archivage sont implémentées
-  en issue #6 : voir [le contrat API](catalogue-api.md). Le parcours commandes
-  kits (#7) et les interfaces (#8/#9) restent à réaliser ; ce socle n’est pas
-  prêt pour le déploiement.
+  en issue #6 : voir [le contrat API](catalogue-api.md). Le backend commandes
+  kits, le règlement et les calculs associés sont implémentés en issue #7 : voir
+  [le contrat commandes](commandes-kit-api.md). Les interfaces (#8/#9) restent
+  à réaliser ; ce socle n’est pas prêt pour le déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.

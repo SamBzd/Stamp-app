@@ -31,3 +31,10 @@ Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/a
 La validation de données côté interface améliore l'expérience, mais l'API doit toujours faire respecter les règles métier. Les écritures qui touchent plusieurs tables doivent rester transactionnelles.
 
 Les anciens modules Groupes v1 sont hors du flux repris dans `main` et restent à retirer lors d’un chantier dédié. L’endpoint Collections historique est désormais un alias des mutations catalogue, avec catalogue obligatoire et validation transactionnelle commune ; voir [le contrat API](catalogue-api.md).
+
+Les commandes kit sont construites dans une transaction par `db/commandes.js`,
+avec validation et snapshots source dans `db/commande-kit.js`. Une modification
+non réglée remplace toute la composition et recalcule les prix. Le règlement
+dédié ne reconstruit rien et fige la commande. Les calculs de préparation et
+de bilan lisent exclusivement les snapshots et le prix appliqué ; voir
+[le contrat commandes](commandes-kit-api.md).
