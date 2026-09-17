@@ -131,14 +131,14 @@ test('les lectures kit utilisent les snapshots, quantités et prix appliqué mé
   assert.equal(paid.chiffre_affaires, 44);
 });
 
-test('ancien contrat kit refusé explicitement sans créer de commande partielle', async () => {
+test('contrat kit sans catalogue refusé sans créer de commande partielle', async () => {
   const client = databaseConnection.prepare("INSERT INTO clients(nom,prenom) VALUES ('Ancien','Kit')").run().lastInsertRowid;
   const before = databaseConnection.prepare('SELECT count(*) AS n FROM commandes').get().n;
   const response = await fetch(`${baseUrl}/api/commandes`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ client_id: client, type: 'kit', format_type: 'C', methode_paiement: 'virement' })
   });
-  assert.equal(response.status, 409);
+  assert.equal(response.status, 400);
   assert.equal(databaseConnection.prepare('SELECT count(*) AS n FROM commandes').get().n, before);
 });
 
