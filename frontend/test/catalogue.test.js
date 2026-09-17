@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { centsToInput, eurosToCents, publicationErrors } from '../src/utils/catalogue.js';
+import { catalogueMutationNotice, centsToInput, eurosToCents, publicationErrors } from '../src/utils/catalogue.js';
 
 test('prix saisis en euros : limites, virgule, point et conversion exacte', () => {
   for (const [input, cents] of [['0', 0], ['0,01', 1], ['0.29', 29], ['35,25', 3525], [' 99.99 ', 9999], ['100,00', 10000], ['4,5', 450]]) {
@@ -24,4 +24,15 @@ test('une préparation complète peut être publiée avec C seul ; les manques s
   assert.match(publicationErrors({ ...catalogue, collections: [] })[0], /au moins une collection/);
   assert.match(publicationErrors({ ...catalogue, collections: [{ nom: 'Nature', papiers: [] }] })[0], /Nature/);
   assert.match(publicationErrors({ ...catalogue, prix_A_cents: null })[0], /trois tarifs/);
+});
+
+test('l’archivage conserve son message au lieu d’annoncer une démotion', () => {
+  assert.equal(
+    catalogueMutationNotice('publie', { statut: 'brouillon', archive: 1 }, 'Catalogue archivé.'),
+    'Catalogue archivé.'
+  );
+  assert.match(
+    catalogueMutationNotice('publie', { statut: 'brouillon', archive: 0 }, 'Informations enregistrées.'),
+    /revenu en brouillon/
+  );
 });

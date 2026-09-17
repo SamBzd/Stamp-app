@@ -29,3 +29,9 @@ export function publicationErrors(catalogue) {
   if (formats.some(format => !Number.isInteger(catalogue[`prix_${format}_cents`]))) errors.push('Définissez les trois tarifs A, B et C.');
   return errors;
 }
+
+export function catalogueMutationNotice(previousStatus, catalogue, message) {
+  return previousStatus === 'publie' && catalogue.statut === 'brouillon' && !catalogue.archive
+    ? 'Le catalogue est revenu en brouillon. Complétez sa composition puis publiez-le à nouveau.'
+    : message;
+}

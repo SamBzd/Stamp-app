@@ -87,7 +87,7 @@ import CatalogueCollection from '../components/CatalogueCollection.vue';
 import CataloguePrices from '../components/CataloguePrices.vue';
 import { cataloguesAPI } from '../services/api';
 import { useCataloguesStore } from '../stores/catalogues';
-import { publicationErrors } from '../utils/catalogue';
+import { catalogueMutationNotice, publicationErrors } from '../utils/catalogue';
 const route = useRoute();
 const router = useRouter();
 const store = useCataloguesStore();
@@ -136,8 +136,7 @@ async function mutate(action, message) {
   try {
     const result = await action();
     remember(result?.collections ? result : result?.catalogue || await cataloguesAPI.getById(catalogue.value.id));
-    notice.value = previousStatus === 'publie' && catalogue.value.statut === 'brouillon'
-      ? 'Le catalogue est revenu en brouillon. Complétez sa composition puis publiez-le à nouveau.' : message;
+    notice.value = catalogueMutationNotice(previousStatus, catalogue.value, message);
     return true;
   } catch (failure) { error.value = failure.message; await nextTick(); errorSummary.value?.focus(); return false; }
   finally { busy.value = false; }
