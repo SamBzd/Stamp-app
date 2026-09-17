@@ -14,6 +14,11 @@ export default createRouter({
       component: () => import('../views/ClientsView.vue') 
     },
     {
+      path: '/catalogues/:id',
+      name: 'catalogue-detail',
+      component: () => import('../views/CatalogueDetailView.vue')
+    },
+    {
       path: '/catalogues',
       name: 'catalogues',
       component: () => import('../views/CataloguesView.vue')

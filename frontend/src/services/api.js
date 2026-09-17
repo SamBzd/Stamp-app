@@ -43,11 +43,11 @@ async function apiCall(endpoint, options = {}) {
  * API Clients
  */
 export const clientsAPI = {
-  getAll: () => apiCall('/clients'),
+  getAll: ({ includeArchives = false } = {}) => apiCall(`/clients?include_archives=${includeArchives}`),
   getById: (id) => apiCall(`/clients/${id}`),
   create: (data) => apiCall('/clients', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => apiCall(`/clients/${id}`, { method: 'DELETE' }),
+  setArchive: (id, archive) => apiCall(`/clients/${id}/archivage`, { method: 'PATCH', body: JSON.stringify({ archive }) }),
   getCommandes: (id) => apiCall(`/clients/${id}/commandes`),
 };
 
@@ -55,14 +55,16 @@ export const clientsAPI = {
  * API Catalogues
  */
 export const cataloguesAPI = {
-  getAll: () => apiCall('/catalogues'),
+  getAll: ({ includeArchives = false, utilisables = false } = {}) => apiCall(`/catalogues?include_archives=${includeArchives}&utilisables=${utilisables}`),
   getById: (id) => apiCall(`/catalogues/${id}`),
   create: (data) => apiCall('/catalogues', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/catalogues/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => apiCall(`/catalogues/${id}`, { method: 'DELETE' }),
+  publish: (id) => apiCall(`/catalogues/${id}/publication`, { method: 'POST' }),
+  setArchive: (id, archive) => apiCall(`/catalogues/${id}/archivage`, { method: 'PATCH', body: JSON.stringify({ archive }) }),
   addCollection: (catalogueId, nom) => apiCall(`/catalogues/${catalogueId}/collections`, { method: 'POST', body: JSON.stringify({ nom }) }),
   updateCollection: (id, nom) => apiCall(`/catalogues/collections/${id}`, { method: 'PUT', body: JSON.stringify({ nom }) }),
-  deleteCollection: (id) => apiCall(`/catalogues/collections/${id}`, { method: 'DELETE' }),
+  addRuban: (catalogueId, nom) => apiCall(`/catalogues/${catalogueId}/rubans`, { method: 'POST', body: JSON.stringify({ nom }) }),
+  updateRuban: (id, nom) => apiCall(`/catalogues/rubans/${id}`, { method: 'PUT', body: JSON.stringify({ nom }) }),
   setPapiersCollection: (collectionId, papierIds) => apiCall(`/catalogues/collections/${collectionId}/papiers`, { method: 'PUT', body: JSON.stringify({ papier_ids: papierIds }) }),
 };
 
@@ -72,6 +74,7 @@ export const cataloguesAPI = {
 export const papierCartonnesAPI = {
   search: (q = '') => apiCall(`/papiers-cartonnes${q ? `?search=${encodeURIComponent(q)}` : ''}`),
   create: (nom) => apiCall('/papiers-cartonnes', { method: 'POST', body: JSON.stringify({ nom }) }),
+  update: (id, nom) => apiCall(`/papiers-cartonnes/${id}`, { method: 'PUT', body: JSON.stringify({ nom }) }),
 };
 
 /**
@@ -101,4 +104,3 @@ export const stocksAPI = {
   getBilan: (mois) => apiCall(`/stocks/bilan?mois=${mois}`),
   recalculate: () => apiCall('/stocks/recalculate', { method: 'POST' }),
 };
-

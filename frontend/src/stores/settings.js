@@ -3,7 +3,7 @@ import { settingsAPI } from '../services/api';
 
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
-    prix: { prix_A: '', prix_B: '', prix_C: '' },
+    prix: { prix_A_cents: null, prix_B_cents: null, prix_C_cents: null },
     loading: false,
     error: null,
   }),
@@ -14,18 +14,6 @@ export const useSettingsStore = defineStore('settings', {
       this.error = null;
       try {
         this.prix = await settingsAPI.get();
-      } catch (error) {
-        this.error = error.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async updateSettings(updates) {
-      this.loading = true;
-      this.error = null;
-      try {
-        this.prix = await settingsAPI.update(updates);
         return this.prix;
       } catch (error) {
         this.error = error.message;
@@ -33,6 +21,11 @@ export const useSettingsStore = defineStore('settings', {
       } finally {
         this.loading = false;
       }
+    },
+
+    async updateSettings(updates) {
+      this.prix = await settingsAPI.update(updates);
+      return this.prix;
     },
   },
 });
