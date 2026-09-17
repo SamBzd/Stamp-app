@@ -148,7 +148,10 @@ test('option double les feuilles et les contributions, pas les matériaux ni le 
     assert.equal(stock.papiers_cartonnes.find(p => p.nom === col.papiers[0].nom).nb_feuilles, i === 0 ? 4 : 6);
     assert.equal(stock.collections.find(c => c.nom === col.nom).total_feuilles, i === 0 ? 4 : 6);
   }
-  assert.deepEqual(stock.rubans.find(r => r.nom === f.catalogue.rubans[0].nom), { nom: f.catalogue.rubans[0].nom, quantite: 1 });
+  const stockRuban = stock.rubans.find(r => r.ruban_id === f.catalogue.rubans[0].id);
+  assert.equal(stockRuban.nom, f.catalogue.rubans[0].nom);
+  assert.equal(stockRuban.quantite, 1);
+  assert.equal(stockRuban.catalogue_id, f.catalogue.id);
   db.prepare("UPDATE commandes SET created_at='2024-01-02' WHERE id=?").run(order.id);
   assert.deepEqual(await api('/stocks/bilan?mois=2024-01'), {
     mois: '2024-01', chiffre_affaires: 0, par_methode_paiement: [], produits_promo: [], autres: []
@@ -386,6 +389,87 @@ test('suppression non réglée retire toutes ses lignes et quantités ; les comm
   for (const id of lineIds) assert.equal(db.prepare('SELECT COUNT(*) AS n FROM commande_papiers_selectionnes WHERE commande_collection_id=?').get(id).n, 0);
   assert.deepEqual(await api('/stocks'), stocksBefore);
   assert.equal((await api(`/clients/${f.client.id}/commandes`)).length, 0);
+});
+
+test('stocks : papier partagé, homonymes et historiques restent identifiés avec leur provenance et base/final', async () => {
+  const f = await fixture({ rubans: 2 });
+  const [first, second] = f.catalogue.collections;
+  const shared = first.papiers[0];
+  await api(`/collections/${second.id}/papiers`, 'PUT', { papier_ids: [shared.id] });
+  await api(`/collections/${second.id}`, 'PUT', { nom: first.nom });
+  await api(`/catalogues/rubans/${f.catalogue.rubans[1].id}`, 'PUT', { nom: f.catalogue.rubans[0].nom });
+  f.catalogue = await api(`/catalogues/${f.catalogue.id}`);
+  const plain = await api('/commandes', 'POST', payload(f, 'A', { ruban_id: f.catalogue.rubans[0].id }), 201);
+  const doubled = await api('/commandes', 'POST', payload(f, 'B', { ruban_id: f.catalogue.rubans[1].id, papier_supplementaire: true }), 201);
+  const before = await api('/stocks');
+  const paper = before.papiers_cartonnes.find(p => p.papier_cartonne_id === shared.id);
+  assert.equal(paper.nb_feuilles_base, 10);
+  assert.equal(paper.nb_feuilles, 15);
+  assert.deepEqual(paper.provenances.map(p => [p.collection_id, p.nb_feuilles_base, p.nb_feuilles]), [[first.id, 4, 6], [second.id, 6, 9]]);
+  assert.equal(new Set(paper.provenances.map(p => p.cle)).size, 2);
+  const collections = before.collections.filter(c => c.catalogue_id === f.catalogue.id);
+  assert.deepEqual(collections.map(c => [c.total_feuilles_base, c.total_feuilles]).sort(), [[4, 6], [6, 9]]);
+  assert.equal(new Set(collections.map(c => c.cle)).size, 2);
+  const ribbons = before.rubans.filter(r => r.catalogue_id === f.catalogue.id);
+  assert.equal(ribbons.length, 2);
+  assert.equal(new Set(ribbons.map(r => r.cle)).size, 2);
+  assert.deepEqual(ribbons.map(r => r.quantite), [1, 1]);
+  assert.equal(before.papier_spe.find(p => p.catalogue_id === f.catalogue.id).nb_commandes, 2);
+  assert.equal(before.embellissement.find(p => p.catalogue_id === f.catalogue.id).nb_commandes, 2);
+
+  // Source renommée, puis nouvelles commandes : les deux libellés restent lisibles.
+  await api(`/papiers-cartonnes/${shared.id}`, 'PUT', { nom: `${shared.nom} renommé` });
+  await api(`/collections/${first.id}`, 'PUT', { nom: `${first.nom} renommée` });
+  await api(`/catalogues/${f.catalogue.id}`, 'PUT', { titre: `${f.catalogue.titre} renommé`, papier_spe: 'Nouveau spécial', embellissement: null });
+  assert.deepEqual(await api('/stocks'), before);
+  f.catalogue = await api(`/catalogues/${f.catalogue.id}`);
+  await api('/commandes', 'POST', payload(f, 'A', { ruban_id: f.catalogue.rubans[0].id }), 201);
+  const sameNameDifferentPaper = await api('/papiers-cartonnes', 'POST', { nom: shared.nom }, 201);
+  for (const collection of f.catalogue.collections) await api(`/collections/${collection.id}/papiers`, 'PUT', { papier_ids: [sameNameDifferentPaper.id] });
+  f.catalogue = await api(`/catalogues/${f.catalogue.id}`);
+  await api('/commandes', 'POST', payload(f, 'A', { ruban_id: f.catalogue.rubans[0].id }), 201);
+  const after = await api('/stocks');
+  const variants = after.papiers_cartonnes.filter(p => [shared.id, sameNameDifferentPaper.id].includes(p.papier_cartonne_id));
+  assert.equal(variants.length, 3);
+  assert.equal(new Set(variants.map(p => p.cle)).size, 3);
+  assert.equal(variants.find(p => p.papier_cartonne_id === sameNameDifferentPaper.id).nb_feuilles, 5);
+  assert.equal(variants.find(p => p.papier_cartonne_id === shared.id && p.nom === shared.nom).nb_feuilles, 15);
+  assert.equal(variants.find(p => p.papier_cartonne_id === shared.id && p.nom !== shared.nom).nb_feuilles, 5);
+  assert.equal(after.embellissement.find(p => p.catalogue_id === f.catalogue.id).nb_commandes, 2);
+  assert.equal(after.papier_spe.filter(p => p.catalogue_id === f.catalogue.id).length, 2);
+
+  await api(`/clients/${f.client.id}/archivage`, 'PATCH', { archive: true });
+  await api(`/catalogues/${f.catalogue.id}/archivage`, 'PATCH', { archive: true });
+  await api(`/commandes/${plain.id}/reglement`, 'PATCH');
+  await api(`/commandes/${plain.id}`, 'DELETE', undefined, 409);
+  assert.deepEqual(await api('/stocks'), after);
+  await api(`/commandes/${doubled.id}`, 'DELETE', undefined, 204);
+  const remaining = await api('/stocks');
+  const old = remaining.papiers_cartonnes.find(p => p.papier_cartonne_id === shared.id && p.nom === shared.nom);
+  assert.equal(old.nb_feuilles_base, 5);
+  assert.equal(old.nb_feuilles, 5);
+});
+
+test('stocks : matériaux homonymes de catalogues différents et matériaux absents', async () => {
+  const a = await fixture({ counts: [1], materials: { papier_spe: 'Même libellé', embellissement: null } });
+  const b = await fixture({ counts: [1], materials: { papier_spe: 'Même libellé', embellissement: null } });
+  const c = await fixture({ counts: [1], materials: { papier_spe: null, embellissement: 'Seul embellissement' } });
+  await api('/commandes', 'POST', payload(a, 'C', { papier_supplementaire: true }), 201);
+  // Un titre historique peut être réutilisé par une autre source après renommage.
+  await api(`/catalogues/${a.catalogue.id}`, 'PUT', { titre: `${a.catalogue.titre} renommé` });
+  await api(`/catalogues/${b.catalogue.id}`, 'PUT', { titre: a.catalogue.titre });
+  b.catalogue = await api(`/catalogues/${b.catalogue.id}`);
+  for (const f of [b, c]) await api('/commandes', 'POST', payload(f, 'C', { papier_supplementaire: true }), 201);
+  const stock = await api('/stocks');
+  const papers = stock.papier_spe.filter(p => [a.catalogue.id, b.catalogue.id].includes(p.catalogue_id));
+  assert.equal(papers.length, 2);
+  assert.deepEqual(papers.map(p => p.nb_commandes), [1, 1]);
+  assert.equal(new Set(papers.map(p => p.cle)).size, 2);
+  assert.equal(papers[0].catalogue_titre, papers[1].catalogue_titre);
+  assert.equal(stock.papier_spe.some(p => p.catalogue_id === c.catalogue.id), false);
+  assert.equal(stock.embellissement.some(p => [a.catalogue.id, b.catalogue.id].includes(p.catalogue_id)), false);
+  assert.equal(stock.embellissement.find(p => p.catalogue_id === c.catalogue.id).nb_commandes, 1);
+  assert.equal(stock.rubans.some(p => [a.catalogue.id, b.catalogue.id, c.catalogue.id].includes(p.catalogue_id)), false);
 });
 
 test('hors-kit conserve son contrat et sa fidélité ; règlement dédié, modification et suppression protègent toutes les commandes réglées', async () => {
