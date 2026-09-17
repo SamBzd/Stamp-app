@@ -13,6 +13,13 @@ complet, conservation historique, règlement dédié, immutabilité, suppression
 stocks et bilan limité aux commandes réglées. Ces tests utilisent une base
 temporaire et ne touchent aucune base locale du projet ni le NAS.
 
+La couverture Stocks de l’issue #10 vérifie aussi les papiers partagés,
+les homonymes identifiés, les provenances et quantités base/final,
+les nouvelles commandes après renommage et les matériaux absents. Les tests
+`frontend/test/stocks-store.test.js` vérifient les états Stocks/Bilan indépendants
+et le rejet des réponses anciennes. La [recette Stocks](stocks.md#vérifications)
+complète cette couverture par un contrôle visuel sur données fictives.
+
 ## Contrôles disponibles
 
 `npm run check` exécute aussi les tests frontend natifs

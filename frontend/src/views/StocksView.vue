@@ -1,11 +1,11 @@
 <template>
-  <Layout>
+  <Layout class="stocks-layout">
     <div class="stocks-view">
       <!-- Page Header -->
       <header class="page-header">
         <div>
           <h1 class="page-title">Stocks</h1>
-          <p class="page-subtitle">Calcul et suivi des besoins fournisseur</p>
+          <p class="page-subtitle">Quantités à préparer depuis les commandes enregistrées</p>
         </div>
       </header>
 
@@ -13,6 +13,7 @@
       <div class="tabs">
         <button
           :class="['tab-btn', { active: activeTab === 'stocks' }]"
+          :aria-pressed="activeTab === 'stocks'"
           @click="activeTab = 'stocks'"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -24,6 +25,7 @@
         </button>
         <button
           :class="['tab-btn', { active: activeTab === 'bilan' }]"
+          :aria-pressed="activeTab === 'bilan'"
           @click="activeTab = 'bilan'"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -40,7 +42,7 @@
       <div v-if="activeTab === 'stocks'" class="tab-content">
         <!-- Toolbar -->
         <div class="stocks-toolbar">
-          <Button @click="handleRecalculate" :loading="stocksStore.loading">
+          <Button @click="stocksStore.fetchStocks()" :loading="stocksStore.loadingStocks">
             <template #icon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="23 4 23 10 17 10"/>
@@ -52,13 +54,15 @@
           </Button>
         </div>
 
-        <div v-if="stocksStore.loading && !stocksStore.stocks" class="loading-state">
+        <p class="stock-explanation">Toutes les commandes kits conservées sont incluses, réglées ou non. L’option double uniquement les feuilles de base. Les libellés sont ceux enregistrés dans les commandes : une même référence renommée peut apparaître sous plusieurs libellés historiques.</p>
+
+        <div v-if="stocksStore.loadingStocks && !stocksStore.stocks" class="loading-state" role="status">
           <div class="loading-spinner"></div>
           <span class="loading-state-text">Chargement...</span>
         </div>
 
-        <div v-else-if="stocksStore.error" class="error-state">
-          <p>{{ stocksStore.error }}</p>
+        <div v-else-if="stocksStore.stocksError" class="error-state" role="alert">
+          <p>{{ stocksStore.stocksError }}</p>
           <Button variant="secondary" @click="stocksStore.fetchStocks()">Réessayer</Button>
         </div>
 
@@ -75,20 +79,34 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>Aucun papier cartonné à commander</span>
+              <span>Aucun papier cartonné à préparer</span>
             </div>
             <div v-else class="stock-table-wrapper">
               <table class="stock-table">
                 <thead>
                   <tr>
-                    <th>Nom</th>
-                    <th class="col-number">Feuilles à commander</th>
+                    <th>Libellé enregistré</th>
+                    <th class="col-number">Feuilles de base</th>
+                    <th class="col-number">Feuilles à préparer</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in stocksStore.stocks.papiers_cartonnes" :key="item.nom">
-                    <td class="cell-name">{{ item.nom }}</td>
-                    <td class="cell-number">
+                  <tr v-for="item in stocksStore.stocks.papiers_cartonnes" :key="item.cle">
+                    <td class="cell-name">
+                      {{ item.nom }}
+                      <details class="stock-provenance">
+                        <summary>Origine des feuilles · papier n°{{ item.papier_cartonne_id }}</summary>
+                        <ul>
+                          <li v-for="source in item.provenances" :key="source.cle">
+                            {{ source.catalogue_titre }} (catalogue n°{{ source.catalogue_id }}) /
+                            {{ source.collection_nom }} (collection n°{{ source.collection_id }}) :
+                            {{ source.nb_feuilles_base }} de base → {{ source.nb_feuilles }} à préparer
+                          </li>
+                        </ul>
+                      </details>
+                    </td>
+                    <td class="cell-number" data-label="Feuilles de base">{{ item.nb_feuilles_base }}</td>
+                    <td class="cell-number" data-label="Feuilles à préparer">
                       <span class="badge-count">{{ item.nb_feuilles }}</span>
                     </td>
                   </tr>
@@ -108,20 +126,22 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>Aucun papier spécial à commander</span>
+              <span>Aucun papier spécial à préparer</span>
             </div>
             <div v-else class="stock-table-wrapper">
               <table class="stock-table">
                 <thead>
                   <tr>
                     <th>Papier spécial</th>
-                    <th class="col-number">Nb commandes</th>
+                    <th>Catalogue enregistré</th>
+                    <th class="col-number">Unités à préparer</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in stocksStore.stocks.papier_spe" :key="item.papier_spe">
+                  <tr v-for="item in stocksStore.stocks.papier_spe" :key="item.cle">
                     <td class="cell-name">{{ item.papier_spe }}</td>
-                    <td class="cell-number">
+                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
+                    <td class="cell-number" data-label="Unités à préparer">
                       <span class="badge-count">{{ item.nb_commandes }}</span>
                     </td>
                   </tr>
@@ -141,22 +161,41 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>Aucun embellissement à commander</span>
+              <span>Aucun embellissement à préparer</span>
             </div>
             <div v-else class="stock-table-wrapper">
               <table class="stock-table">
                 <thead>
                   <tr>
                     <th>Embellissement</th>
-                    <th class="col-number">Nb commandes</th>
+                    <th>Catalogue enregistré</th>
+                    <th class="col-number">Unités à préparer</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in stocksStore.stocks.embellissement" :key="item.embellissement">
+                  <tr v-for="item in stocksStore.stocks.embellissement" :key="item.cle">
                     <td class="cell-name">{{ item.embellissement }}</td>
-                    <td class="cell-number">
+                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
+                    <td class="cell-number" data-label="Unités à préparer">
                       <span class="badge-count">{{ item.nb_commandes }}</span>
                     </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="stock-section">
+            <h2 class="section-title"><span class="section-dot section-dot-green"></span>Rubans</h2>
+            <div v-if="!stocksStore.stocks.rubans?.length" class="empty-section">Aucun ruban à préparer</div>
+            <div v-else class="stock-table-wrapper">
+              <table class="stock-table">
+                <thead><tr><th>Libellé enregistré</th><th>Catalogue enregistré</th><th class="col-number">Unités à préparer</th></tr></thead>
+                <tbody>
+                  <tr v-for="item in stocksStore.stocks.rubans" :key="item.cle">
+                    <td class="cell-name">{{ item.nom }}<span class="stock-reference">Ruban n°{{ item.ruban_id }}</span></td>
+                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
+                    <td class="cell-number" data-label="Unités à préparer"><span class="badge-count">{{ item.quantite }}</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -174,7 +213,7 @@
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
-              <span>Aucune collection à commander</span>
+              <span>Aucune collection à préparer</span>
             </div>
             <div v-else class="stock-table-wrapper">
               <table class="stock-table">
@@ -183,17 +222,19 @@
                     <th>Collection</th>
                     <th>Catalogue</th>
                     <th class="col-number">Nb commandes</th>
-                    <th class="col-number">Total feuilles</th>
+                    <th class="col-number">Feuilles de base</th>
+                    <th class="col-number">Feuilles à préparer</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in stocksStore.stocks.collections" :key="item.nom + item.catalogue_titre">
-                    <td class="cell-name">{{ item.nom }}</td>
-                    <td class="cell-secondary">{{ item.catalogue_titre }}</td>
-                    <td class="cell-number">
+                  <tr v-for="item in stocksStore.stocks.collections" :key="item.cle">
+                    <td class="cell-name">{{ item.nom }}<span class="stock-reference">Collection n°{{ item.collection_id }}</span></td>
+                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
+                    <td class="cell-number" data-label="Commandes">
                       <span class="badge-count">{{ item.nb_commandes }}</span>
                     </td>
-                    <td class="cell-number">{{ item.total_feuilles }}</td>
+                    <td class="cell-number" data-label="Feuilles de base">{{ item.total_feuilles_base }}</td>
+                    <td class="cell-number" data-label="Feuilles à préparer">{{ item.total_feuilles }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -209,8 +250,8 @@
             </svg>
           </div>
           <h3 class="empty-state-title">Aucune donnée</h3>
-          <p class="empty-state-description">Cliquez sur "Actualiser" pour calculer les stocks</p>
-          <Button @click="handleRecalculate" :loading="stocksStore.loading">Actualiser</Button>
+          <p class="empty-state-description">Cliquez sur "Actualiser" pour charger les quantités à préparer</p>
+          <Button @click="stocksStore.fetchStocks()" :loading="stocksStore.loadingStocks">Actualiser</Button>
         </div>
       </div>
 
@@ -227,18 +268,18 @@
               class="month-input"
             />
           </div>
-          <Button @click="handleLoadBilan" :loading="stocksStore.loading">
+          <Button @click="handleLoadBilan" :loading="stocksStore.loadingBilan">
             Charger
           </Button>
         </div>
 
-        <div v-if="stocksStore.loading" class="loading-state">
+        <div v-if="stocksStore.loadingBilan" class="loading-state" role="status">
           <div class="loading-spinner"></div>
           <span class="loading-state-text">Chargement du bilan...</span>
         </div>
 
-        <div v-else-if="stocksStore.error" class="error-state">
-          <p>{{ stocksStore.error }}</p>
+        <div v-else-if="stocksStore.bilanError" class="error-state" role="alert">
+          <p>{{ stocksStore.bilanError }}</p>
         </div>
 
         <div v-else-if="stocksStore.bilan" class="bilan-content">
@@ -364,14 +405,6 @@ const selectedMois = ref(
   `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
 );
 
-const handleRecalculate = async () => {
-  try {
-    await stocksStore.recalculate();
-  } catch (error) {
-    console.error('Erreur recalcul:', error);
-  }
-};
-
 const handleLoadBilan = async () => {
   await stocksStore.fetchBilan(selectedMois.value);
 };
@@ -387,6 +420,8 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.stocks-layout :deep(.main-content) { min-width: 0; }
+
 .stocks-view {
   max-width: var(--content-max-width);
   animation: fadeInUp 0.4s ease-out;
@@ -493,6 +528,26 @@ onMounted(async () => {
   gap: var(--spacing-8);
 }
 
+.stock-explanation {
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--spacing-6);
+}
+
+.stock-provenance,
+.stock-reference {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  margin-top: var(--spacing-2);
+}
+
+.stock-reference { display: block; }
+.stock-provenance summary { cursor: pointer; }
+.stock-provenance summary:focus-visible,
+.tab-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.stock-provenance ul { padding-left: var(--spacing-5); line-height: 1.6; }
+
 .stock-section,
 .bilan-section {
   display: flex;
@@ -525,11 +580,13 @@ onMounted(async () => {
 
 /* === Tables === */
 .stock-table-wrapper {
+  min-width: 0;
+  max-width: 100%;
   background: var(--card);
   border-radius: var(--border-radius-xl);
   border: 1px solid var(--border-light);
   box-shadow: var(--shadow-card);
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .stock-table {
@@ -573,6 +630,7 @@ onMounted(async () => {
 .stock-table td {
   padding: var(--spacing-4) var(--spacing-5);
   color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
 .cell-name {
@@ -709,6 +767,23 @@ onMounted(async () => {
 
 /* === Responsive === */
 @media (max-width: 640px) {
+  .stocks-sections .stock-table thead { display: none; }
+  .stocks-sections .stock-table tbody tr { display: block; padding: var(--spacing-4); }
+  .stocks-sections .stock-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--spacing-3);
+    padding: var(--spacing-2) 0;
+    text-align: right;
+  }
+  .stocks-sections .stock-table td:first-child { display: block; text-align: left; }
+  .stocks-sections .stock-table td[data-label]::before {
+    content: attr(data-label);
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-normal);
+    text-align: left;
+  }
+
   .bilan-ca-value {
     font-size: var(--font-size-3xl);
   }

@@ -11,6 +11,7 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [Schéma et import clientes](schema-import-clients.md) : structures de l’issue #5, migration et préparation d’une base neuve.
 - [API catalogues et archivage](catalogue-api.md) : endpoints, tarifs en centimes, publication, démotion et erreurs de l’issue #6.
 - [API commandes kits](commandes-kit-api.md) : compositions A/B/C, snapshots, prix, règlement, stocks et bilan de l’issue #7.
+- [Quantités à préparer](stocks.md) : identité, provenance historique, quantités de base/finales et rubans de l’issue #10.
 - [Parcours catalogue et archivage](catalogue-ui.md) : préparation/publication, tarifs par défaut et locaux, archivage/restauration de l’issue #8.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.

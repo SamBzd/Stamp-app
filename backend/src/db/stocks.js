@@ -5,46 +5,84 @@ const db = require('./connection');
  */
 function getStocks() {
     const papiers_cartonnes = db.prepare(`
-        SELECT cps.papier_nom AS nom,
+        SELECT cps.papier_cartonne_id, cps.papier_nom AS nom,
+          SUM(cps.quantite_base) AS nb_feuilles_base,
           SUM(cps.quantite_base * CASE WHEN c.papier_supplementaire = 1 THEN 2 ELSE 1 END) AS nb_feuilles
         FROM commande_papiers_selectionnes cps
         JOIN commande_collections cc ON cc.id = cps.commande_collection_id
         JOIN commandes c ON c.id = cc.commande_id AND c.type = 'kit'
         GROUP BY cps.papier_cartonne_id, cps.papier_nom
-        ORDER BY nb_feuilles DESC
+        ORDER BY nb_feuilles DESC, cps.papier_cartonne_id, cps.papier_nom
     `).all();
 
+    // La provenance est elle aussi historique : aucune jointure sur les sources.
+    const provenances = db.prepare(`
+        SELECT cps.papier_cartonne_id, cps.papier_nom AS nom,
+          c.catalogue_id, c.catalogue_titre, cc.collection_id, cc.collection_nom,
+          SUM(cps.quantite_base) AS nb_feuilles_base,
+          SUM(cps.quantite_base * CASE WHEN c.papier_supplementaire = 1 THEN 2 ELSE 1 END) AS nb_feuilles
+        FROM commande_papiers_selectionnes cps
+        JOIN commande_collections cc ON cc.id = cps.commande_collection_id
+        JOIN commandes c ON c.id = cc.commande_id AND c.type = 'kit'
+        GROUP BY cps.papier_cartonne_id, cps.papier_nom, c.catalogue_id,
+          c.catalogue_titre, cc.collection_id, cc.collection_nom
+        ORDER BY c.catalogue_id, c.catalogue_titre, cc.collection_id, cc.collection_nom
+    `).all();
+    const provenanceByPaper = new Map();
+    for (const provenance of provenances) {
+        const key = JSON.stringify([provenance.papier_cartonne_id, provenance.nom]);
+        if (!provenanceByPaper.has(key)) provenanceByPaper.set(key, []);
+        provenanceByPaper.get(key).push({ ...provenance,
+            cle: JSON.stringify([provenance.catalogue_id, provenance.catalogue_titre,
+                provenance.collection_id, provenance.collection_nom]) });
+    }
+    for (const paper of papiers_cartonnes) {
+        paper.cle = JSON.stringify([paper.papier_cartonne_id, paper.nom]);
+        paper.provenances = provenanceByPaper.get(paper.cle) || [];
+    }
+
     const papier_spe = db.prepare(`
-        SELECT c.papier_spe_nom AS papier_spe, SUM(c.papier_spe_quantite) AS nb_commandes
+        SELECT c.catalogue_id, c.catalogue_titre,
+          c.papier_spe_nom AS papier_spe, SUM(c.papier_spe_quantite) AS nb_commandes
         FROM commandes c
         WHERE c.type = 'kit' AND c.papier_spe_nom IS NOT NULL
-        GROUP BY c.papier_spe_nom
+        GROUP BY c.catalogue_id, c.catalogue_titre, c.papier_spe_nom
+        ORDER BY c.catalogue_id, c.catalogue_titre, c.papier_spe_nom
     `).all();
 
     const embellissement = db.prepare(`
-        SELECT c.embellissement_nom AS embellissement, SUM(c.embellissement_quantite) AS nb_commandes
+        SELECT c.catalogue_id, c.catalogue_titre,
+          c.embellissement_nom AS embellissement, SUM(c.embellissement_quantite) AS nb_commandes
         FROM commandes c
         WHERE c.type = 'kit' AND c.embellissement_nom IS NOT NULL
-        GROUP BY c.embellissement_nom
+        GROUP BY c.catalogue_id, c.catalogue_titre, c.embellissement_nom
+        ORDER BY c.catalogue_id, c.catalogue_titre, c.embellissement_nom
     `).all();
 
     const collections = db.prepare(`
-        SELECT cc.collection_nom AS nom, c.catalogue_titre,
+        SELECT cc.collection_id, c.catalogue_id, cc.collection_nom AS nom, c.catalogue_titre,
           COUNT(DISTINCT cc.commande_id) AS nb_commandes,
+          SUM(cc.nb_feuilles) AS total_feuilles_base,
           SUM(cc.nb_feuilles * CASE WHEN c.papier_supplementaire = 1 THEN 2 ELSE 1 END) AS total_feuilles
         FROM commande_collections cc
-        JOIN commandes c ON c.id = cc.commande_id
-        GROUP BY cc.collection_id, cc.collection_nom, c.catalogue_titre
-        ORDER BY nb_commandes DESC
+        JOIN commandes c ON c.id = cc.commande_id AND c.type = 'kit'
+        GROUP BY cc.collection_id, c.catalogue_id, cc.collection_nom, c.catalogue_titre
+        ORDER BY nb_commandes DESC, cc.collection_id, cc.collection_nom, c.catalogue_titre
     `).all();
 
     const rubans = db.prepare(`
-        SELECT cr.ruban_nom AS nom, SUM(cr.quantite) AS quantite
+        SELECT cr.ruban_id, c.catalogue_id, c.catalogue_titre,
+          cr.ruban_nom AS nom, SUM(cr.quantite) AS quantite
         FROM commande_rubans cr
         JOIN commandes c ON c.id = cr.commande_id AND c.type = 'kit'
-        GROUP BY cr.ruban_id, cr.ruban_nom
-        ORDER BY cr.ruban_id, cr.ruban_nom
+        GROUP BY cr.ruban_id, cr.ruban_nom, c.catalogue_id, c.catalogue_titre
+        ORDER BY cr.ruban_id, cr.ruban_nom, c.catalogue_titre
     `).all();
+
+    for (const item of papier_spe) item.cle = JSON.stringify([item.catalogue_id, item.catalogue_titre, item.papier_spe]);
+    for (const item of embellissement) item.cle = JSON.stringify([item.catalogue_id, item.catalogue_titre, item.embellissement]);
+    for (const item of collections) item.cle = JSON.stringify([item.collection_id, item.nom, item.catalogue_id, item.catalogue_titre]);
+    for (const item of rubans) item.cle = JSON.stringify([item.ruban_id, item.nom, item.catalogue_id, item.catalogue_titre]);
 
     return { papiers_cartonnes, papier_spe, embellissement, collections, rubans };
 }

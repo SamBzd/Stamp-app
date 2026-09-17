@@ -3,7 +3,7 @@
  * Une URL relative permet au même build de fonctionner derrière tout proxy.
  */
 
-const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+const configuredBaseUrl = import.meta.env?.VITE_API_BASE_URL?.trim();
 const API_BASE_URL = (configuredBaseUrl || '/api').replace(/\/+$/, '');
 
 /**
@@ -103,5 +103,4 @@ export const settingsAPI = {
 export const stocksAPI = {
   get: () => apiCall('/stocks'),
   getBilan: (mois) => apiCall(`/stocks/bilan?mois=${mois}`),
-  recalculate: () => apiCall('/stocks/recalculate', { method: 'POST' }),
 };

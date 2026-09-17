@@ -133,10 +133,12 @@ est conservée ; sa redéfinition est hors périmètre.
 
 ## Stocks, bilan et erreurs
 
-`GET /api/stocks` ajoute `rubans: [{ nom, quantite }]` aux quatre catégories
-existantes. Les papiers et `collections.total_feuilles` comptent l’option ; le
-ruban et les matériaux ne sont jamais doublés. Les noms viennent des snapshots :
-un même ID source renommé peut donc donner plusieurs lignes historiques.
+`GET /api/stocks` expose les cinq catégories, rubans compris. Les papiers et
+`collections.total_feuilles` comptent l’option ; le ruban et les matériaux ne
+sont jamais doublés. Les noms viennent des snapshots : un même ID source
+renommé peut donc donner plusieurs lignes historiques, identifiées séparément.
+Les quantités de base et les provenances sont explicites depuis l’issue #10 :
+voir [le contrat et le parcours Stocks](stocks.md).
 Les stocks comprennent les commandes réglées et non réglées conservées.
 
 `GET /api/stocks/bilan?mois=YYYY-MM` ne retient que les commandes réglées, pour

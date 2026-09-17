@@ -122,8 +122,15 @@ test('les lectures kit utilisent les snapshots, quantités et prix appliqué mé
   assert.equal(detail.papiers_selectionnes[0].nom, 'Original');
   assert.deepEqual(detail.ruban, { ruban_id: ruban, ruban_nom: 'Ruban original', quantite: 1 });
   const stock = await (await fetch(`${baseUrl}/api/stocks`)).json();
-  assert.deepEqual(stock.papiers_cartonnes, [{ nom: 'Original', nb_feuilles: 10 }]);
-  assert.deepEqual(stock.papier_spe, [{ papier_spe: 'Special', nb_commandes: 1 }]);
+  assert.equal(stock.papiers_cartonnes.length, 1);
+  assert.equal(stock.papiers_cartonnes[0].papier_cartonne_id, papier);
+  assert.equal(stock.papiers_cartonnes[0].nom, 'Original');
+  assert.equal(stock.papiers_cartonnes[0].nb_feuilles_base, 5);
+  assert.equal(stock.papiers_cartonnes[0].nb_feuilles, 10);
+  assert.equal(stock.papier_spe.length, 1);
+  assert.equal(stock.papier_spe[0].papier_spe, 'Special');
+  assert.equal(stock.papier_spe[0].catalogue_id, catalogue);
+  assert.equal(stock.papier_spe[0].nb_commandes, 1);
   const unpaid = await (await fetch(`${baseUrl}/api/stocks/bilan?mois=2024-03`)).json();
   assert.equal(unpaid.chiffre_affaires, 0);
   databaseConnection.prepare('UPDATE commandes SET reglee=1 WHERE id=?').run(order);
