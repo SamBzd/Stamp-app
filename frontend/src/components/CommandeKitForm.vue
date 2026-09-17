@@ -244,11 +244,11 @@ function defaultForm() {
 
 // Options
 const clientsOptions = computed(() =>
-  clients.value.map(c => ({ value: String(c.id), label: `${c.prenom} ${c.nom}` }))
+  clients.value.filter(c => !c.archive).map(c => ({ value: String(c.id), label: `${c.prenom} ${c.nom}` }))
 );
 
 const cataloguesOptions = computed(() =>
-  catalogues.value.map(c => ({ value: String(c.id), label: c.titre }))
+  catalogues.value.filter(c => !c.archive && c.statut === 'publie').map(c => ({ value: String(c.id), label: c.titre }))
 );
 
 const catalogueCollections = computed(() =>

@@ -15,11 +15,11 @@ export const useClientsStore = defineStore('clients', {
   },
 
   actions: {
-    async fetchClients() {
+    async fetchClients(options = {}) {
       this.loading = true;
       this.error = null;
       try {
-        this.clients = await clientsAPI.getAll();
+        this.clients = await clientsAPI.getAll(options);
       } catch (error) {
         this.error = error.message;
         console.error('Erreur lors de la récupération des clients:', error);
@@ -81,12 +81,14 @@ export const useClientsStore = defineStore('clients', {
       }
     },
 
-    async deleteClient(id) {
+    async setArchive(id, archive) {
       this.loading = true;
       this.error = null;
       try {
-        await clientsAPI.delete(id);
-        this.clients = this.clients.filter(c => c.id !== id);
+        const updated = await clientsAPI.setArchive(id, archive);
+        const index = this.clients.findIndex(c => c.id === id);
+        if (index !== -1) this.clients[index] = updated;
+        return updated;
       } catch (error) {
         this.error = error.message;
         throw error;

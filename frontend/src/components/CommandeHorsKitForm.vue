@@ -121,7 +121,7 @@ function defaultForm() {
 }
 
 const clientsOptions = computed(() =>
-  clients.value.map(c => ({ value: String(c.id), label: `${c.prenom} ${c.nom}` }))
+  clients.value.filter(c => !c.archive).map(c => ({ value: String(c.id), label: `${c.prenom} ${c.nom}` }))
 );
 
 const handleSubmit = async () => {

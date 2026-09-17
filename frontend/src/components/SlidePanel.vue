@@ -2,10 +2,10 @@
   <Teleport to="body">
     <Transition name="slide-panel">
       <div v-if="isOpen" class="slide-panel-overlay" @click.self="$emit('close')">
-        <div class="slide-panel" :style="{ maxWidth: maxWidth }">
+        <div ref="dialog" class="slide-panel" :style="{ maxWidth: maxWidth }" role="dialog" aria-modal="true" :aria-label="title || 'Détails'" tabindex="-1">
           <!-- Header -->
           <div class="slide-panel-header">
-            <h2 class="slide-panel-title">{{ title }}</h2>
+            <h2 v-if="title" class="slide-panel-title">{{ title }}</h2>
             <button class="slide-panel-close" @click="$emit('close')" title="Fermer (Échap)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -30,7 +30,8 @@
 </template>
 
 <script setup>
-import { watch, onMounted, onUnmounted } from 'vue';
+import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
+import { lockBodyScroll } from '../composables/useBodyScrollLock';
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
@@ -39,17 +40,39 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
+const dialog = ref(null);
+let previousFocus;
+let releaseScrollLock;
 
 // Escape key handler
 const onKeydown = (e) => {
+  if (!props.isOpen || !dialog.value) return;
+  if (document.querySelector('.modal-overlay')) return;
   if (e.key === 'Escape' && props.isOpen) {
     emit('close');
+  }
+  if (e.key === 'Tab') {
+    const controls = [...dialog.value.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]')].filter(element => element.getClientRects().length);
+    const first = controls[0];
+    const last = controls.at(-1);
+    if (!first) { e.preventDefault(); dialog.value.focus(); }
+    else if (e.shiftKey && (document.activeElement === first || !dialog.value.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !dialog.value.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
   }
 };
 
 // Body scroll lock
-watch(() => props.isOpen, (open) => {
-  document.body.style.overflow = open ? 'hidden' : '';
+watch(() => props.isOpen, async (open) => {
+  if (open) {
+    previousFocus = document.activeElement;
+    releaseScrollLock = lockBodyScroll();
+    await nextTick();
+    dialog.value?.querySelector('button')?.focus();
+  } else {
+    releaseScrollLock?.();
+    releaseScrollLock = undefined;
+    previousFocus?.focus();
+  }
 });
 
 onMounted(() => {
@@ -58,7 +81,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeydown);
-  document.body.style.overflow = '';
+  releaseScrollLock?.();
 });
 </script>
 
@@ -106,6 +129,7 @@ onUnmounted(() => {
 }
 
 .slide-panel-close {
+  margin-left: auto;
   width: 36px;
   height: 36px;
   border: none;
@@ -140,6 +164,7 @@ onUnmounted(() => {
 /* === Footer === */
 .slide-panel-footer {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: var(--spacing-3);

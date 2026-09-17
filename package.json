@@ -11,7 +11,7 @@
     "db:dev:migrate": "STAMP_DB_PATH=\"$PWD/db/dev.db\" npm run db:migrate --prefix backend",
     "db:dev:migrate:status": "STAMP_DB_PATH=\"$PWD/db/dev.db\" npm run db:migrate:status --prefix backend",
     "db:dev:reset": "node backend/scripts/init-dev-db.js --reset",
-    "check": "npm run check --prefix backend && npm run build --prefix frontend",
+    "check": "npm run check --prefix backend && npm test --prefix frontend && npm run build --prefix frontend",
     "check:docker": "docker compose config --quiet"
   },
   "dependencies": {

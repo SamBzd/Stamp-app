@@ -9,11 +9,11 @@ export const useCataloguesStore = defineStore('catalogues', {
   }),
 
   actions: {
-    async fetchCatalogues() {
+    async fetchCatalogues(options = {}) {
       this.loading = true;
       this.error = null;
       try {
-        this.catalogues = await cataloguesAPI.getAll();
+        this.catalogues = await cataloguesAPI.getAll(options);
       } catch (error) {
         this.error = error.message;
       } finally {
@@ -51,13 +51,10 @@ export const useCataloguesStore = defineStore('catalogues', {
       }
     },
 
-    async deleteCatalogue(id) {
-      try {
-        await cataloguesAPI.delete(id);
-        this.catalogues = this.catalogues.filter(c => c.id !== id);
-      } catch (error) {
-        throw error;
-      }
+    rememberCatalogue(catalogue) {
+      const index = this.catalogues.findIndex(c => c.id === catalogue.id);
+      if (index !== -1) this.catalogues[index] = catalogue;
+      else this.catalogues.unshift(catalogue);
     },
   },
 });
