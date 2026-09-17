@@ -37,7 +37,8 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   [le contrat commandes](commandes-kit-api.md). Le parcours
   catalogue, les paramètres tarifaires et l’archivage des clientes sont
   implémentés en issue #8 : voir [le parcours UI](catalogue-ui.md). L’interface
-  commandes (#9) reste à intégrer ; ce socle n’est pas prêt pour le déploiement.
+  commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
+  Ce socle n’est pas prêt pour le déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.
