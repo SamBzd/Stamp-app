@@ -43,9 +43,9 @@ composition avant de passer à l'état réglé.
 
 L’API paramètres/catalogues utilise maintenant uniquement les champs
 `prix_A_cents`, `prix_B_cents`, `prix_C_cents`, avec des nombres entiers en
-centimes. Le frontend conserve encore son ancien contrat en euros : son
-adaptation reste dans les lots UI #8/#9 ; le build seul ne valide pas ces
-parcours. Voir [le contrat API #6](catalogue-api.md).
+centimes. Le frontend convertit les saisies en euros et utilise ce contrat dans
+les parcours [catalogues #8](catalogue-ui.md) et [commandes #9](commandes-ui.md).
+Le contrat hors-kit conserve ses montants en euros. Voir [le contrat API #6](catalogue-api.md).
 Les lectures commandes et stocks sont adaptées à la relation papier/ligne de
 collection, et le bilan lit le montant appliqué mémorisé.
 Le détail d'un kit expose aussi `ruban` (objet contenant `ruban_id`, `ruban_nom`

@@ -1,689 +1,212 @@
 <template>
-  <Modal :is-open="isOpen" title="Nouveau kit" max-width="640px" @close="$emit('close')">
-    <form class="kit-form" @submit.prevent="handleSubmit">
-
-      <!-- 1. Sélection cliente -->
-      <FormSelect
-        v-model="form.client_id"
-        label="Cliente"
-        placeholder="Sélectionner une cliente..."
-        :options="clientsOptions"
-        :error="errors.client_id"
-        required
-      />
-
-      <!-- 2. Sélection catalogue -->
-      <FormSelect
-        v-model="form.catalogue_id"
-        label="Catalogue"
-        placeholder="Sélectionner un catalogue..."
-        :options="cataloguesOptions"
-        :error="errors.catalogue_id"
-        required
-        @update:model-value="onCatalogueChange"
-      />
-
-      <!-- 3. Sélection format -->
-      <div v-if="form.catalogue_id" class="form-field">
-        <label class="form-label">Format <span class="form-required">*</span></label>
-        <div class="format-radios">
-          <label
-            v-for="f in ['A', 'B', 'C']"
-            :key="f"
-            :class="['format-radio', `format-radio-${f.toLowerCase()}`, { selected: form.format_type === f }]"
-            @click="selectFormat(f)"
-          >
-            <span class="format-letter">{{ f }}</span>
-            <span class="format-price">{{ settings[`prix_${f}`] ? `${settings[`prix_${f}`]}€` : '—' }}</span>
-            <span class="format-info">{{ f === 'C' ? '1 collection' : '2 collections' }}</span>
-          </label>
-        </div>
-        <p v-if="errors.format_type" class="form-error">{{ errors.format_type }}</p>
+  <Modal :is-open="isOpen && !confirmClose" :title="commande ? `Modifier le kit #${commande.id}` : 'Nouveau kit'" max-width="760px" @close="requestClose">
+    <form :id="formId" class="kit-form" novalidate @submit.prevent="handleSubmit">
+      <p v-if="loading" role="status">Chargement des clientes et catalogues…</p>
+      <div v-if="loadError" class="error-box" role="alert"><p>{{ loadError }}</p><Button variant="secondary" @click="loadForm">Réessayer</Button></div>
+      <div v-if="Object.keys(errors).length" ref="errorSummary" tabindex="-1" class="error-box" role="alert">
+        <p>La commande n’a pas été enregistrée.</p>
+        <ul><li v-for="(message, key) in errors" :key="key"><a v-if="errorTarget(key)" :href="`#${errorTarget(key)}`" @click.prevent="focusError(key)">{{ message }}</a><span v-else>{{ message }}</span></li></ul>
       </div>
-
-      <!-- 4a. Format A/B : 2 selects de collection avec nb_feuilles -->
-      <template v-if="form.format_type && form.format_type !== 'C' && catalogueCollections.length > 0">
-        <div v-for="(slot, idx) in 2" :key="`col-${idx}`" class="collection-slot">
-          <div class="collection-slot-header">
-            <label class="form-label">Collection {{ idx + 1 }} <span class="form-required">*</span></label>
-            <div class="nb-feuilles-toggle">
-              <button
-                type="button"
-                :class="['nb-btn', { active: form.collections[idx]?.nb_feuilles === 2 }]"
-                @click="setNbFeuilles(idx, 2)"
-              >×2</button>
-              <button
-                type="button"
-                :class="['nb-btn', { active: form.collections[idx]?.nb_feuilles === 3 }]"
-                @click="setNbFeuilles(idx, 3)"
-              >×3</button>
-            </div>
+      <fieldset :disabled="loading || saving || Boolean(loadError) || Boolean(commande?.reglee)" class="form-body">
+        <p v-if="commande" class="notice">L’édition recalcule le prix et la composition depuis le catalogue actuel. L’ancien prix {{ formatMoney(commande.prix_applique_cents) }} ({{ commande.prix_origine }}) n’est pas reconduit automatiquement.</p>
+        <p v-if="commande?.reglee" class="notice">Cette commande est réglée et ne peut plus être modifiée.</p>
+        <section>
+          <h3>1. Cliente et catalogue</h3>
+          <div class="field">
+            <label :for="id('client_id')">Cliente *</label>
+            <select :id="id('client_id')" v-model="form.client_id" :disabled="Boolean(commande)" :aria-invalid="Boolean(errors.client_id)">
+              <option value="" disabled>Choisir une cliente…</option>
+              <option v-if="commande" :value="String(commande.client_id)">{{ commande.client?.prenom }} {{ commande.client?.nom }} — cliente conservée</option>
+              <template v-else><option v-for="client in clients" :key="client.id" :value="String(client.id)">{{ client.prenom }} {{ client.nom }}</option></template>
+            </select>
+            <p v-if="errors.client_id" class="field-error">{{ errors.client_id }}</p>
+            <p v-if="!commande && !clients.length && !loading" class="hint">Aucune cliente active. Créez ou restaurez une cliente avant de commander.</p>
           </div>
-          <FormSelect
-            v-model="form.collections[idx].collection_id"
-            :options="cataloguesOptions.length > 0 ? collectionOptions : []"
-            placeholder="Sélectionner une collection..."
-            :error="errors[`collection_${idx}`]"
-            @update:model-value="(val) => onCollectionChange(idx, val)"
-          />
-          <!-- Papiers de la collection sélectionnée (lecture seule) -->
-          <div v-if="getCollectionPapiers(idx).length > 0" class="papiers-preview">
-            <span class="papiers-preview-label">Papiers :</span>
-            <span
-              v-for="papier in getCollectionPapiers(idx)"
-              :key="papier.id"
-              class="papier-chip"
-            >{{ papier.nom }}</span>
+          <div class="field">
+            <label :for="id('catalogue_id')">Catalogue *</label>
+            <select :id="id('catalogue_id')" :value="form.catalogue_id" :disabled="!form.client_id" :aria-invalid="Boolean(errors.catalogue_id)" @change="changeCatalogue($event.target.value)">
+              <option value="" disabled>Choisir un catalogue publié…</option>
+              <option v-for="catalogue in catalogues" :key="catalogue.id" :value="String(catalogue.id)">{{ catalogue.titre }}{{ catalogue.id === commande?.catalogue_id && (catalogue.archive || catalogue.statut !== 'publie') ? ' — catalogue d’origine' : '' }}</option>
+            </select>
+            <p v-if="!catalogues.length && !loading" class="hint">Aucun catalogue publié disponible. Préparez et publiez un catalogue avant de commander.</p>
+            <p v-if="catalogueDetail && !formats.length" class="field-error">Le catalogue est devenu incomplet. Complétez-le ou choisissez un autre catalogue.</p>
+            <p v-if="catalogueDetail?.archive || catalogueDetail?.statut === 'brouillon'" class="hint">Le catalogue d’origine reste utilisable pour cette édition s’il est complet.</p>
           </div>
-        </div>
-
-        <!-- Sélection des papiers pour format A/B -->
-        <div v-if="allPapiersAB.length > 0" class="form-field">
-          <label class="form-label">
-            Papiers sélectionnés
-            <span class="form-hint-inline">(issues des collections choisies)</span>
-          </label>
-          <div class="papiers-grid">
-            <label
-              v-for="papier in allPapiersAB"
-              :key="papier.id"
-              :class="['papier-btn', { selected: form.papiers_selectionnes.includes(papier.id) }]"
-            >
-              <input
-                type="checkbox"
-                :value="papier.id"
-                v-model="form.papiers_selectionnes"
-                class="visually-hidden"
-              />
-              {{ papier.nom }}
+        </section>
+        <section v-if="catalogueDetail">
+          <h3>2. Format et composition</h3>
+          <fieldset class="choices"><legend>Format *</legend>
+            <label v-for="format in ['A', 'B', 'C']" :key="format" class="choice" :class="{ selected: form.format_type === format, unavailable: !formats.includes(format) }">
+              <input :id="id(`format-${format}`)" type="radio" :name="id('format_type')" :value="format" :checked="form.format_type === format" :disabled="!formats.includes(format)" @change="changeFormat(format)" />
+              <span><strong>Format {{ format }}</strong><span>{{ formatMoney(catalogueDetail[`prix_${format}_cents`]) }}</span><small>{{ format === 'C' ? '1 collection' : formats.includes(format) ? '2 collections' : '2 collections requises' }}</small></span>
             </label>
-          </div>
-        </div>
-      </template>
-
-      <!-- 4b. Format C : 1 select collection, papiers affichés en lecture seule -->
-      <template v-if="form.format_type === 'C' && catalogueCollections.length > 0">
-        <div class="form-field">
-          <FormSelect
-            v-model="form.collections[0].collection_id"
-            label="Collection"
-            placeholder="Sélectionner une collection..."
-            :options="collectionOptions"
-            :error="errors.collection_0"
-            required
-            @update:model-value="(val) => onCollectionChange(0, val)"
-          />
-          <div v-if="getCollectionPapiers(0).length > 0" class="papiers-preview papiers-preview-block">
-            <span class="papiers-preview-label">Papiers (automatiques) :</span>
-            <div class="papiers-chips">
-              <span
-                v-for="papier in getCollectionPapiers(0)"
-                :key="papier.id"
-                class="papier-chip"
-              >{{ papier.nom }}</span>
+          </fieldset>
+          <p class="hint">Tarifs propres à « {{ catalogueDetail.titre }} ».</p>
+          <div v-for="(line, index) in form.collections" :key="index" class="collection-slot">
+            <div class="field">
+              <label :for="id(`collection_${index}`)">{{ form.format_type === 'C' ? 'Collection' : `Collection ${index + 1}` }} *</label>
+              <select :id="id(`collection_${index}`)" :value="line.collection_id" :aria-invalid="Boolean(errors[`collection_${index}`])" @change="changeCollection(index, $event.target.value)">
+                <option value="" disabled>Choisir une collection…</option>
+                <option v-for="collection in catalogueDetail.collections" :key="collection.id" :value="String(collection.id)" :disabled="form.format_type !== 'C' && String(form.collections[1 - index]?.collection_id) === String(collection.id)">{{ collection.nom }}</option>
+              </select>
+              <p v-if="errors[`collection_${index}`]" class="field-error">{{ errors[`collection_${index}`] }}</p>
+            </div>
+            <fieldset v-if="form.format_type !== 'C'" class="contributions"><legend>Contribution de cette collection</legend>
+              <label v-for="quantity in [2, 3]" :key="quantity"><input type="radio" :name="id(`contribution-${index}`)" :checked="line.nb_feuilles === quantity" @change="setKitContribution(form, catalogueDetail, index, quantity)" /> {{ quantity }} feuilles</label>
+            </fieldset>
+            <div v-if="line.collection_id" :id="id(`papiers_${index}`)" tabindex="-1" class="papers">
+              <p v-if="form.format_type === 'C'" class="hint">Conservez au moins un exemplaire de chaque papier et complétez jusqu’à 5 feuilles.</p>
+              <div v-for="paper in line.papiers" :key="paper.papier_cartonne_id" class="paper-row">
+                <label :for="id(`quantity-${index}-${paper.papier_cartonne_id}`)">{{ paperName(index, paper.papier_cartonne_id) }}</label>
+                <input :id="id(`quantity-${index}-${paper.papier_cartonne_id}`)" v-model.number="paper.quantite_base" type="number" inputmode="numeric" :min="form.format_type === 'C' ? 1 : 0" :max="line.nb_feuilles" step="1" :aria-invalid="Boolean(errors[`papiers_${index}`])" :aria-describedby="errors[`papiers_${index}`] ? id(`paper-error-${index}`) : undefined" />
+                <span class="hint">base {{ paper.quantite_base || 0 }} → à préparer {{ (paper.quantite_base || 0) * multiplier }}</span>
+              </div>
+              <p class="allocation" role="status">{{ allocated(line) }} / {{ line.nb_feuilles }} feuilles de base — {{ remainingText(line) }}</p>
+              <p v-if="errors[`papiers_${index}`]" :id="id(`paper-error-${index}`)" class="field-error">{{ errors[`papiers_${index}`] }}</p>
             </div>
           </div>
-        </div>
-      </template>
-
-      <!-- 5. Options supplémentaires -->
-      <div v-if="form.format_type" class="form-extras">
-        <label class="checkbox-label">
-          <input type="checkbox" v-model="form.papier_supplementaire" />
-          <span>Papier supplémentaire (+{{ PAPIER_SUPP_PRIX }}€)</span>
-        </label>
-
-        <div class="extras-row">
-          <FormInput
-            v-model="form.produit_promo_texte"
-            label="Produit promo (texte)"
-            placeholder="Ex: Carnet de voyage"
-          />
-          <FormInput
-            v-model="form.produit_promo_prix"
-            label="Prix promo"
-            type="number"
-            placeholder="0"
-            :min="0"
-          />
-        </div>
-
-        <div class="extras-row">
-          <FormInput
-            v-model="form.autres_texte"
-            label="Autres (texte)"
-            placeholder="Ex: Marque-pages"
-          />
-          <FormInput
-            v-model="form.autres_prix"
-            label="Prix autres"
-            type="number"
-            placeholder="0"
-            :min="0"
-          />
-        </div>
-      </div>
-
-      <!-- 6. Méthode de paiement -->
-      <div v-if="form.format_type" class="form-field">
-        <label class="form-label">Méthode de paiement <span class="form-required">*</span></label>
-        <div class="paiement-radios">
-          <label
-            v-for="p in paiementOptions"
-            :key="p"
-            :class="['paiement-radio', { selected: form.methode_paiement === p }]"
-            @click="form.methode_paiement = p"
-          >
-            {{ p }}
-          </label>
-        </div>
-        <p v-if="errors.methode_paiement" class="form-error">{{ errors.methode_paiement }}</p>
-      </div>
-
-      <!-- 7. Prix total -->
-      <div v-if="form.format_type && totalPrice > 0" class="prix-total-bar">
-        <span class="prix-total-label">Prix total estimé</span>
-        <span class="prix-total-value">{{ totalPrice.toFixed(2) }}€</span>
-      </div>
+        </section>
+        <section v-if="form.format_type">
+          <h3>3. Matériaux et suppléments</h3>
+          <div v-if="catalogueDetail.rubans.length === 2" class="field"><label :for="id('ruban_id')">Ruban *</label><select :id="id('ruban_id')" v-model="form.ruban_id" :aria-invalid="Boolean(errors.ruban_id)"><option value="" disabled>Choisir un ruban…</option><option v-for="ruban in catalogueDetail.rubans" :key="ruban.id" :value="String(ruban.id)">{{ ruban.nom }}</option></select><p v-if="errors.ruban_id" class="field-error">{{ errors.ruban_id }}</p></div>
+          <p v-else class="hint">{{ catalogueDetail.rubans.length ? `Ruban inclus automatiquement : ${catalogueDetail.rubans[0].nom} ×1` : 'Aucun ruban dans ce catalogue.' }}</p>
+          <label class="check"><input v-model="form.papier_supplementaire" type="checkbox" /> Papier supplémentaire (+3,50 €) — les papiers sont doublés</label>
+          <p class="hint">Le ruban, le papier spécial et l’embellissement restent chacun en un exemplaire.</p>
+          <div v-for="category in supplementCategories" :key="category.key" class="extras-row">
+            <div class="field"><label :for="id(`${category.key}_texte`)">{{ category.label }} — libellé</label><input :id="id(`${category.key}_texte`)" v-model="form[`${category.key}_texte`]" type="text" :aria-invalid="Boolean(errors[`${category.key}_texte`])" /><p v-if="errors[`${category.key}_texte`]" class="field-error">{{ errors[`${category.key}_texte`] }}</p></div>
+            <div class="field"><label :for="id(`${category.key}_prix`)">Montant (€)</label><input :id="id(`${category.key}_prix`)" v-model="form[`${category.key}_prix`]" inputmode="decimal" placeholder="0,00" :aria-invalid="Boolean(errors[`${category.key}_prix`])" /><p v-if="errors[`${category.key}_prix`]" class="field-error">{{ errors[`${category.key}_prix`] }}</p></div>
+          </div>
+          <p class="hint">Renseignez ensemble le libellé et le montant ; laissez les deux vides pour ne pas ajouter de supplément.</p>
+        </section>
+        <section v-if="form.format_type">
+          <h3>4. Prix et paiement</h3>
+          <p class="price-line">Total calculé <strong>{{ formatMoney(pricing.automatic) }}</strong></p>
+          <label class="check"><input :checked="form.prix_manuel" type="checkbox" @change="toggleManual($event.target.checked)" /> Corriger manuellement le total</label>
+          <div v-if="form.prix_manuel" class="field"><label :for="id('prix_manuel_euros')">Total manuel (€) *</label><input :id="id('prix_manuel_euros')" v-model="form.prix_manuel_euros" inputmode="decimal" :aria-invalid="Boolean(errors.prix_manuel_euros)" /><p v-if="errors.prix_manuel_euros" class="field-error">{{ errors.prix_manuel_euros }}</p></div>
+          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><div class="field"><label :for="id('date_commande')">Date de commande</label><input :id="id('date_commande')" v-model="form.date_commande" type="date" /></div></div>
+        </section>
+        <section v-if="form.format_type" class="summary" aria-label="Résumé avant enregistrement">
+          <h3>Résumé du kit</h3><p>{{ catalogueDetail.titre }} · Format {{ form.format_type }}</p>
+          <div v-for="(line, index) in form.collections" :key="index"><strong>{{ collectionName(line) || 'Collection à choisir' }}</strong><ul><li v-for="paper in line.papiers.filter(p => Number(p.quantite_base) > 0)" :key="paper.papier_cartonne_id">{{ paperName(index, paper.papier_cartonne_id) }} : {{ paper.quantite_base }} de base → {{ paper.quantite_base * multiplier }} à préparer</li></ul></div>
+          <p>Papiers : {{ form.collections.reduce((sum, line) => sum + allocated(line), 0) }} de base → {{ form.collections.reduce((sum, line) => sum + allocated(line), 0) * multiplier }} à préparer</p>
+          <p v-if="selectedRuban">Ruban : {{ selectedRuban.nom }} ×1</p><p v-if="catalogueDetail.papier_spe">Papier spécial : {{ catalogueDetail.papier_spe }} ×1</p><p v-if="catalogueDetail.embellissement">Embellissement : {{ catalogueDetail.embellissement }} ×1</p>
+          <p>Tarif du format : {{ formatMoney(catalogueDetail[`prix_${form.format_type}_cents`]) }} · Option : {{ formatMoney(form.papier_supplementaire ? OPTION_CENTS : 0) }}</p>
+          <p v-for="category in supplementCategories.filter(c => form[`${c.key}_texte`] || form[`${c.key}_prix`])" :key="category.key">{{ category.label }} : {{ form[`${category.key}_texte`] }} — {{ formatMoney(pricing.supplements[category.key].prix_cents) }}</p>
+          <p class="price-line">Total à enregistrer <strong>{{ formatMoney(pricing.applied) }}</strong></p><p>Origine du prix : {{ form.prix_manuel ? 'manuelle' : 'automatique' }} · Commande non réglée</p><p class="hint">Le détail enregistré affichera les prix et la composition confirmés par le serveur.</p>
+        </section>
+      </fieldset>
     </form>
-
-    <template #footer>
-      <Button variant="secondary" @click="$emit('close')">Annuler</Button>
-      <Button @click="handleSubmit" :loading="saving">Créer</Button>
-    </template>
+    <template #footer><Button variant="secondary" :disabled="saving" @click="requestClose">Annuler</Button><Button type="submit" :form="formId" :disabled="loading || Boolean(loadError) || !catalogueDetail || Boolean(commande?.reglee)" :loading="saving">{{ commande ? 'Enregistrer' : 'Créer le kit' }}</Button></template>
   </Modal>
+  <ConfirmDialog :is-open="confirmClose" title="Abandonner les modifications ?" message="Les saisies de cette commande ne seront pas enregistrées." confirm-text="Abandonner" variant="danger" @confirm="discard" @cancel="confirmClose = false" />
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, useId, nextTick } from 'vue';
+import { onBeforeRouteLeave } from 'vue-router';
 import Modal from './Modal.vue';
 import Button from './Button.vue';
-import FormSelect from './FormSelect.vue';
-import FormInput from './FormInput.vue';
-import { clientsAPI, cataloguesAPI, settingsAPI, commandesAPI } from '../services/api';
-
-const props = defineProps({
-  isOpen: { type: Boolean, default: false },
-});
-
+import ConfirmDialog from './ConfirmDialog.vue';
+import { clientsAPI, cataloguesAPI } from '../services/api';
+import { useCommandesStore } from '../stores/commandes';
+import { OPTION_CENTS, PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
+const props = defineProps({ isOpen: { type: Boolean, default: false }, commande: { type: Object, default: null } });
 const emit = defineEmits(['close', 'saved']);
-
-const PAPIER_SUPP_PRIX = 3.5;
-
-const paiementOptions = ['Paypal', 'chèque', 'virement'];
-
-// Data
+const store = useCommandesStore();
+const prefix = useId();
+const id = key => `${prefix}-${key}`;
+const formId = id('form');
+const form = ref(defaultKitForm());
 const clients = ref([]);
 const catalogues = ref([]);
-const settings = ref({ prix_A: 0, prix_B: 0, prix_C: 0 });
 const catalogueDetail = ref(null);
-const saving = ref(false);
 const errors = ref({});
-
-// Form state
-const form = ref(defaultForm());
-
-function defaultForm() {
-  return {
-    client_id: '',
-    catalogue_id: '',
-    format_type: '',
-    methode_paiement: '',
-    papier_supplementaire: false,
-    produit_promo_texte: '',
-    produit_promo_prix: '',
-    autres_texte: '',
-    autres_prix: '',
-    papiers_selectionnes: [],
-    collections: [
-      { collection_id: '', nb_feuilles: 2 },
-      { collection_id: '', nb_feuilles: 3 },
-    ],
-  };
+const errorSummary = ref(null);
+const loading = ref(false);
+const saving = ref(false);
+const loadError = ref('');
+const confirmClose = ref(false);
+const baseline = ref('');
+let loadGeneration = 0;
+const supplementCategories = [{ key: 'produit_promo', label: 'Produit promo' }, { key: 'autres', label: 'Autres' }];
+const dirty = computed(() => baseline.value && JSON.stringify(form.value) !== baseline.value);
+const formats = computed(() => availableFormats(catalogueDetail.value, props.commande?.catalogue_id ?? null));
+const pricing = computed(() => kitPricing(form.value, catalogueDetail.value));
+const multiplier = computed(() => form.value.papier_supplementaire ? 2 : 1);
+const selectedRuban = computed(() => catalogueDetail.value?.rubans.find(r => r.id === Number(form.value.ruban_id)));
+const allocated = line => line.papiers.reduce((sum, p) => sum + (Number(p.quantite_base) || 0), 0);
+function remainingText(line) { const remaining = line.nb_feuilles - allocated(line); return remaining > 0 ? `${remaining} à répartir` : remaining < 0 ? `${-remaining} en trop` : 'répartition complète'; }
+const collectionName = line => catalogueDetail.value?.collections.find(c => c.id === Number(line.collection_id))?.nom;
+const paperName = (index, paperId) => catalogueDetail.value?.collections.find(c => c.id === Number(form.value.collections[index].collection_id))?.papiers.find(p => p.id === paperId)?.nom;
+function errorTarget(key) { if (key === 'format_type') return id('format-C'); if (key === 'collections') return id('collection_0'); return ['client_id', 'catalogue_id', 'ruban_id', 'methode_paiement', 'prix_manuel_euros', 'collection_0', 'collection_1', 'papiers_0', 'papiers_1', 'produit_promo_texte', 'produit_promo_prix', 'autres_texte', 'autres_prix'].includes(key) ? id(key) : null; }
+function focusError(key) { document.getElementById(errorTarget(key))?.focus(); }
+function changeCatalogue(value) {
+  form.value.catalogue_id = value; catalogueDetail.value = catalogues.value.find(c => c.id === Number(value)) || null;
+  form.value.format_type = ''; form.value.collections = []; form.value.ruban_id = catalogueDetail.value?.rubans.length === 1 ? String(catalogueDetail.value.rubans[0].id) : '';
+  form.value.prix_manuel = false; form.value.prix_manuel_euros = ''; errors.value = {};
 }
-
-// Options
-const clientsOptions = computed(() =>
-  clients.value.filter(c => !c.archive).map(c => ({ value: String(c.id), label: `${c.prenom} ${c.nom}` }))
-);
-
-const cataloguesOptions = computed(() =>
-  catalogues.value.filter(c => !c.archive && c.statut === 'publie').map(c => ({ value: String(c.id), label: c.titre }))
-);
-
-const catalogueCollections = computed(() =>
-  catalogueDetail.value?.collections || []
-);
-
-const collectionOptions = computed(() =>
-  catalogueCollections.value.map(c => ({ value: String(c.id), label: c.nom }))
-);
-
-// Papiers de la collection à l'index idx
-const getCollectionPapiers = (idx) => {
-  const colId = form.value.collections[idx]?.collection_id;
-  if (!colId) return [];
-  const col = catalogueCollections.value.find(c => String(c.id) === String(colId));
-  return col?.papiers || [];
-};
-
-// Tous les papiers des 2 collections (A/B)
-const allPapiersAB = computed(() => {
-  const p0 = getCollectionPapiers(0);
-  const p1 = getCollectionPapiers(1);
-  const seen = new Set();
-  return [...p0, ...p1].filter(p => {
-    if (seen.has(p.id)) return false;
-    seen.add(p.id);
-    return true;
-  });
-});
-
-// Prix total
-const totalPrice = computed(() => {
-  const base = parseFloat(settings.value[`prix_${form.value.format_type}`]) || 0;
-  const supp = form.value.papier_supplementaire ? PAPIER_SUPP_PRIX : 0;
-  const promo = parseFloat(form.value.produit_promo_prix) || 0;
-  const autres = parseFloat(form.value.autres_prix) || 0;
-  return base + supp + promo + autres;
-});
-
-// Handlers
-const onCatalogueChange = async (val) => {
-  form.value.format_type = '';
-  form.value.collections = defaultForm().collections;
-  form.value.papiers_selectionnes = [];
-  catalogueDetail.value = null;
-  if (val) {
-    try {
-      catalogueDetail.value = await cataloguesAPI.getById(parseInt(val));
-    } catch {
-      catalogueDetail.value = null;
-    }
-  }
-};
-
-const selectFormat = (f) => {
-  form.value.format_type = f;
-  form.value.collections = f === 'C'
-    ? [{ collection_id: '', nb_feuilles: 5 }]
-    : [{ collection_id: '', nb_feuilles: 2 }, { collection_id: '', nb_feuilles: 3 }];
-  form.value.papiers_selectionnes = [];
-};
-
-const setNbFeuilles = (idx, nb) => {
-  form.value.collections[idx].nb_feuilles = nb;
-};
-
-const onCollectionChange = (idx, val) => {
-  form.value.collections[idx].collection_id = val;
-  form.value.papiers_selectionnes = [];
-};
-
-// Submit
-const handleSubmit = async () => {
-  errors.value = {};
-
-  if (!form.value.client_id) errors.value.client_id = 'Requis';
-  if (!form.value.catalogue_id) errors.value.catalogue_id = 'Requis';
-  if (!form.value.format_type) errors.value.format_type = 'Requis';
-  if (!form.value.methode_paiement) errors.value.methode_paiement = 'Requis';
-
-  if (form.value.format_type === 'C') {
-    if (!form.value.collections[0]?.collection_id) {
-      errors.value.collection_0 = 'Requis';
-    }
-  } else if (form.value.format_type) {
-    if (!form.value.collections[0]?.collection_id) errors.value.collection_0 = 'Requis';
-    if (!form.value.collections[1]?.collection_id) errors.value.collection_1 = 'Requis';
-    if (
-      form.value.collections[0]?.collection_id &&
-      form.value.collections[1]?.collection_id &&
-      form.value.collections[0].collection_id === form.value.collections[1].collection_id
-    ) {
-      errors.value.collection_1 = 'Doit être différente de la 1ère collection';
-    }
-  }
-
-  if (Object.keys(errors.value).length > 0) return;
-
-  saving.value = true;
+function changeFormat(value) { selectKitFormat(form.value, value); errors.value = {}; }
+function changeCollection(index, value) { selectKitCollection(form.value, catalogueDetail.value, index, value); errors.value = {}; }
+function toggleManual(value) { form.value.prix_manuel = value; if (value) form.value.prix_manuel_euros = centsToInput(pricing.value.automatic); }
+async function loadForm() {
+  const generation = ++loadGeneration; const existing = props.commande;
+  loading.value = true; loadError.value = ''; errors.value = {}; baseline.value = ''; form.value = defaultKitForm(); catalogueDetail.value = null; clients.value = []; catalogues.value = [];
   try {
-    const collectionsData = form.value.collections
-      .filter(c => c.collection_id)
-      .map(c => ({
-        collection_id: parseInt(c.collection_id),
-        nb_feuilles: c.nb_feuilles,
-      }));
-
-    const payload = {
-      type: 'kit',
-      client_id: parseInt(form.value.client_id),
-      format_type: form.value.format_type,
-      methode_paiement: form.value.methode_paiement,
-      papier_supplementaire: form.value.papier_supplementaire ? 1 : 0,
-      produit_promo_texte: form.value.produit_promo_texte || null,
-      produit_promo_prix: form.value.produit_promo_prix !== '' ? parseFloat(form.value.produit_promo_prix) : null,
-      autres_texte: form.value.autres_texte || null,
-      autres_prix: form.value.autres_prix !== '' ? parseFloat(form.value.autres_prix) : null,
-      collections: collectionsData,
-      papiers_selectionnes: form.value.format_type !== 'C' ? form.value.papiers_selectionnes : [],
-    };
-
-    await commandesAPI.create(payload);
-    form.value = defaultForm();
-    errors.value = {};
-    catalogueDetail.value = null;
-    emit('saved');
-    emit('close');
-  } catch (error) {
-    console.error('Erreur création commande kit:', error);
-    errors.value._global = error.message;
-  } finally {
-    saving.value = false;
-  }
-};
-
-// Charger les données à l'ouverture
-watch(() => props.isOpen, async (open) => {
-  if (open) {
-    form.value = defaultForm();
-    errors.value = {};
-    catalogueDetail.value = null;
-    try {
-      [clients.value, catalogues.value] = await Promise.all([
-        clientsAPI.getAll(),
-        cataloguesAPI.getAll(),
-      ]);
-    } catch (e) {
-      console.error('Erreur chargement données formulaire kit:', e);
-    }
-    try {
-      const s = await settingsAPI.get();
-      settings.value = { prix_A: s.prix_A || 0, prix_B: s.prix_B || 0, prix_C: s.prix_C || 0 };
-    } catch {
-      settings.value = { prix_A: 0, prix_B: 0, prix_C: 0 };
-    }
-  }
-});
+    const [activeClients, available, original] = await Promise.all([clientsAPI.getAll(), cataloguesAPI.getAll({ utilisables: true }), existing ? cataloguesAPI.getById(existing.catalogue_id) : Promise.resolve(null)]);
+    if (generation !== loadGeneration || !props.isOpen) return;
+    clients.value = activeClients.filter(c => !c.archive); catalogues.value = available.filter(c => !c.archive && c.statut === 'publie');
+    if (existing) { if (!catalogues.value.some(c => c.id === original.id)) catalogues.value.push(original); else catalogues.value = catalogues.value.map(c => c.id === original.id ? original : c); catalogueDetail.value = original; form.value = kitFormFromCommande(existing, original); }
+    baseline.value = JSON.stringify(form.value);
+  } catch (error) { if (generation === loadGeneration && props.isOpen) loadError.value = `Impossible de préparer la commande : ${error.message}`; }
+  finally { if (generation === loadGeneration) loading.value = false; }
+}
+async function handleSubmit() {
+  if (saving.value || loading.value || loadError.value || props.commande?.reglee) return;
+  const prepared = prepareKitPayload(form.value, catalogueDetail.value, { originalCatalogueId: props.commande?.catalogue_id ?? null }); errors.value = prepared.errors;
+  if (Object.keys(errors.value).length) { await nextTick(); errorSummary.value?.focus(); return; }
+  saving.value = true;
+  try { const saved = props.commande ? await store.updateCommande(props.commande.id, prepared.payload) : await store.createCommande(prepared.payload); baseline.value = JSON.stringify(form.value); emit('saved', saved); emit('close'); }
+  catch (error) { errors.value = { _global: error.message }; await nextTick(); errorSummary.value?.focus(); }
+  finally { saving.value = false; }
+}
+function requestClose() { if (saving.value) return; if (dirty.value) confirmClose.value = true; else emit('close'); }
+function discard() { confirmClose.value = false; baseline.value = ''; emit('close'); }
+watch(() => props.isOpen, open => { if (open) loadForm(); else { ++loadGeneration; confirmClose.value = false; } }, { immediate: true });
+onBeforeRouteLeave(() => { if (!props.isOpen) return; if (saving.value) return false; if (dirty.value) return window.confirm('Quitter et abandonner les saisies de cette commande ?'); });
 </script>
 
 <style scoped>
-.kit-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-/* === Format radios === */
-.form-field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.form-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
-}
-
-.form-required {
-  color: var(--secondary);
-}
-
-.form-hint-inline {
-  font-weight: var(--font-weight-normal);
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-}
-
-.form-error {
-  font-size: var(--font-size-xs);
-  color: var(--error, #c0392b);
-  padding-left: var(--spacing-2);
-}
-
-.format-radios {
-  display: flex;
-  gap: var(--spacing-3);
-}
-
-.format-radio {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: var(--spacing-3);
-  border: 2px solid var(--border);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  text-align: center;
-}
-
-.format-radio:hover {
-  border-color: var(--primary);
-}
-
-.format-radio.selected {
-  border-color: var(--primary);
-  background: var(--primary-light);
-}
-
-.format-letter {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-}
-
-.format-radio-a .format-letter { color: var(--format-a, var(--primary)); }
-.format-radio-b .format-letter { color: var(--format-b, var(--secondary)); }
-.format-radio-c .format-letter { color: var(--format-c, #1d4ed8); }
-
-.format-price {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
-}
-
-.format-info {
-  font-size: 10px;
-  color: var(--text-tertiary);
-}
-
-/* === Collection slot === */
-.collection-slot {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.collection-slot-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.nb-feuilles-toggle {
-  display: flex;
-  gap: var(--spacing-1);
-}
-
-.nb-btn {
-  padding: 4px 12px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
-  background: var(--bg-primary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  font-family: var(--font-family);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.nb-btn.active {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--primary-foreground);
-}
-
-/* === Papiers preview === */
-.papiers-preview {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-2);
-  border-top: 1px solid var(--border-light);
-}
-
-.papiers-preview-block {
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.papiers-preview-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  font-weight: var(--font-weight-medium);
-}
-
-.papier-chip {
-  padding: 2px 10px;
-  background: var(--muted);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-.papiers-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-}
-
-/* === Papiers sélection grid === */
-.papiers-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-}
-
-.papier-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-2) var(--spacing-4);
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
-  background: var(--bg-primary);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.papier-btn.selected {
-  background: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* === Extras === */
-.form-extras {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.extras-row {
-  display: grid;
-  grid-template-columns: 1fr 140px;
-  gap: var(--spacing-3);
-}
-
-/* === Paiement radios === */
-.paiement-radios {
-  display: flex;
-  gap: var(--spacing-2);
-}
-
-.paiement-radio {
-  flex: 1;
-  padding: var(--spacing-2) var(--spacing-3);
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-sm);
-  text-align: center;
-  cursor: pointer;
-  font-size: var(--font-size-sm);
-  font-family: var(--font-family);
-  color: var(--text-secondary);
-  transition: all var(--transition-fast);
-}
-
-.paiement-radio:hover {
-  border-color: var(--primary);
-  color: var(--primary);
-}
-
-.paiement-radio.selected {
-  background: var(--primary-light);
-  border-color: var(--primary);
-  color: var(--primary);
-  font-weight: var(--font-weight-semibold);
-}
-
-/* === Prix total === */
-.prix-total-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-4);
-  background: var(--primary-light);
-  border-radius: var(--border-radius);
-  border: 1px solid rgba(93, 112, 82, 0.15);
-}
-
-.prix-total-label {
-  font-size: var(--font-size-sm);
-  color: var(--primary);
-}
-
-.prix-total-value {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary);
-}
+.kit-form, .form-body { display: flex; flex-direction: column; gap: var(--spacing-5); }
+.form-body { border: 0; padding: 0; margin: 0; min-width: 0; }
+section { display: flex; flex-direction: column; gap: var(--spacing-3); min-width: 0; }
+h3, p { margin: 0; }
+h3 { font-family: var(--font-heading); font-size: var(--font-size-base); }
+.field { display: flex; flex-direction: column; gap: var(--spacing-2); min-width: 0; }
+label, legend { font-weight: var(--font-weight-medium); font-size: var(--font-size-sm); }
+input:not([type=radio]):not([type=checkbox]), select { width: 100%; min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1.5px solid var(--border); border-radius: var(--border-radius); background: var(--bg-primary); color: var(--text-primary); font: inherit; box-sizing: border-box; }
+input:focus-visible, select:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+input[type=radio], input[type=checkbox] { accent-color: var(--primary); width: 18px; height: 18px; flex-shrink: 0; }
+input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowed; }
+.choices { display: flex; gap: var(--spacing-3); border: 0; padding: 0; margin: 0; }
+.choices legend { margin-bottom: var(--spacing-2); }
+.choice { display: flex; align-items: flex-start; flex: 1; gap: var(--spacing-2); border: 1.5px solid var(--border); padding: var(--spacing-3); border-radius: var(--border-radius); cursor: pointer; }
+.choice > span { display: flex; flex-direction: column; gap: var(--spacing-1); }
+.choice.selected { background: var(--primary-light); border-color: var(--primary); }
+.hint, small { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.5; font-weight: normal; }
+.notice, .summary, .collection-slot { background: var(--bg-tertiary); padding: var(--spacing-4); border-radius: var(--border-radius); line-height: 1.5; }
+.collection-slot { display: flex; flex-direction: column; gap: var(--spacing-3); }
+.contributions { display: flex; gap: var(--spacing-4); padding: 0; margin: 0; border: 0; }
+.contributions label, .check { display: flex; align-items: center; gap: var(--spacing-2); min-height: 44px; cursor: pointer; }
+.paper-row { display: grid; grid-template-columns: minmax(0, 1fr) 72px minmax(0, 1fr); gap: var(--spacing-3); align-items: center; margin-bottom: var(--spacing-2); }
+.paper-row label { overflow-wrap: anywhere; }
+.allocation { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.extras-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 180px); gap: var(--spacing-3); }
+.price-line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-3); }
+.price-line strong { font-size: var(--font-size-xl); font-variant-numeric: tabular-nums; }
+.field-error, .error-box { color: var(--error); font-size: var(--font-size-sm); }
+.error-box { background: var(--error-light); padding: var(--spacing-4); border-radius: var(--border-radius); }
+.error-box a { color: inherit; }
+.error-box ul, .summary ul { margin: var(--spacing-2) 0; padding-left: var(--spacing-5); }
+.summary { overflow-wrap: anywhere; }
+@media (max-width: 640px) { .choices { flex-direction: column; } .extras-row { grid-template-columns: minmax(0, 1fr); } .paper-row { grid-template-columns: minmax(0, 1fr) 72px; } .paper-row .hint { grid-column: 1 / -1; } .contributions { flex-wrap: wrap; } }
 </style>

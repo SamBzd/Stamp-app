@@ -85,6 +85,7 @@ export const commandesAPI = {
   getById: (id) => apiCall(`/commandes/${id}`),
   create: (data) => apiCall('/commandes', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/commandes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  markReglee: (id) => apiCall(`/commandes/${id}/reglement`, { method: 'PATCH', body: JSON.stringify({}) }),
   delete: (id) => apiCall(`/commandes/${id}`, { method: 'DELETE' }),
 };
 

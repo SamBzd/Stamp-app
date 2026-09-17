@@ -49,8 +49,8 @@ La migration cible catalogues/kits refuse une base contenant des données métie
 anciennes. La [procédure schéma et import](schema-import-clients.md) décrit ce
 refus, les structures cibles et la création explicite d'un nouveau fichier avec
 les seules clientes. La création de kits utilise désormais
-[le contrat API commandes #7](commandes-kit-api.md) ; le parcours Vue reste à
-adapter dans les lots UI.
+[le contrat API commandes #7](commandes-kit-api.md) ; le parcours Vue est décrit
+dans [la documentation commandes #9](commandes-ui.md).
 
 Cette commande refuse d'écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
 

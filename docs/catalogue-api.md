@@ -2,7 +2,7 @@
 
 Cette API vise la future version, pas le NAS actuellement déployé. Le schéma
 cible de l’issue #5 suffit : aucune migration supplémentaire. Les parcours Vue
-restent dans les issues #8/#9. Le backend compositions kit et règlement est
+sont intégrés en [#8](catalogue-ui.md) et [#9](commandes-ui.md). Le backend compositions kit et règlement est
 livré en #7 : voir [le contrat commandes](commandes-kit-api.md).
 
 ## Champs et conventions

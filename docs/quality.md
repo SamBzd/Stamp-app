@@ -22,6 +22,13 @@ la plage, et explication des conditions de publication. Ils complètent les
 tests API ; la [recette navigateur](catalogue-ui.md#vérification) contrôle les
 interactions et la persistance réelles.
 
+`frontend/test/commande-kit.test.js` couvre les répétitions A/B, les contributions
+complémentaires, les compositions C à 1/3/5 papiers, les rubans, les suppléments,
+les montants exacts et leurs limites, la dérogation explicite, l’édition sur les
+sources actuelles et l’indépendance des snapshots historiques. La
+[recette commandes](commandes-ui.md#vérification) complète ces tests par les
+interactions de création, édition, règlement, suppression et refus serveur.
+
 ```bash
 npm run check
 docker compose config

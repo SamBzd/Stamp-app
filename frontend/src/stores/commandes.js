@@ -29,8 +29,6 @@ export const useCommandesStore = defineStore('commandes', {
     },
 
     async fetchCommande(id) {
-      this.loading = true;
-      this.error = null;
       try {
         const commande = await commandesAPI.getById(id);
         const index = this.commandes.findIndex(c => c.id === id);
@@ -41,10 +39,7 @@ export const useCommandesStore = defineStore('commandes', {
         }
         return commande;
       } catch (error) {
-        this.error = error.message;
         throw error;
-      } finally {
-        this.loading = false;
       }
     },
 
@@ -68,6 +63,24 @@ export const useCommandesStore = defineStore('commandes', {
       this.error = null;
       try {
         const updatedCommande = await commandesAPI.update(id, data);
+        const index = this.commandes.findIndex(c => c.id === id);
+        if (index !== -1) {
+          this.commandes[index] = updatedCommande;
+        }
+        return updatedCommande;
+      } catch (error) {
+        this.error = error.message;
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async markCommandeReglee(id) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const updatedCommande = await commandesAPI.markReglee(id);
         const index = this.commandes.findIndex(c => c.id === id);
         if (index !== -1) {
           this.commandes[index] = updatedCommande;
