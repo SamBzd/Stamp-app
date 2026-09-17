@@ -85,4 +85,4 @@ function archiveCatalogue(id, data) {
   });
   return getCatalogueById(id);
 }
-module.exports = { getCatalogueById, getAllCatalogues, createCatalogue, updateCatalogue, publishCatalogue, archiveCatalogue, mutateCatalogue };
+module.exports = { getCatalogueById, getAllCatalogues, createCatalogue, updateCatalogue, publishCatalogue, archiveCatalogue, mutateCatalogue, validateComposition };
