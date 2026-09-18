@@ -40,6 +40,8 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
   Les stocks et leurs provenances historiques (#10) sont alignés sur les
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
+  Le bilan (#11) utilise les prix appliqués historiques et expose ses montants
+  en centimes : voir [le contrat du bilan](bilan-commandes.md).
   Ce socle n’est pas prêt pour le déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans

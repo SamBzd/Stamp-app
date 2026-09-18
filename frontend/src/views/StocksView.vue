@@ -287,7 +287,8 @@
           <!-- CA total -->
           <div class="bilan-ca-card">
             <div class="bilan-ca-label">Chiffre d'affaires</div>
-            <div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires) }}</div>
+            <div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires_cents) }}</div>
+            <p>Commandes réglées du mois de création, aux prix enregistrés.</p>
           </div>
 
           <!-- Répartition par méthode de paiement -->
@@ -296,7 +297,7 @@
               <span class="section-dot section-dot-green"></span>
               Répartition par méthode de paiement
             </h2>
-            <div v-if="!stocksStore.bilan.par_methode || stocksStore.bilan.par_methode.length === 0" class="empty-section">
+            <div v-if="stocksStore.bilan.par_methode_paiement.length === 0" class="empty-section">
               <span>Aucune donnée de paiement</span>
             </div>
             <div v-else class="stock-table-wrapper">
@@ -309,12 +310,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="item in stocksStore.bilan.par_methode" :key="item.methode_paiement">
+                  <tr v-for="item in stocksStore.bilan.par_methode_paiement" :key="item.methode_paiement">
                     <td class="cell-name">{{ item.methode_paiement || 'Non renseigné' }}</td>
                     <td class="cell-number">
                       <span class="badge-count">{{ item.nb_commandes }}</span>
                     </td>
-                    <td class="cell-number">{{ formatCurrency(item.montant) }}</td>
+                    <td class="cell-number">{{ formatCurrency(item.total_cents) }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -333,12 +334,12 @@
             <div v-else class="promo-list">
               <div
                 v-for="item in stocksStore.bilan.produits_promo"
-                :key="item.texte"
+                :key="JSON.stringify([item.texte, item.prix_cents])"
                 class="promo-item"
               >
                 <div class="promo-info">
                   <span class="promo-texte">{{ item.texte }}</span>
-                  <span class="promo-price">{{ formatCurrency(item.prix) }}</span>
+                  <span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span>
                 </div>
                 <span class="promo-count">× {{ item.nb_fois }}</span>
               </div>
@@ -351,24 +352,25 @@
               <span class="section-dot section-dot-blue"></span>
               Autres articles
             </h2>
-            <div v-if="!stocksStore.bilan.autres_articles || stocksStore.bilan.autres_articles.length === 0" class="empty-section">
+            <div v-if="stocksStore.bilan.autres.length === 0" class="empty-section">
               <span>Aucun autre article ce mois-ci</span>
             </div>
             <div v-else class="promo-list">
               <div
-                v-for="item in stocksStore.bilan.autres_articles"
-                :key="item.texte"
+                v-for="item in stocksStore.bilan.autres"
+                :key="JSON.stringify([item.texte, item.prix_cents])"
                 class="promo-item"
               >
                 <div class="promo-info">
                   <span class="promo-texte">{{ item.texte }}</span>
-                  <span class="promo-price">{{ formatCurrency(item.prix) }}</span>
+                  <span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span>
                 </div>
                 <span class="promo-count">× {{ item.nb_fois }}</span>
               </div>
             </div>
           </section>
 
+          <p>Les suppléments ci-dessus détaillent les prix historiques. Ils sont déjà inclus dans le prix automatique ; après un prix manuel, leur somme ne reconstitue pas nécessairement le total payé.</p>
         </div>
 
         <div v-else class="empty-state">
@@ -394,6 +396,7 @@ import { ref, onMounted } from 'vue';
 import Layout from '../components/Layout.vue';
 import Button from '../components/Button.vue';
 import { useStocksStore } from '../stores/stocks';
+import { formatMoney } from '../utils/commande-kit';
 
 const stocksStore = useStocksStore();
 
@@ -410,8 +413,7 @@ const handleLoadBilan = async () => {
 };
 
 const formatCurrency = (value) => {
-  if (value == null) return '—';
-  return Number(value).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  return value < 0 ? `-${formatMoney(-value)}` : formatMoney(value);
 };
 
 onMounted(async () => {

@@ -91,34 +91,42 @@ function getStocks() {
  * Retourne un bilan comptable pour un mois donné (format 'YYYY-MM').
  */
 function getBilanMensuel(mois) {
-    const caRow = db.prepare(`
+    // Les sommes SQLite peuvent dépasser l'entier JSON exact même si chaque
+    // prix individuel est valide. Lire en BigInt avant toute conversion.
+    const exactRow = row => Object.fromEntries(Object.entries(row).map(([key, value]) => {
+        if (typeof value !== 'bigint') return [key, value];
+        const number = Number(value);
+        if (!Number.isSafeInteger(number)) throw new Error('Montant du bilan hors limites des entiers JSON exacts');
+        return [key, number];
+    }));
+    const caRow = exactRow(db.prepare(`
         SELECT SUM(
           CASE c.type
-            WHEN 'hors_kit' THEN COALESCE(c.montant, 0)
-            ELSE c.prix_applique_cents / 100.0
+            WHEN 'hors_kit' THEN CAST(ROUND(COALESCE(c.montant, 0) * 100) AS INTEGER)
+            ELSE c.prix_applique_cents
           END
-        ) as chiffre_affaires
+        ) as chiffre_affaires_cents
         FROM commandes c
         WHERE c.reglee = 1 AND strftime('%Y-%m', c.created_at) = ?
-    `).get(mois);
+    `).safeIntegers(true).get(mois));
 
     const par_methode_paiement = db.prepare(`
         SELECT c.methode_paiement,
           SUM(
             CASE c.type
-              WHEN 'hors_kit' THEN COALESCE(c.montant, 0)
-              ELSE c.prix_applique_cents / 100.0
+              WHEN 'hors_kit' THEN CAST(ROUND(COALESCE(c.montant, 0) * 100) AS INTEGER)
+              ELSE c.prix_applique_cents
             END
-          ) as total,
+          ) as total_cents,
           COUNT(*) as nb_commandes
         FROM commandes c
         WHERE c.reglee = 1 AND strftime('%Y-%m', c.created_at) = ?
         GROUP BY c.methode_paiement
-    `).all(mois);
+    `).safeIntegers(true).all(mois).map(exactRow);
 
     const produits_promo = db.prepare(`
         SELECT c.produit_promo_texte as texte,
-          c.produit_promo_prix_cents / 100.0 as prix,
+          c.produit_promo_prix_cents as prix_cents,
           COUNT(*) as nb_fois
         FROM commandes c
         WHERE c.reglee = 1 AND strftime('%Y-%m', c.created_at) = ?
@@ -129,7 +137,7 @@ function getBilanMensuel(mois) {
 
     const autres = db.prepare(`
         SELECT c.autres_texte as texte,
-          c.autres_prix_cents / 100.0 as prix,
+          c.autres_prix_cents as prix_cents,
           COUNT(*) as nb_fois
         FROM commandes c
         WHERE c.reglee = 1 AND strftime('%Y-%m', c.created_at) = ?
@@ -140,7 +148,7 @@ function getBilanMensuel(mois) {
 
     return {
         mois,
-        chiffre_affaires: (caRow && caRow.chiffre_affaires !== null) ? caRow.chiffre_affaires : 0,
+        chiffre_affaires_cents: caRow.chiffre_affaires_cents ?? 0,
         par_methode_paiement,
         produits_promo,
         autres,
