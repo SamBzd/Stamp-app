@@ -83,6 +83,84 @@ function counts() {
     .map(table => db.prepare(`SELECT COUNT(*) AS count FROM ${table}`).get().count);
 }
 
+test('bilan historique en centimes : catalogues distincts, defaults, édition, règlement, archivage et périodes', async () => {
+  const first = await fixture({ prices: { prix_A_cents: 1001 } });
+  const second = await fixture({ prices: { prix_A_cents: 2002 } });
+  const defaults = await api('/settings');
+  const extra = { papier_supplementaire: true,
+    produit_promo_texte: 'Même promo', produit_promo_prix_cents: 103,
+    autres_texte: 'Autre historique', autres_prix_cents: 207 };
+  const automaticBody = payload(first, 'A', extra);
+  const automatic = await api('/commandes', 'POST', automaticBody, 201);
+  const manual = await api('/commandes', 'POST', payload(second, 'A', {
+    ...extra, produit_promo_prix_cents: 109, prix_applique_cents: 7, methode_paiement: 'Paypal'
+  }), 201);
+  const editableBody = payload(second, 'A', { methode_paiement: 'chèque' });
+  const editable = await api('/commandes', 'POST', editableBody, 201);
+  const unpaid = await api('/commandes', 'POST', payload(first, 'A', {
+    produit_promo_texte: 'Non réglée', produit_promo_prix_cents: 999
+  }), 201);
+  const outside = await api('/commandes', 'POST', payload(first), 201);
+  const horsKit = await api('/commandes', 'POST', {
+    client_id: first.client.id, type: 'hors_kit', montant: 0.29,
+    methode_paiement: 'Paypal', date_commande: '2031-12-01'
+  }, 201);
+  for (const order of [automatic, manual, editable, unpaid, horsKit]) {
+    db.prepare("UPDATE commandes SET created_at='2023-06-30 23:59:59' WHERE id=?").run(order.id);
+  }
+  db.prepare("UPDATE commandes SET created_at='2023-07-01' WHERE id=?").run(outside.id);
+  await api(`/commandes/${outside.id}/reglement`, 'PATCH', {});
+  assert.equal(automatic.prix_applique_cents, 1661);
+  // Un changement source seul ne réécrit aucune commande, même non réglée.
+  try {
+    await api('/settings', 'PUT', { prix_A_cents: 8888 });
+    await api(`/catalogues/${first.catalogue.id}`, 'PUT', { prix_A_cents: 3333 });
+    await api(`/catalogues/${second.catalogue.id}`, 'PUT', { prix_A_cents: 4444 });
+    for (const order of [automatic, manual, editable, unpaid]) {
+      assert.deepEqual(await api(`/commandes/${order.id}`), {
+        ...order, created_at: '2023-06-30 23:59:59'
+      });
+    }
+    assert.equal((await api(`/catalogues/${second.catalogue.id}`)).prix_A_cents, 4444);
+    const newCatalogue = await api('/catalogues', 'POST', { titre: `Defaults ${++sequence}` }, 201);
+    assert.equal(newCatalogue.prix_A_cents, 8888);
+    const edited = await api(`/commandes/${editable.id}`, 'PUT', replacement(editableBody));
+    assert.equal(edited.prix_applique_cents, 4444);
+    for (const order of [automatic, manual, edited, horsKit]) {
+      const paid = await api(`/commandes/${order.id}/reglement`, 'PATCH', {});
+      assert.equal(paid.type === 'kit' ? paid.prix_applique_cents : paid.montant,
+        order.type === 'kit' ? order.prix_applique_cents : order.montant);
+    }
+    const bilan = await api('/stocks/bilan?mois=2023-06');
+    assert.deepEqual(bilan, {
+      mois: '2023-06', chiffre_affaires_cents: 6141,
+      par_methode_paiement: [
+        { methode_paiement: 'Paypal', total_cents: 36, nb_commandes: 2 },
+        { methode_paiement: 'chèque', total_cents: 4444, nb_commandes: 1 },
+        { methode_paiement: 'virement', total_cents: 1661, nb_commandes: 1 }
+      ],
+      produits_promo: [
+        { texte: 'Même promo', prix_cents: 103, nb_fois: 1 },
+        { texte: 'Même promo', prix_cents: 109, nb_fois: 1 }
+      ],
+      autres: [{ texte: 'Autre historique', prix_cents: 207, nb_fois: 2 }]
+    });
+    for (const f of [first, second]) {
+      await api(`/catalogues/${f.catalogue.id}`, 'PUT', { titre: `Renommé ${f.catalogue.id}`, prix_A_cents: 9999 });
+      await api(`/catalogues/${f.catalogue.id}/archivage`, 'PATCH', { archive: true });
+      await api(`/clients/${f.client.id}/archivage`, 'PATCH', { archive: true });
+    }
+    await api('/settings', 'PUT', { prix_A_cents: 0 });
+    assert.deepEqual(await api('/stocks/bilan?mois=2023-06'), bilan);
+    assert.equal((await api('/stocks/bilan?mois=2023-07')).chiffre_affaires_cents, 1001);
+    assert.deepEqual(await api('/stocks/bilan?mois=2023-05'), {
+      mois: '2023-05', chiffre_affaires_cents: 0, par_methode_paiement: [], produits_promo: [], autres: []
+    });
+  } finally {
+    await api('/settings', 'PUT', defaults);
+  }
+});
+
 test('A/B accepte les répétitions, les deux répartitions 2/3 et fige toutes les sources', async () => {
   const f = await fixture({ rubans: 1 });
   for (const format of ['A', 'B']) {
@@ -105,6 +183,35 @@ test('A/B accepte les répétitions, les deux répartitions 2/3 et fige toutes l
   assert.equal(client.points_fidelite, 0);
   assert.ok(client.derniere_commande);
   assert.equal((await api(`/clients/${f.client.id}/commandes`)).length, 2);
+});
+
+test('bilan hors-kit convertit chaque montant avant sommation et conserve paiement absent et période', async () => {
+  const f = await fixture();
+  for (const montant of [0.1, 0.2, 0.29]) {
+    const order = await api('/commandes', 'POST', {
+      client_id: f.client.id, type: 'hors_kit', montant, date_commande: '2022-11-01'
+    }, 201);
+    db.prepare("UPDATE commandes SET created_at='2022-10-01' WHERE id=?").run(order.id);
+    await api(`/commandes/${order.id}/reglement`, 'PATCH', {});
+    assert.equal((await api(`/commandes/${order.id}`)).montant, montant);
+  }
+  assert.deepEqual(await api('/stocks/bilan?mois=2022-10'), {
+    mois: '2022-10', chiffre_affaires_cents: 59,
+    par_methode_paiement: [{ methode_paiement: null, total_cents: 59, nb_commandes: 3 }],
+    produits_promo: [], autres: []
+  });
+  assert.equal((await api('/stocks/bilan?mois=2022-11')).chiffre_affaires_cents, 0);
+});
+
+test('bilan refuse une somme dépassant les entiers JSON exacts sans arrondi silencieux', async () => {
+  const f = await fixture();
+  for (const cents of [Number.MAX_SAFE_INTEGER, 2]) {
+    const order = await api('/commandes', 'POST', payload(f, 'A', { prix_applique_cents: cents }), 201);
+    db.prepare("UPDATE commandes SET created_at='2021-01-01' WHERE id=?").run(order.id);
+    await api(`/commandes/${order.id}/reglement`, 'PATCH', {});
+  }
+  const error = await api('/stocks/bilan?mois=2021-01', 'GET', undefined, 500);
+  assert.match(error.error, /entiers JSON exacts/);
 });
 
 test('C automatise cinq papiers ou un papier ; avec trois papiers, tous doivent être présents', async () => {
@@ -154,14 +261,14 @@ test('option double les feuilles et les contributions, pas les matériaux ni le 
   assert.equal(stockRuban.catalogue_id, f.catalogue.id);
   db.prepare("UPDATE commandes SET created_at='2024-01-02' WHERE id=?").run(order.id);
   assert.deepEqual(await api('/stocks/bilan?mois=2024-01'), {
-    mois: '2024-01', chiffre_affaires: 0, par_methode_paiement: [], produits_promo: [], autres: []
+    mois: '2024-01', chiffre_affaires_cents: 0, par_methode_paiement: [], produits_promo: [], autres: []
   });
   await api(`/commandes/${order.id}/reglement`, 'PATCH', {});
   const bilan = await api('/stocks/bilan?mois=2024-01');
-  assert.equal(bilan.chiffre_affaires, 18.59);
-  assert.deepEqual(bilan.par_methode_paiement, [{ methode_paiement: 'virement', total: 18.59, nb_commandes: 1 }]);
-  assert.deepEqual(bilan.produits_promo, [{ texte: 'Promotion', prix: 2.75, nb_fois: 1 }]);
-  assert.deepEqual(bilan.autres, [{ texte: 'Accessoire', prix: 0, nb_fois: 1 }]);
+  assert.equal(bilan.chiffre_affaires_cents, 1859);
+  assert.deepEqual(bilan.par_methode_paiement, [{ methode_paiement: 'virement', total_cents: 1859, nb_commandes: 1 }]);
+  assert.deepEqual(bilan.produits_promo, [{ texte: 'Promotion', prix_cents: 275, nb_fois: 1 }]);
+  assert.deepEqual(bilan.autres, [{ texte: 'Accessoire', prix_cents: 0, nb_fois: 1 }]);
 });
 
 test('papier de bibliothèque commun à deux collections conserve sa répartition et additionne ses quantités', async () => {
@@ -366,8 +473,8 @@ test('règlement conserve les snapshots malgré les mutations source ; commande 
   const paid = await api(`/commandes/${order.id}/reglement`, 'PATCH');
   assert.deepEqual({ ...paid, reglee: 0, updated_at: original.updated_at }, original);
   const bilan = await api('/stocks/bilan?mois=2024-02');
-  assert.equal(bilan.chiffre_affaires, 42.01);
-  assert.deepEqual(bilan.produits_promo, [{ texte: 'Extra', prix: 1, nb_fois: 1 }]);
+  assert.equal(bilan.chiffre_affaires_cents, 4201);
+  assert.deepEqual(bilan.produits_promo, [{ texte: 'Extra', prix_cents: 100, nb_fois: 1 }]);
   for (const body of [{}, { reglee: 0 }, replacement(payload(f))]) await api(`/commandes/${order.id}`, 'PUT', body, 409);
   await api(`/commandes/${order.id}`, 'DELETE', undefined, 409);
   await api(`/commandes/${order.id}/reglement`, 'PATCH', {}, 409);

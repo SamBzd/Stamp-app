@@ -142,9 +142,12 @@ voir [le contrat et le parcours Stocks](stocks.md).
 Les stocks comprennent les commandes réglées et non réglées conservées.
 
 `GET /api/stocks/bilan?mois=YYYY-MM` ne retient que les commandes réglées, pour
-toutes ses catégories, au mois de création. Le chiffre d’affaires d’un kit est
-`prix_applique_cents / 100`, y compris après correction manuelle. Les catégories
-de supplément conservent leur libellé et leur prix propres.
+toutes ses catégories, au mois de création (`created_at`, pas `date_commande`
+ni date de règlement). Le chiffre d’affaires d’un kit est exactement
+`prix_applique_cents`, y compris après correction manuelle. Depuis #11, tous
+les montants du bilan sont exposés en centimes, sans conversion avant la somme :
+voir [le contrat du bilan](bilan-commandes.md). Les catégories de supplément
+conservent leur libellé et leur prix propres, sans les additionner à nouveau.
 
 Les erreurs JSON ont la forme `{ "error": "message" }` : `400` pour un corps,
 champ ou composition invalide ; `404` pour commande, cliente ou catalogue

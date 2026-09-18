@@ -132,10 +132,10 @@ test('les lectures kit utilisent les snapshots, quantités et prix appliqué mé
   assert.equal(stock.papier_spe[0].catalogue_id, catalogue);
   assert.equal(stock.papier_spe[0].nb_commandes, 1);
   const unpaid = await (await fetch(`${baseUrl}/api/stocks/bilan?mois=2024-03`)).json();
-  assert.equal(unpaid.chiffre_affaires, 0);
+  assert.equal(unpaid.chiffre_affaires_cents, 0);
   databaseConnection.prepare('UPDATE commandes SET reglee=1 WHERE id=?').run(order);
   const paid = await (await fetch(`${baseUrl}/api/stocks/bilan?mois=2024-03`)).json();
-  assert.equal(paid.chiffre_affaires, 44);
+  assert.equal(paid.chiffre_affaires_cents, 4400);
 });
 
 test('contrat kit sans catalogue refusé sans créer de commande partielle', async () => {

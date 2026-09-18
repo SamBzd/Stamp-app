@@ -62,7 +62,8 @@ renommage, ou que deux collections portent le même nom.
 `POST /api/stocks/recalculate` reste un no-op de compatibilité côté backend,
 mais l’interface ne l’appelle plus. Les chargements et erreurs Stocks/Bilan
 sont indépendants ; une ancienne réponse ne remplace pas une actualisation
-plus récente. Le contrat et le parcours du bilan restent hors de cette issue.
+plus récente. Le contrat et le parcours du bilan sont documentés séparément
+en [issue #11](bilan-commandes.md).
 
 ## Vérifications
 
