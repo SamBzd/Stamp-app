@@ -325,8 +325,7 @@
                     </span>
                   </div>
                   <div class="timeline-meta">
-                    <span v-if="commande.type === 'kit'">Format {{ commande.format_type }}</span>
-                    <span v-else>Hors kit</span>
+                    <span>{{ commandeTypeLabel(commande) }}</span>
                     <span v-if="commande.methode_paiement">· {{ commande.methode_paiement }}</span>
                   </div>
                 </div>
@@ -499,6 +498,7 @@ import FormInput from '../components/FormInput.vue';
 import FormCheckbox from '../components/FormCheckbox.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import { useClientsStore } from '../stores/clients';
+import { commandeTypeLabel } from '../utils/commande-kit';
 
 const router = useRouter();
 

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { moneyToCents, centsToInput, formatMoney, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
+import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
 
 function catalogue(counts = [1, 1], rubans = 0) {
   return {
@@ -27,6 +27,13 @@ test('montants de commandes en centimes exacts, sans le plafond des tarifs catal
   assert.match(formatMoney(Number.MAX_SAFE_INTEGER), /409,91/);
   assert.match(formatMoney(29), /0,29/);
   assert.equal(formatMoney(null), '—');
+});
+
+test('historique cliente distingue les formats kits des commandes hors kit', () => {
+  for (const format of ['A', 'B', 'C']) {
+    assert.equal(commandeTypeLabel({ type: 'kit', format_type: format }), `Format ${format}`);
+  }
+  assert.equal(commandeTypeLabel({ type: 'hors_kit', format_type: null }), 'Hors kit');
 });
 
 test('A/B disponibles avec deux collections ; catalogue d’origine éditable même archivé', () => {
