@@ -214,13 +214,14 @@ test('bilan refuse une somme dépassant les entiers JSON exacts sans arrondi sil
   assert.match(error.error, /entiers JSON exacts/);
 });
 
-test('C automatise cinq papiers ou un papier ; avec trois papiers, tous doivent être présents', async () => {
-  for (const count of [5, 1, 3]) {
+test('C couvre 1 à 5 papiers : automatisme aux extrêmes, répartition obligatoire et origines contrôlées', async () => {
+  const foreign = await fixture({ counts: [1] });
+  for (const count of [1, 2, 3, 4, 5]) {
     const f = await fixture({ counts: [count], materials: { embellissement: 'Décoration' } });
     const collection = f.catalogue.collections[0];
     const body = payload(f, 'C');
-    if (count === 3) {
-      body.commande_collections = [line(collection, 5, collection.papiers.map((p, i) => ({ papier_cartonne_id: p.id, quantite_base: i === 0 ? 3 : 1 })))];
+    if (count > 1 && count < 5) {
+      body.commande_collections = [line(collection, 5, collection.papiers.map((p, i) => ({ papier_cartonne_id: p.id, quantite_base: i === 0 ? 6 - count : 1 })))];
     } else {
       delete body.commande_collections[0].papiers;
     }
@@ -231,7 +232,22 @@ test('C automatise cinq papiers ou un papier ; avec trois papiers, tous doivent 
     assert.equal(order.papier_spe_quantite, 0);
     assert.equal(order.embellissement_quantite, 1);
     assert.equal(order.ruban, null);
-    if (count === 3) {
+    const beforeCounts = counts();
+    const beforeStocks = await api('/stocks');
+    const invalid = [
+      [line(foreign.catalogue.collections[0], 5)],
+      [line(collection, 5, [{ papier_cartonne_id: foreign.catalogue.collections[0].papiers[0].id, quantite_base: 5 }])],
+      [line(collection, 5, collection.papiers.map(p => ({ papier_cartonne_id: p.id, quantite_base: 2 })))],
+    ];
+    if (count > 1) invalid.push([line(collection, 5, [{ papier_cartonne_id: collection.papiers[0].id, quantite_base: 5 }])]);
+    for (const commande_collections of invalid) {
+      await api('/commandes', 'POST', { ...body, commande_collections }, 400);
+      await api(`/commandes/${order.id}`, 'PUT', replacement({ ...body, commande_collections }), 400);
+      assert.deepEqual(await api(`/commandes/${order.id}`), order);
+      assert.deepEqual(counts(), beforeCounts);
+      assert.deepEqual(await api('/stocks'), beforeStocks);
+    }
+    if (count > 1 && count < 5) {
       await api('/commandes', 'POST', payload(f, 'C'), 400);
       delete body.commande_collections[0].papiers;
       await api('/commandes', 'POST', body, 400);
@@ -354,18 +370,28 @@ test('tarifs zéro et personnalisés ; prix manuel et suppléments stricts, sans
   assert.equal(manual.prix_applique_cents, 0);
   assert.equal(manual.prix_origine, 'manuelle');
   assert.equal(manual.produit_promo_prix_cents, 500);
+  const beforeCounts = counts();
+  const beforeStocks = await api('/stocks');
+  async function reject(extra) {
+    const body = payload(f, 'A', extra);
+    await api('/commandes', 'POST', body, 400);
+    await api(`/commandes/${manual.id}`, 'PUT', replacement(body), 400);
+    assert.deepEqual(await api(`/commandes/${manual.id}`), manual);
+    assert.deepEqual(counts(), beforeCounts);
+    assert.deepEqual(await api('/stocks'), beforeStocks);
+  }
   for (const key of ['prix_applique_cents', 'produit_promo_prix_cents', 'autres_prix_cents']) {
     for (const value of [-1, 1.5, true, '300', null, Number.MAX_SAFE_INTEGER + 1]) {
       const extra = { [key]: value };
       if (key !== 'prix_applique_cents') extra[key.replace('_prix_cents', '_texte')] = 'Supplément';
-      await api('/commandes', 'POST', payload(f, 'A', extra), 400);
+      await reject(extra);
     }
   }
   for (const category of ['produit_promo', 'autres']) {
     for (const extra of [
       { [`${category}_texte`]: 'Sans prix' }, { [`${category}_prix_cents`]: 0 },
       { [`${category}_texte`]: ' ', [`${category}_prix_cents`]: 0 }
-    ]) await api('/commandes', 'POST', payload(f, 'A', extra), 400);
+    ]) await reject(extra);
   }
   await api('/commandes', 'POST', payload(f, 'B', { produit_promo_texte: 'Trop grand', produit_promo_prix_cents: Number.MAX_SAFE_INTEGER }), 400);
 });
@@ -596,6 +622,31 @@ test('hors-kit conserve son contrat et sa fidélité ; règlement dédié, modif
   assert.deepEqual(await api(`/commandes/${order.id}`), paid);
   const alreadyPaid = await api('/commandes', 'POST', { client_id: f.client.id, type: 'hors_kit', montant: 10, reglee: 1 }, 201);
   assert.equal(alreadyPaid.reglee, 1);
+});
+
+test('coordonnées et préférences clientes préservées ; kits sans fidélité et hors-kit au seuil historique', async () => {
+  const f = await fixture({ counts: [1] });
+  const fields = { date_naissance: '1990-02-03', adresse: 'Adresse synthétique', code_postal: '75001',
+    ville: 'Paris', email: `test${++sequence}@example.test`, telephone_raw: '06 12 34 56 78',
+    relais_prefere: 'Relais test', contacter: 1, points_fidelite: 4 };
+  await api(`/clients/${f.client.id}`, 'PUT', { nom: f.client.nom, prenom: f.client.prenom, ...fields });
+  const before = await api(`/clients/${f.client.id}`);
+  const kitOrder = await api('/commandes', 'POST', payload(f, 'C', { prix_applique_cents: 10000 }), 201);
+  await api(`/commandes/${kitOrder.id}`, 'PUT', replacement(payload(f, 'C')));
+  await api(`/commandes/${kitOrder.id}/reglement`, 'PATCH', {});
+  assert.equal((await api(`/clients/${f.client.id}`)).points_fidelite, 4);
+  await api('/commandes', 'POST', { client_id: f.client.id, type: 'hors_kit', montant: 70 }, 201);
+  assert.equal((await api(`/clients/${f.client.id}`)).points_fidelite, 4);
+  const horsKit = await api('/commandes', 'POST', { client_id: f.client.id, type: 'hors_kit', montant: 70.01 }, 201);
+  await api(`/commandes/${horsKit.id}`, 'PUT', { montant: 100 });
+  await api(`/commandes/${horsKit.id}/reglement`, 'PATCH', {});
+  await api(`/clients/${f.client.id}/archivage`, 'PATCH', { archive: true });
+  await api(`/clients/${f.client.id}/archivage`, 'PATCH', { archive: false });
+  const after = await api(`/clients/${f.client.id}`);
+  assert.equal(after.points_fidelite, 5);
+  for (const field of ['nom', 'prenom', 'created_at', 'email_norm', 'telephone_e164', ...Object.keys(fields).filter(k => k !== 'points_fidelite')]) {
+    assert.equal(after[field], before[field], field);
+  }
 });
 
 test('IDs et commandes absentes donnent des erreurs explicites', async () => {

@@ -42,6 +42,8 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
   Le bilan (#11) utilise les prix appliqués historiques et expose ses montants
   en centimes : voir [le contrat du bilan](bilan-commandes.md).
+  La recette consolidée (#12) est en cours : voir
+  [la matrice, les preuves et les validations restantes](recette-metier.md).
   Ce socle n’est pas prêt pour le déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans

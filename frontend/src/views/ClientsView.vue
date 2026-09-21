@@ -325,7 +325,8 @@
                     </span>
                   </div>
                   <div class="timeline-meta">
-                    <span>Format {{ commande.format_type }}</span>
+                    <span v-if="commande.type === 'kit'">Format {{ commande.format_type }}</span>
+                    <span v-else>Hors kit</span>
                     <span v-if="commande.methode_paiement">· {{ commande.methode_paiement }}</span>
                   </div>
                 </div>

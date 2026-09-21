@@ -66,14 +66,14 @@ test('un papier partagé reste deux lignes propres à leurs collections', () => 
   ]);
 });
 
-test('C propose les compositions 1/3/5 papiers et refuse toute omission ou mauvais total', () => {
-  for (const count of [1, 3, 5]) {
+test('C propose les compositions 1 à 5 papiers et refuse toute omission ou mauvais total', () => {
+  for (const count of [1, 2, 3, 4, 5]) {
     const cat = catalogue([count]);
     const form = filled(cat, 'C');
     assert.deepEqual(form.collections[0].papiers.map(p => p.quantite_base), count === 1 ? [5] : Array(count).fill(1));
-    if (count === 3) {
+    if (count > 1 && count < 5) {
       assert.ok(prepareKitPayload(form, cat).errors.papiers_0);
-      form.collections[0].papiers[0].quantite_base = 3;
+      form.collections[0].papiers[0].quantite_base = 6 - count;
     }
     assert.deepEqual(prepareKitPayload(form, cat).errors, {});
     form.collections[0].papiers[0].quantite_base = 0;

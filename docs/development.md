@@ -69,6 +69,10 @@ npm run check
 
 Les tests backend créent leur propre base SQLite dans le répertoire temporaire du système à partir de `db/schema.sql`. Ils n'ouvrent pas `db/app.db`.
 
+La [recette métier #12](recette-metier.md) relie les scénarios validés aux tests
+et décrit la préparation d’une base synthétique séparée avec
+`node backend/scripts/prepare-recette.js --target /chemin/nouveau.db`.
+
 ## Configuration
 
 Le développement courant ne nécessite aucun fichier `.env` : `npm run dev` fournit le chemin de la base et le frontend utilise le proxy Vite. Les fichiers `.env` locaux sont ignorés par Git.
