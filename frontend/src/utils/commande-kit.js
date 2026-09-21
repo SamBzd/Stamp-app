@@ -25,6 +25,10 @@ export function formatMoney(cents) {
     .join('');
 }
 
+export function commandeTypeLabel(commande) {
+  return commande?.type === 'kit' ? `Format ${commande.format_type}` : 'Hors kit';
+}
+
 export function defaultKitForm() {
   return {
     client_id: '', catalogue_id: '', format_type: '', collections: [], ruban_id: '',

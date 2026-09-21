@@ -162,6 +162,19 @@ test('maxima et associations refusées sans mutation ni démotion ; bibliothèqu
   assert.equal(alias.catalogue_id, other.id);
 });
 
+test('ajout d’une collection vide démote immédiatement et exige une republication après correction', async () => {
+  const cat = await catalogue({ papier_spe: 'Spécial' });
+  const paper = await papier();
+  await collection(cat, [paper.id]);
+  await publish(cat);
+  const empty = await api(`/catalogues/${cat.id}/collections`, 'POST', { nom: 'À compléter' }, 201);
+  assert.equal((await api(`/catalogues/${cat.id}`)).statut, 'brouillon');
+  assert.ok(!(await api('/catalogues?utilisables=true')).some(c => c.id === cat.id));
+  await api(`/collections/${empty.id}/papiers`, 'PUT', { papier_ids: [paper.id] });
+  assert.equal((await api(`/catalogues/${cat.id}`)).statut, 'brouillon');
+  assert.deepEqual((await publish(cat)).formats_disponibles, ['A', 'B', 'C']);
+});
+
 test('archivage strict, restauration sans publication et commandes interdites aux clientes archivées', async () => {
   const cat = await catalogue({ embellissement: 'E' });
   await collection(cat, [(await papier()).id]);
@@ -191,6 +204,19 @@ test('archivage strict, restauration sans publication et commandes interdites au
 });
 
 test('IDs, références et types invalides répondent 400/404 et sources non supprimables', async () => {
+  const cat = await catalogue({ embellissement: 'Test' });
+  const paper = await papier();
+  const col = await collection(cat, [paper.id]);
+  const ruban = await api(`/catalogues/${cat.id}/rubans`, 'POST', { nom: 'Test' }, 201);
+  const before = await api(`/catalogues/${cat.id}`);
+  for (const route of [`/collections/${col.id}`, `/catalogues/rubans/${ruban.id}`, `/papiers-cartonnes/${paper.id}`]) {
+    await api(route, 'PUT', { nom: 'Mutation refusée', archive: true }, 400);
+    assert.equal((await fetch(`${baseUrl}/api${route}/archivage`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archive: true })
+    })).status, 404);
+  }
+  assert.deepEqual(await api(`/catalogues/${cat.id}`), before);
+  assert.equal((await api('/papiers-cartonnes')).find(p => p.id === paper.id).nom, paper.nom);
   for (const id of ['abc', '1oops', '1.5', '0', '-1']) {
     await api(`/catalogues/${id}`, 'GET', undefined, 400);
     await api(`/clients/${id}/archivage`, 'PATCH', { archive: true }, 400);

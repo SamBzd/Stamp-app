@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { moneyToCents, centsToInput, formatMoney, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
+import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
 
 function catalogue(counts = [1, 1], rubans = 0) {
   return {
@@ -27,6 +27,13 @@ test('montants de commandes en centimes exacts, sans le plafond des tarifs catal
   assert.match(formatMoney(Number.MAX_SAFE_INTEGER), /409,91/);
   assert.match(formatMoney(29), /0,29/);
   assert.equal(formatMoney(null), '—');
+});
+
+test('historique cliente distingue les formats kits des commandes hors kit', () => {
+  for (const format of ['A', 'B', 'C']) {
+    assert.equal(commandeTypeLabel({ type: 'kit', format_type: format }), `Format ${format}`);
+  }
+  assert.equal(commandeTypeLabel({ type: 'hors_kit', format_type: null }), 'Hors kit');
 });
 
 test('A/B disponibles avec deux collections ; catalogue d’origine éditable même archivé', () => {
@@ -66,14 +73,14 @@ test('un papier partagé reste deux lignes propres à leurs collections', () => 
   ]);
 });
 
-test('C propose les compositions 1/3/5 papiers et refuse toute omission ou mauvais total', () => {
-  for (const count of [1, 3, 5]) {
+test('C propose les compositions 1 à 5 papiers et refuse toute omission ou mauvais total', () => {
+  for (const count of [1, 2, 3, 4, 5]) {
     const cat = catalogue([count]);
     const form = filled(cat, 'C');
     assert.deepEqual(form.collections[0].papiers.map(p => p.quantite_base), count === 1 ? [5] : Array(count).fill(1));
-    if (count === 3) {
+    if (count > 1 && count < 5) {
       assert.ok(prepareKitPayload(form, cat).errors.papiers_0);
-      form.collections[0].papiers[0].quantite_base = 3;
+      form.collections[0].papiers[0].quantite_base = 6 - count;
     }
     assert.deepEqual(prepareKitPayload(form, cat).errors, {});
     form.collections[0].papiers[0].quantite_base = 0;
