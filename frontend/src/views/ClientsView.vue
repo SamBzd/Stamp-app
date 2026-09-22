@@ -30,6 +30,7 @@
             type="text"
             placeholder="Rechercher un client..."
             class="search-input"
+            aria-label="Rechercher une cliente"
           />
         </div>
         <div class="toolbar-actions">
@@ -37,9 +38,11 @@
             <select id="clients-archive-filter" v-model="archiveFilter"><option value="actifs">Clients actifs</option><option value="archives">Clients archivés</option></select>
           </label>
           <button
+            type="button"
             :class="['favorites-toggle', { 'favorites-toggle-active': showOnlyFavorites }]"
             @click="showOnlyFavorites = !showOnlyFavorites"
             :title="showOnlyFavorites ? 'Afficher tous les clients' : 'Afficher seulement les favoris'"
+            :aria-pressed="showOnlyFavorites"
           >
             <svg viewBox="0 0 24 24" :fill="showOnlyFavorites ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -114,9 +117,12 @@
             </div>
           </div>
           <button 
+            type="button"
             :class="['favorite-btn', { 'favorite-btn-active': client.contacter }]"
             @click.stop="toggleFavoriteFromCard(client)"
             :title="client.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+            :aria-label="client.contacter ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`"
+            :aria-pressed="Boolean(client.contacter)"
           >
             <svg viewBox="0 0 24 24" :fill="client.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -150,9 +156,11 @@
               <h2 class="profile-name">{{ selectedClient.prenom }} {{ selectedClient.nom }}</h2>
               <div class="profile-badges">
                 <button 
+                  type="button"
                   :class="['favorite-toggle', { 'favorite-toggle-active': selectedClient.contacter }]"
                   @click="toggleFavorite"
                   :title="selectedClient.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+                  :aria-pressed="Boolean(selectedClient.contacter)"
                 >
                   <svg viewBox="0 0 24 24" :fill="selectedClient.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -347,20 +355,20 @@
         max-width="560px"
       >
         <form @submit.prevent="handleSubmit" class="client-form">
-          <!-- Section Identité -->
-          <div class="form-section">
-            <h4 class="form-section-title">
+          <fieldset class="form-section">
+            <legend class="form-section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                 <circle cx="12" cy="7" r="4"/>
               </svg>
-              Identité
-            </h4>
+              Coordonnées
+            </legend>
             <div class="form-row">
               <FormInput
                 v-model="formData.prenom"
                 label="Prénom"
                 placeholder="Marie"
+                autocomplete="given-name"
                 required
                 :error="errors.prenom"
               />
@@ -368,64 +376,26 @@
                 v-model="formData.nom"
                 label="Nom"
                 placeholder="Dupont"
+                autocomplete="family-name"
                 required
                 :error="errors.nom"
               />
             </div>
-            <FormInput
-              v-model="formData.date_naissance"
-              label="Date de naissance"
-              type="date"
-              :error="errors.date_naissance"
-            />
-            <FormInput
-              v-model="formData.points_fidelite"
-              label="Points fidélité"
-              type="number"
-              :min="0"
-              :step="1"
-              placeholder="0"
-            />
-          </div>
-
-          <!-- Section Contact -->
-          <div class="form-section">
-            <h4 class="form-section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              Contact
-            </h4>
             <div class="form-row">
-              <FormInput
+              <EmailDomainInput
                 v-model="formData.email"
-                label="Email"
-                type="email"
-                placeholder="marie.dupont@email.com"
                 :error="errors.email"
               />
-              <FormInput
+              <PhoneInput
                 v-model="formData.telephone_raw"
-                label="Téléphone"
-                placeholder="06 12 34 56 78"
                 :error="errors.telephone_raw"
               />
             </div>
-          </div>
-
-          <!-- Section Adresse -->
-          <div class="form-section">
-            <h4 class="form-section-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-              Adresse
-            </h4>
             <FormInput
               v-model="formData.adresse"
               label="Rue"
               placeholder="123 rue de la Paix"
+              autocomplete="street-address"
               :error="errors.adresse"
             />
             <div class="form-row">
@@ -433,25 +403,43 @@
                 v-model="formData.code_postal"
                 label="Code postal"
                 placeholder="75001"
+                autocomplete="postal-code"
                 :error="errors.code_postal"
               />
               <FormInput
                 v-model="formData.ville"
                 label="Ville"
                 placeholder="Paris"
+                autocomplete="address-level2"
                 :error="errors.ville"
               />
             </div>
-          </div>
+          </fieldset>
 
-          <!-- Section Préférences -->
-          <div class="form-section">
-            <h4 class="form-section-title">
+          <fieldset class="form-section">
+            <legend class="form-section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
-              Préférences
-            </h4>
+              Informations complémentaires
+            </legend>
+            <div class="form-row">
+              <FormInput
+                v-model="formData.date_naissance"
+                label="Date de naissance"
+                type="date"
+                autocomplete="bday"
+                :error="errors.date_naissance"
+              />
+              <FormInput
+                v-model="formData.points_fidelite"
+                label="Points fidélité"
+                type="number"
+                :min="0"
+                :step="1"
+                placeholder="0"
+              />
+            </div>
             <FormInput
               v-model="formData.relais_prefere"
               label="Relais favori"
@@ -460,10 +448,10 @@
             />
             <FormCheckbox
               v-model="formData.contacter"
-              label="⭐ Client favori"
-              description="Marquez cette cliente comme favorite pour un accès rapide"
+              label="Cliente favorite"
+              description="Retrouvez-la rapidement avec le filtre Favoris"
             />
-          </div>
+          </fieldset>
         </form>
         <template #footer>
           <Button variant="secondary" @click="closeModal">Annuler</Button>
@@ -495,9 +483,12 @@ import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
 import FormInput from '../components/FormInput.vue';
 import FormCheckbox from '../components/FormCheckbox.vue';
+import EmailDomainInput from '../components/EmailDomainInput.vue';
+import PhoneInput from '../components/PhoneInput.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import { useClientsStore } from '../stores/clients';
 import { commandeTypeLabel } from '../utils/commande-kit';
+import { matchesClientSearch } from '../utils/client-input';
 
 const router = useRouter();
 
@@ -552,19 +543,7 @@ const filteredClients = computed(() => {
     clients = clients.filter(client => client.contacter === 1);
   }
   
-  // Filtrer par recherche
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase();
-    clients = clients.filter(client => {
-      return (
-        client.nom?.toLowerCase().includes(query) ||
-        client.prenom?.toLowerCase().includes(query) ||
-        client.email?.toLowerCase().includes(query) ||
-        client.telephone_raw?.includes(query) ||
-        client.ville?.toLowerCase().includes(query)
-      );
-    });
-  }
+  if (searchQuery.value) clients = clients.filter(client => matchesClientSearch(client, searchQuery.value));
   
   return clients;
 });
@@ -1000,13 +979,16 @@ onMounted(async () => {
 
 /* === Form === */
 .client-form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
+  display: grid;
+  gap: var(--spacing-4);
 }
 
 .form-section {
-  padding-bottom: var(--spacing-5);
+  display: grid;
+  gap: var(--spacing-3);
+  min-width: 0;
+  padding: 0 0 var(--spacing-4);
+  border: 0;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -1023,7 +1005,8 @@ onMounted(async () => {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--primary);
-  margin: 0 0 var(--spacing-4) 0;
+  margin: 0 0 var(--spacing-1);
+  padding: 0;
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wider);
 }
@@ -1036,8 +1019,13 @@ onMounted(async () => {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-4);
+  gap: var(--spacing-3);
 }
+
+.form-row > * { min-width: 0; }
+.client-form :deep(.form-field),
+.client-form :deep(.form-field-checkbox),
+.client-form :deep(.email-domain-field) { margin-bottom: 0; }
 
 /* === Client Profile Modal === */
 .client-profile {
