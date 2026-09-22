@@ -137,7 +137,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-5) var(--spacing-6);
-  background: linear-gradient(180deg, var(--muted) 0%, var(--accent) 100%);
+  background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-light);
   min-height: 56px;
   user-select: none;
@@ -199,7 +199,7 @@ onUnmounted(() => {
 /* === Transitions === */
 .modal-enter-active,
 .modal-leave-active {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity var(--transition-fast);
 }
 
 .modal-enter-from,
@@ -209,7 +209,7 @@ onUnmounted(() => {
 
 .modal-enter-active .modal-container,
 .modal-leave-active .modal-container {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity var(--transition-fast), transform var(--transition-normal);
 }
 
 .modal-enter-from .modal-container {

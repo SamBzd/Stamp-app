@@ -76,10 +76,10 @@ const handleClick = (event) => {
   gap: var(--spacing-2);
   font-family: var(--font-family);
   font-weight: var(--font-weight-semibold);
-  border-radius: var(--border-radius-full);
+  border-radius: var(--border-radius-sm);
   border: none;
   cursor: pointer;
-  transition: all var(--transition-normal);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
   white-space: nowrap;
   user-select: none;
   position: relative;
@@ -91,13 +91,7 @@ const handleClick = (event) => {
   outline-offset: 2px;
 }
 
-.btn:not(.btn-disabled):not(.btn-loading):hover {
-  transform: scale(1.05);
-}
-
-.btn:not(.btn-disabled):not(.btn-loading):active {
-  transform: scale(0.95);
-}
+.btn:not(.btn-disabled):not(.btn-loading):active { background-image: linear-gradient(rgb(0 0 0 / 8%), rgb(0 0 0 / 8%)); }
 
 /* === Sizes === */
 .btn-sm {

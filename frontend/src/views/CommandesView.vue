@@ -1,5 +1,5 @@
 <template>
-  <Layout @new-order="openKitForm">
+  <Layout>
     <div class="commandes-view">
       <!-- Page Header -->
       <header class="page-header">
@@ -61,10 +61,9 @@
       <!-- Commandes List -->
       <div v-else class="commandes-list">
         <div
-          v-for="(commande, index) in commandesStore.commandes"
+          v-for="commande in commandesStore.commandes"
           :key="commande.id"
           class="commande-card"
-          :style="{ animationDelay: `${index * 0.04}s` }"
           @click="viewCommande(commande)"
           @keydown.enter="viewCommande(commande)"
           @keydown.space.prevent="viewCommande(commande)"
@@ -514,10 +513,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.commandes-view {
-  max-width: var(--content-max-width);
-  animation: fadeInUp 0.4s ease-out;
-}
+.commandes-view { max-width: var(--content-max-width); }
 
 .page-title {
   font-family: var(--font-heading);
@@ -556,20 +552,18 @@ onMounted(async () => {
   border-radius: var(--border-radius-2xl);
   padding: var(--spacing-4) var(--spacing-5);
   border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   display: flex;
   align-items: center;
   gap: var(--spacing-4);
   cursor: pointer;
-  transition: all var(--transition-normal);
-  animation: fadeInUp 0.4s ease-out backwards;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
   position: relative;
 }
 
 .commande-card:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+  border-color: var(--primary);
+  background: var(--bg-tertiary);
 }
 
 .commande-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }

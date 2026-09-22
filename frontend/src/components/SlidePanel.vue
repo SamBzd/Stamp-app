@@ -176,16 +176,16 @@ onUnmounted(() => {
 
 /* === Transitions === */
 .slide-panel-enter-active {
-  transition: opacity 0.3s ease;
+  transition: opacity var(--transition-fast);
 }
 .slide-panel-enter-active .slide-panel {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform var(--transition-normal);
 }
 .slide-panel-leave-active {
-  transition: opacity 0.25s ease;
+  transition: opacity var(--transition-fast);
 }
 .slide-panel-leave-active .slide-panel {
-  transition: transform 0.25s cubic-bezier(0.4, 0, 1, 1);
+  transition: transform var(--transition-fast);
 }
 
 .slide-panel-enter-from {
