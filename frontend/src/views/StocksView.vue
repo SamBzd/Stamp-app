@@ -424,10 +424,7 @@ onMounted(async () => {
 <style scoped>
 .stocks-layout :deep(.main-content) { min-width: 0; }
 
-.stocks-view {
-  max-width: var(--content-max-width);
-  animation: fadeInUp 0.4s ease-out;
-}
+.stocks-view { max-width: var(--content-max-width); }
 
 /* === Page Title === */
 .page-title {
@@ -476,14 +473,6 @@ onMounted(async () => {
 }
 
 /* === Tab Content === */
-.tab-content {
-  animation: fadeIn 0.2s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 
 /* === Toolbars === */
 .stocks-toolbar,

@@ -84,14 +84,13 @@
 
       <div v-else class="clients-grid">
         <div
-          v-for="(client, index) in filteredClients"
+          v-for="client in filteredClients"
           :key="client.id"
           class="client-card"
           role="button"
           tabindex="0"
           @keydown.enter.self="viewClient(client)"
           @keydown.space.self.prevent="viewClient(client)"
-          :style="{ animationDelay: `${index * 0.05}s` }"
           @click="viewClient(client)"
         >
           <div class="client-avatar">
@@ -782,10 +781,7 @@ onMounted(async () => {
 .archive-error { color: var(--error-dark); }
 .toolbar-actions { flex-wrap: wrap; }
 .client-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.clients-view {
-  max-width: var(--content-max-width);
-  animation: fadeInUp 0.4s ease-out;
-}
+.clients-view { max-width: var(--content-max-width); }
 
 /* === Page Title === */
 .page-title {
@@ -824,7 +820,7 @@ onMounted(async () => {
   padding: var(--spacing-2) var(--spacing-4);
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
+  border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--text-secondary);
@@ -866,18 +862,16 @@ onMounted(async () => {
   border-radius: var(--border-radius-2xl);
   padding: var(--spacing-5);
   border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
+  box-shadow: none;
   display: flex;
   gap: var(--spacing-4);
-  transition: all var(--transition-normal);
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
   cursor: pointer;
-  animation: fadeInUp 0.4s ease-out backwards;
 }
 
 .client-card:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-3px) rotate(0.3deg);
+  border-color: var(--primary);
+  background: var(--bg-tertiary);
 }
 
 .client-card:hover .arrow-indicator {

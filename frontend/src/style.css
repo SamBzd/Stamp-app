@@ -47,7 +47,7 @@
   .catalogue-workspace input, .catalogue-workspace select { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .catalogue-workspace *, .clients-view, .clients-view *, .modal-overlay, .modal-overlay *, .slide-panel-overlay, .slide-panel-overlay * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
 
 /* Reset & Base */
@@ -61,35 +61,35 @@
 
 :root {
   /* === Core Organic Palette === */
-  --background: #FDFCF8;
-  --foreground: #2C2C24;
-  --primary: #5D7052;
-  --primary-foreground: #F3F4F1;
-  --primary-light: rgba(93, 112, 82, 0.10);
-  --primary-medium: rgba(93, 112, 82, 0.15);
-  --secondary: #C18C5D;
+  --background: #f7f2e8;
+  --foreground: #24221d;
+  --primary: #295a45;
+  --primary-foreground: #ffffff;
+  --primary-light: #e4eee8;
+  --primary-medium: #cfe0d6;
+  --secondary: #a64e36;
   --secondary-foreground: #FFFFFF;
   --secondary-light: rgba(193, 140, 93, 0.12);
   --accent: #E6DCCD;
   --accent-foreground: #4A4A40;
-  --muted: #F0EBE5;
-  --muted-foreground: #78786C;
-  --border: #DED8CF;
-  --border-light: rgba(222, 216, 207, 0.50);
-  --destructive: #A85448;
+  --muted: #eee8dd;
+  --muted-foreground: #68645b;
+  --border: #d6cebf;
+  --border-light: #e4ded3;
+  --destructive: #a13f34;
   --destructive-light: rgba(168, 84, 72, 0.12);
-  --card: #FEFEFA;
+  --card: #fffdf8;
 
   /* === Semantic Colors === */
-  --success: #5D7052;
+  --success: #295a45;
   --success-light: rgba(93, 112, 82, 0.12);
-  --success-dark: #4A5D42;
-  --warning: #C18C5D;
+  --success-dark: #214a39;
+  --warning: #98612f;
   --warning-light: rgba(193, 140, 93, 0.12);
   --warning-dark: #A07040;
-  --error: #A85448;
+  --error: #a13f34;
   --error-light: rgba(168, 84, 72, 0.10);
-  --error-dark: #8B3E34;
+  --error-dark: #7c3028;
   --info: #6B8F71;
   --info-light: rgba(107, 143, 113, 0.12);
   --info-dark: #4A6B4E;
@@ -106,32 +106,32 @@
   --format-c-dark: #6B573F;
 
   /* === Surfaces === */
-  --bg-app: #FDFCF8;
-  --bg-primary: #FEFEFA;
-  --bg-secondary: #F0EBE5;
-  --bg-tertiary: #F7F4F0;
-  --bg-elevated: #FFFFFF;
-  --bg-overlay: rgba(44, 44, 36, 0.35);
-  --bg-frosted: rgba(253, 252, 248, 0.80);
-  --bg-card-hover: linear-gradient(135deg, #FEFEFA 0%, #F7F4F0 100%);
+  --bg-app: #f7f2e8;
+  --bg-primary: #fffdf8;
+  --bg-secondary: #eee8dd;
+  --bg-tertiary: #f3ede3;
+  --bg-elevated: #ffffff;
+  --bg-overlay: rgba(36, 34, 29, 0.28);
+  --bg-frosted: rgba(255, 253, 248, 0.80);
+  --bg-card-hover: #fffdf8;
 
   /* === Text === */
-  --text-primary: #2C2C24;
-  --text-secondary: #5A5A50;
-  --text-tertiary: #78786C;
-  --text-inverse: #FDFCF8;
-  --text-accent: #5D7052;
+  --text-primary: #24221d;
+  --text-secondary: #4f4b43;
+  --text-tertiary: #68645b;
+  --text-inverse: #fffdf8;
+  --text-accent: #295a45;
 
   /* === Borders & Radii === */
   --border-color: #DED8CF;
   --border-color-light: rgba(222, 216, 207, 0.40);
   --border-color-focus: rgba(93, 112, 82, 0.40);
-  --border-radius-xs: 8px;
-  --border-radius-sm: 10px;
-  --border-radius: 16px;
-  --border-radius-lg: 20px;
-  --border-radius-xl: 24px;
-  --border-radius-2xl: 32px;
+  --border-radius-xs: 4px;
+  --border-radius-sm: 6px;
+  --border-radius: 8px;
+  --border-radius-lg: 10px;
+  --border-radius-xl: 12px;
+  --border-radius-2xl: 16px;
   --border-radius-full: 9999px;
 
   /* === Organic Blob Radii === */
@@ -151,17 +151,17 @@
   --card-radius-6: 3rem 2rem 3rem 2rem;
 
   /* === Shadows (Nature-tinted, never pure black) === */
-  --shadow-xs: 0 1px 2px rgba(93, 112, 82, 0.04);
-  --shadow-sm: 0 1px 3px rgba(93, 112, 82, 0.06), 0 1px 2px rgba(93, 112, 82, 0.04);
-  --shadow: 0 4px 6px -1px rgba(93, 112, 82, 0.08), 0 2px 4px -1px rgba(93, 112, 82, 0.04);
-  --shadow-md: 0 10px 15px -3px rgba(93, 112, 82, 0.10), 0 4px 6px -2px rgba(93, 112, 82, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(93, 112, 82, 0.12), 0 10px 10px -5px rgba(93, 112, 82, 0.04);
-  --shadow-xl: 0 25px 50px -12px rgba(93, 112, 82, 0.18);
-  --shadow-inner: inset 0 2px 4px 0 rgba(93, 112, 82, 0.06);
-  --shadow-soft: 0 4px 20px -2px rgba(93, 112, 82, 0.15);
-  --shadow-float: 0 10px 40px -10px rgba(193, 140, 93, 0.20);
-  --shadow-card: 0 2px 12px rgba(93, 112, 82, 0.06), 0 4px 20px rgba(93, 112, 82, 0.04);
-  --shadow-card-hover: 0 8px 30px rgba(93, 112, 82, 0.12), 0 4px 12px rgba(93, 112, 82, 0.06);
+  --shadow-xs: none;
+  --shadow-sm: 0 1px 2px rgba(36, 34, 29, 0.06);
+  --shadow: 0 2px 6px rgba(36, 34, 29, 0.08);
+  --shadow-md: 0 8px 24px rgba(36, 34, 29, 0.14);
+  --shadow-lg: 0 12px 28px rgba(36, 34, 29, 0.16);
+  --shadow-xl: 0 12px 28px rgba(36, 34, 29, 0.16);
+  --shadow-inner: none;
+  --shadow-soft: none;
+  --shadow-float: 0 8px 20px rgba(36, 34, 29, 0.12);
+  --shadow-card: none;
+  --shadow-card-hover: 0 2px 6px rgba(36, 34, 29, 0.08);
 
   /* === Spacing === */
   --spacing-px: 1px;
@@ -179,13 +179,13 @@
   --spacing-20: 80px;
 
   /* === Typography === */
-  --font-family: 'Nunito', 'Quicksand', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-heading: 'Fraunces', 'Georgia', 'Times New Roman', serif;
-  --font-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-heading: Iowan Old Style, "Palatino Linotype", Palatino, Georgia, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --font-size-xs: 11px;
   --font-size-sm: 13px;
-  --font-size-base: 14px;
+  --font-size-base: 16px;
   --font-size-md: 15px;
   --font-size-lg: 17px;
   --font-size-xl: 20px;
@@ -210,11 +210,11 @@
   --letter-spacing-wider: 0.05em;
 
   /* === Transitions (Gentle, natural motion) === */
-  --transition-fast: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-spring: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-bounce: 500ms cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --transition-fast: 120ms ease-out;
+  --transition-normal: 180ms ease-out;
+  --transition-slow: 180ms ease-out;
+  --transition-spring: 180ms ease-out;
+  --transition-bounce: 180ms ease-out;
 
   /* === Z-Index === */
   --z-dropdown: 100;
@@ -253,21 +253,6 @@ body {
 }
 
 /* === Paper Grain Texture Overlay === */
-body::after {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.035;
-  mix-blend-mode: multiply;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-}
 
 #app {
   width: 100%;
@@ -309,8 +294,8 @@ body::after {
 
 /* === Focus Visible (Soft moss green ring) === */
 :focus-visible {
-  outline: 2px solid rgba(93, 112, 82, 0.40);
-  outline-offset: 2px;
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
 }
 
 /* === Links === */
@@ -357,15 +342,13 @@ a:hover {
   background: var(--card);
   border-radius: var(--border-radius-2xl);
   border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
   padding: var(--spacing-5);
-  transition: all var(--transition-normal);
+  box-shadow: none;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
 .card:hover {
-  border-color: var(--border);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+  border-color: var(--primary);
 }
 
 .card-interactive {
@@ -373,7 +356,7 @@ a:hover {
 }
 
 .card-interactive:hover {
-  transform: translateY(-4px);
+  background: var(--bg-tertiary);
 }
 
 /* === Empty State === */
@@ -384,7 +367,7 @@ a:hover {
   justify-content: center;
   text-align: center;
   padding: var(--spacing-16) var(--spacing-8);
-  background: linear-gradient(135deg, var(--muted) 0%, var(--accent) 50%, var(--muted) 100%);
+  background: var(--bg-secondary);
   border-radius: var(--border-radius-2xl);
   border: 2px dashed var(--border);
 }
