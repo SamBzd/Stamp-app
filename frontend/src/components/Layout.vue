@@ -57,7 +57,7 @@ const onKeydown = event => {
   }
 };
 const onPointerdown = event => { if (menuOpen.value && !navigationMenu.value?.contains(event.target) && !navigationButton.value?.contains(event.target)) closeMenu(); };
-watch(() => route.fullPath, async () => { closeMenu(); await nextTick(); mainContent.value?.focus(); });
+watch(() => route.path, async () => { closeMenu(); await nextTick(); mainContent.value?.focus(); });
 onMounted(() => { document.addEventListener('keydown', onKeydown); document.addEventListener('pointerdown', onPointerdown); });
 onBeforeUnmount(() => { document.removeEventListener('keydown', onKeydown); document.removeEventListener('pointerdown', onPointerdown); });
 </script>
@@ -68,7 +68,7 @@ onBeforeUnmount(() => { document.removeEventListener('keydown', onKeydown); docu
 .navigation-trigger { display: inline-grid; width: 44px; height: 44px; place-items: center; border: 1px solid transparent; border-radius: var(--border-radius-sm); background: transparent; color: var(--text-primary); cursor: pointer; transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast); }
 .navigation-trigger:hover, .navigation-trigger[aria-expanded="true"] { background: var(--primary-light); border-color: var(--border); color: var(--primary); }
 .navigation-trigger svg { width: 20px; height: 20px; }
-.topbar-brand { font-family: var(--font-heading); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--text-primary); letter-spacing: var(--letter-spacing-tight); }
+.topbar-brand { font-family: var(--font-brand); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); color: var(--text-primary); letter-spacing: var(--letter-spacing-tight); }
 .navigation-scrim { position: fixed; inset: 0; z-index: calc(var(--z-sticky) - 1); background: var(--bg-overlay); }
 .navigation-menu { position: fixed; top: calc(56px + var(--spacing-2)); left: var(--spacing-3); z-index: calc(var(--z-sticky) + 1); display: grid; min-width: min(300px, calc(100vw - var(--spacing-6))); gap: var(--spacing-1); padding: var(--spacing-2); border: 1px solid var(--border-light); border-radius: var(--border-radius); background: var(--bg-frosted); box-shadow: var(--shadow-md); backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%); }
 .navigation-menu-title { padding: var(--spacing-2) var(--spacing-3); color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); text-transform: uppercase; letter-spacing: var(--letter-spacing-wide); }

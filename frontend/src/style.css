@@ -86,7 +86,7 @@
   --success-dark: #214a39;
   --warning: #98612f;
   --warning-light: rgba(193, 140, 93, 0.12);
-  --warning-dark: #A07040;
+  --warning-dark: #815018;
   --error: #a13f34;
   --error-light: rgba(168, 84, 72, 0.10);
   --error-dark: #7c3028;
@@ -180,7 +180,8 @@
 
   /* === Typography === */
   --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-heading: Iowan Old Style, "Palatino Linotype", Palatino, Georgia, serif;
+  --font-heading: var(--font-family);
+  --font-brand: Iowan Old Style, "Palatino Linotype", Palatino, Georgia, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --font-size-xs: 11px;

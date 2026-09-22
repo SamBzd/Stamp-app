@@ -12,6 +12,8 @@ test('la navigation expose toutes les routes métier et marque la route active',
   }
   assert.match(layout, /:aria-current="isActive\(item\.path\) \? 'page' : undefined"/);
   assert.match(layout, /route\.path\.startsWith\(path\)/);
+  assert.match(layout, /watch\(\(\) => route\.path,/);
+  assert.doesNotMatch(layout, /route\.fullPath/);
 });
 
 test('le menu de navigation est actionnable, ferme avec Échap et rend le focus', () => {
@@ -38,7 +40,13 @@ test('les paires de texte principales restent à un contraste AA', () => {
     return .2126 * values[0] + .7152 * values[1] + .0722 * values[2];
   };
   const ratio = (foreground, background) => (Math.max(luminance(foreground), luminance(background)) + .05) / (Math.min(luminance(foreground), luminance(background)) + .05);
+  const readRgba = token => styles.match(new RegExp(`${token}:\\s*rgba\\((\\d+),\\s*(\\d+),\\s*(\\d+),\\s*([\\d.]+)\\)`, 'i'))?.slice(1).map(Number);
+  const composite = (overlay, background) => {
+    const base = background.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16));
+    return `#${overlay.slice(0, 3).map((value, index) => Math.round(value * overlay[3] + base[index] * (1 - overlay[3])).toString(16).padStart(2, '0')).join('')}`;
+  };
   for (const [foreground, background] of [['--text-primary', '--bg-app'], ['--text-secondary', '--bg-app'], ['--primary', '--bg-primary'], ['--error-dark', '--bg-primary']]) {
     assert.ok(ratio(readToken(foreground), readToken(background)) >= 4.5, `${foreground} sur ${background}`);
   }
+  assert.ok(ratio(readToken('--warning-dark'), composite(readRgba('--warning-light'), readToken('--card'))) >= 4.5, '--warning-dark sur --warning-light composé');
 });
