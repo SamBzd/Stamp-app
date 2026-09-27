@@ -30,6 +30,7 @@ test('préserve le curseur après le préfixe international saisi seul', () => {
   assert.equal(phoneCaretPosition('+3', '+3', 2), 2);
   assert.equal(phoneCaretPosition('+33', '+33', 1), 1);
   assert.equal(phoneCaretPosition('+33', '+33', 0), 0);
+  assert.equal(phoneCaretPosition('+32 ', '+32 ', 4), 4);
 });
 
 test('la recherche locale ignore les accents et les séparateurs téléphoniques', () => {
@@ -37,6 +38,9 @@ test('la recherche locale ignore les accents et les séparateurs téléphoniques
   assert.equal(matchesClientSearch(client, 'noel'), true);
   assert.equal(matchesClientSearch(client, 'anais'), true);
   assert.equal(matchesClientSearch(client, '061234'), true);
+  assert.equal(matchesClientSearch(client, '06-12'), true);
+  assert.equal(matchesClientSearch(client, 'client2'), false);
+  assert.equal(matchesClientSearch(client, 'bob@example2.com'), false);
   assert.equal(matchesClientSearch(client, 'Lyon'), false);
 });
 

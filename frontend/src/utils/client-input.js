@@ -64,6 +64,8 @@ export function phoneCaretPosition(formattedValue, rawValue, cursor) {
   const safeCursor = Number.isInteger(cursor)
     ? Math.max(0, Math.min(cursor, raw.length))
     : raw.length;
+  if (formatted === raw) return safeCursor;
+
   const beforeCursor = raw.slice(0, safeCursor);
   const digitCount = beforeCursor.replace(/\D/g, '').length;
 
@@ -93,6 +95,9 @@ export function matchesClientSearch(client, query) {
   const textMatch = [client.nom, client.prenom, client.email, client.ville]
     .some(value => searchable(value).includes(normalizedQuery));
   if (textMatch) return true;
+
+  const isPhoneQuery = /^[+\d\s().-]+$/.test(normalizedQuery);
+  if (!isPhoneQuery) return false;
 
   const queryDigits = normalizedQuery.replace(/\D/g, '');
   return Boolean(queryDigits) && String(client.telephone_raw ?? '').replace(/\D/g, '').includes(queryDigits);
