@@ -24,7 +24,7 @@
 
 <script setup>
 import { nextTick, ref, useId } from 'vue';
-import { formatFrenchPhone } from '../utils/client-input';
+import { formatFrenchPhone, phoneCaretPosition } from '../utils/client-input';
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -39,23 +39,12 @@ const feedbackId = `telephone-feedback-${uid}`;
 const inputRef = ref(null);
 const focused = ref(false);
 
-function caretAfterDigits(value, digitCount) {
-  if (digitCount === 0) return 0;
-  let seen = 0;
-  for (let index = 0; index < value.length; index += 1) {
-    if (/\d/.test(value[index])) seen += 1;
-    if (seen === digitCount) return index + 1;
-  }
-  return value.length;
-}
-
 const handleInput = async event => {
   const input = event.target;
   const rawValue = input.value;
   const cursor = input.selectionStart ?? rawValue.length;
-  const digitsBeforeCursor = rawValue.slice(0, cursor).replace(/\D/g, '').length;
   const formatted = formatFrenchPhone(rawValue);
-  const nextCursor = caretAfterDigits(formatted, digitsBeforeCursor);
+  const nextCursor = phoneCaretPosition(formatted, rawValue, cursor);
 
   input.value = formatted;
   emit('update:modelValue', formatted);

@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
-import { emailDomainSuggestions, formatFrenchPhone, matchesClientSearch } from '../src/utils/client-input.js';
+import {
+  emailDomainSuggestions,
+  formatFrenchPhone,
+  matchesClientSearch,
+  phoneCaretPosition,
+} from '../src/utils/client-input.js';
 
 test('propose les domaines email après arobase sans imposer de valeur', () => {
   assert.deepEqual(emailDomainSuggestions('marie@', ['gmail.com', 'orange.fr']), ['marie@gmail.com', 'marie@orange.fr']);
@@ -18,6 +23,13 @@ test('formate progressivement les numéros français sans perdre les formats rec
   assert.equal(formatFrenchPhone('612345678'), '6 12 34 56 78');
   assert.equal(formatFrenchPhone('+32 470 12 34 56'), '+32 470 12 34 56');
   assert.equal(formatFrenchPhone(''), '');
+});
+
+test('préserve le curseur après le préfixe international saisi seul', () => {
+  assert.equal(phoneCaretPosition('+', '+', 1), 1);
+  assert.equal(phoneCaretPosition('+3', '+3', 2), 2);
+  assert.equal(phoneCaretPosition('+33', '+33', 1), 1);
+  assert.equal(phoneCaretPosition('+33', '+33', 0), 0);
 });
 
 test('la recherche locale ignore les accents et les séparateurs téléphoniques', () => {
@@ -46,6 +58,6 @@ test('le champ téléphone préserve le curseur lors du formatage', async () => 
   const component = await readFile(new URL('../src/components/PhoneInput.vue', import.meta.url), 'utf8');
   assert.match(component, /inputmode="tel"/);
   assert.match(component, /formatFrenchPhone\(rawValue\)/);
-  assert.match(component, /digitsBeforeCursor/);
+  assert.match(component, /phoneCaretPosition\(formatted, rawValue, cursor\)/);
   assert.match(component, /setSelectionRange\(nextCursor, nextCursor\)/);
 });

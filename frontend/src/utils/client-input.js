@@ -58,6 +58,27 @@ export function formatFrenchPhone(value) {
   return input;
 }
 
+export function phoneCaretPosition(formattedValue, rawValue, cursor) {
+  const formatted = String(formattedValue ?? '');
+  const raw = String(rawValue ?? '');
+  const safeCursor = Number.isInteger(cursor)
+    ? Math.max(0, Math.min(cursor, raw.length))
+    : raw.length;
+  const beforeCursor = raw.slice(0, safeCursor);
+  const digitCount = beforeCursor.replace(/\D/g, '').length;
+
+  if (digitCount === 0) {
+    return beforeCursor.includes('+') && formatted.startsWith('+') ? 1 : 0;
+  }
+
+  let seen = 0;
+  for (let index = 0; index < formatted.length; index += 1) {
+    if (/\d/.test(formatted[index])) seen += 1;
+    if (seen === digitCount) return index + 1;
+  }
+  return formatted.length;
+}
+
 function searchable(value) {
   return String(value ?? '')
     .normalize('NFD')
