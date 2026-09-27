@@ -49,7 +49,6 @@ export const useClientsStore = defineStore('clients', {
     },
 
     async createClient(clientData) {
-      this.loading = true;
       this.error = null;
       try {
         const newClient = await clientsAPI.create(clientData);
@@ -58,13 +57,10 @@ export const useClientsStore = defineStore('clients', {
       } catch (error) {
         this.error = error.message;
         throw error;
-      } finally {
-        this.loading = false;
       }
     },
 
     async updateClient(id, clientData) {
-      this.loading = true;
       this.error = null;
       try {
         const updatedClient = await clientsAPI.update(id, clientData);
@@ -76,13 +72,10 @@ export const useClientsStore = defineStore('clients', {
       } catch (error) {
         this.error = error.message;
         throw error;
-      } finally {
-        this.loading = false;
       }
     },
 
     async setArchive(id, archive) {
-      this.loading = true;
       this.error = null;
       try {
         const updated = await clientsAPI.setArchive(id, archive);
@@ -92,8 +85,6 @@ export const useClientsStore = defineStore('clients', {
       } catch (error) {
         this.error = error.message;
         throw error;
-      } finally {
-        this.loading = false;
       }
     },
 
