@@ -54,10 +54,45 @@ export function selectKitFormat(form, format) {
 }
 
 function initialPapers(collection, contribution, format) {
-  return (collection?.papiers || []).map((paper, index, papers) => ({
+  const papers = collection?.papiers || [];
+  if (format !== 'C') {
+    const base = papers.length ? Math.floor(contribution / Math.min(papers.length, contribution)) : 0;
+    const remainder = papers.length ? contribution % Math.min(papers.length, contribution) : 0;
+    return papers.map((paper, index) => ({
+      papier_cartonne_id: paper.id,
+      quantite_base: index < contribution ? base + (index < remainder ? 1 : 0) : 0,
+    }));
+  }
+  return papers.map((paper, index, allPapers) => ({
     papier_cartonne_id: paper.id,
-    quantite_base: format === 'C' ? (papers.length === 1 ? 5 : 1) : (index === 0 ? contribution : 0),
+    quantite_base: allPapers.length === 1 ? 5 : 1,
   }));
+}
+
+export function allocatedPapers(line) {
+  return line.papiers.reduce((sum, paper) => sum + (Number(paper.quantite_base) || 0), 0);
+}
+
+export function allocationStatus(line) {
+  const remaining = line.nb_feuilles - allocatedPapers(line);
+  if (remaining > 0) return `${remaining} à répartir`;
+  return remaining < 0 ? `${-remaining} en trop` : 'répartition complète';
+}
+
+export function canAdjustPaperQuantity(form, index, paperId, delta) {
+  const line = form.collections[index];
+  const paper = line?.papiers.find(item => item.papier_cartonne_id === paperId);
+  if (!line || !paper || ![-1, 1].includes(delta)) return false;
+  const quantity = Number(paper.quantite_base) || 0;
+  if (delta < 0) return quantity > (form.format_type === 'C' ? 1 : 0);
+  return allocatedPapers(line) < line.nb_feuilles;
+}
+
+export function adjustPaperQuantity(form, index, paperId, delta) {
+  if (!canAdjustPaperQuantity(form, index, paperId, delta)) return false;
+  const paper = form.collections[index].papiers.find(item => item.papier_cartonne_id === paperId);
+  paper.quantite_base = (Number(paper.quantite_base) || 0) + delta;
+  return true;
 }
 
 export function selectKitCollection(form, catalogue, index, id) {
@@ -80,7 +115,7 @@ export function setKitContribution(form, catalogue, index, value) {
   // Quantities incompatible with the new contribution need a new allocation.
   for (const line of form.collections) {
     const source = catalogue.collections.find(c => c.id === Number(line.collection_id));
-    if (line.papiers.reduce((sum, p) => sum + Number(p.quantite_base), 0) !== line.nb_feuilles) {
+    if (allocatedPapers(line) !== line.nb_feuilles) {
       line.papiers = initialPapers(source, line.nb_feuilles, form.format_type);
     }
   }

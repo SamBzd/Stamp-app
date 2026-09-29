@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
+import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
 
 function catalogue(counts = [1, 1], rubans = 0) {
   return {
@@ -46,17 +46,40 @@ test('A/B disponibles avec deux collections ; catalogue d’origine éditable m�
   assert.deepEqual(availableFormats({ ...archived, papier_spe: '', embellissement: null }, cat.id), []);
 });
 
-test('A/B autorise les répétitions et bascule toujours les deux contributions 2/3', () => {
-  const cat = catalogue();
+test('A/B répartit automatiquement 2 et 3 feuilles selon le nombre de papiers', () => {
+  const expectations = [
+    { counts: [1, 1], quantities: [[2], [3]] },
+    { counts: [2, 2], quantities: [[1, 1], [2, 1]] },
+    { counts: [3, 3], quantities: [[1, 1, 0], [1, 1, 1]] },
+    { counts: [5, 5], quantities: [[1, 1, 0, 0, 0], [1, 1, 1, 0, 0]] },
+  ];
+  for (const { counts, quantities } of expectations) {
+    const cat = catalogue(counts);
+    const form = filled(cat);
+    assert.deepEqual(form.collections.map(line => line.papiers.map(paper => paper.quantite_base)), quantities);
+    assert.deepEqual(prepareKitPayload(form, cat).errors, {});
+  }
+});
+
+test('A/B autorise les ajustements manuels et bascule toujours les deux contributions 2/3', () => {
+  const cat = catalogue([3, 3]);
   for (const format of ['A', 'B']) {
     const form = filled(cat, format);
     assert.deepEqual(prepareKitPayload(form, cat).errors, {});
-    assert.deepEqual(form.collections.map(c => c.papiers[0].quantite_base), [2, 3]);
+    assert.deepEqual(form.collections.map(c => c.papiers.map(p => p.quantite_base)), [[1, 1, 0], [1, 1, 1]]);
+    assert.equal(canAdjustPaperQuantity(form, 0, cat.collections[0].papiers[2].id, 1), false);
+    assert.equal(adjustPaperQuantity(form, 0, cat.collections[0].papiers[0].id, -1), true);
+    assert.equal(allocatedPapers(form.collections[0]), 1);
+    assert.ok(prepareKitPayload(form, cat).errors.papiers_0);
+    assert.equal(canAdjustPaperQuantity(form, 0, cat.collections[0].papiers[2].id, 1), true);
+    assert.equal(adjustPaperQuantity(form, 0, cat.collections[0].papiers[2].id, 1), true);
+    assert.deepEqual(form.collections[0].papiers.map(p => p.quantite_base), [0, 1, 1]);
+    assert.equal(adjustPaperQuantity(form, 0, cat.collections[0].papiers[0].id, -1), false);
     setKitContribution(form, cat, 0, 3);
     const result = prepareKitPayload(form, cat);
     assert.deepEqual(result.errors, {});
     assert.deepEqual(result.payload.commande_collections.map(c => c.nb_feuilles), [3, 2]);
-    assert.deepEqual(result.payload.commande_collections.map(c => c.papiers[0].quantite_base), [3, 2]);
+    assert.deepEqual(result.payload.commande_collections.map(c => c.papiers.map(p => p.quantite_base)), [[1, 1, 1], [1, 1]]);
     assert.equal(result.payload.catalogue_id, cat.id);
     assert.equal(result.payload.client_id, 1);
     assert.equal(result.pricing.automatic, cat[`prix_${format}_cents`]);
@@ -86,6 +109,22 @@ test('C propose les compositions 1 à 5 papiers et refuse toute omission ou mauv
     form.collections[0].papiers[0].quantite_base = 0;
     assert.ok(prepareKitPayload(form, cat).errors.papiers_0);
   }
+});
+
+test('C conserve au moins une feuille par papier pendant les ajustements', () => {
+  const cat = catalogue([3]);
+  const form = filled(cat, 'C');
+  const [first, second] = cat.collections[0].papiers;
+  assert.equal(canAdjustPaperQuantity(form, 0, first.id, -1), false);
+  assert.equal(adjustPaperQuantity(form, 0, first.id, 1), true);
+  assert.equal(adjustPaperQuantity(form, 0, first.id, 1), true);
+  assert.equal(allocatedPapers(form.collections[0]), 5);
+  assert.equal(canAdjustPaperQuantity(form, 0, second.id, 1), false);
+  assert.deepEqual(form.collections[0].papiers.map(p => p.quantite_base), [3, 1, 1]);
+});
+
+test('une composition éditée qui dépasse sa contribution indique les feuilles en trop', () => {
+  assert.equal(allocationStatus({ nb_feuilles: 5, papiers: [{ quantite_base: 4 }, { quantite_base: 2 }] }), '1 en trop');
 });
 
 test('collections distinctes, appartenance, contributions et quantités sont contrôlées', () => {

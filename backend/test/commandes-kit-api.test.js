@@ -185,6 +185,30 @@ test('A/B accepte les répétitions, les deux répartitions 2/3 et fige toutes l
   assert.equal((await api(`/clients/${f.client.id}/commandes`)).length, 2);
 });
 
+test('A/B enregistre les répartitions guidées et refuse les totaux incomplets ou dépassés', async () => {
+  const f = await fixture({ counts: [3, 2] });
+  const [first, second] = f.catalogue.collections;
+  const guided = payload(f, 'A', {
+    commande_collections: [
+      line(first, 2, first.papiers.slice(0, 2).map(paper => ({ papier_cartonne_id: paper.id, quantite_base: 1 }))),
+      line(second, 3, second.papiers.map((paper, index) => ({ papier_cartonne_id: paper.id, quantite_base: index === 0 ? 2 : 1 }))),
+    ],
+  });
+  const order = await api('/commandes', 'POST', guided, 201);
+  assert.deepEqual(order.papiers_selectionnes.map(paper => paper.quantite_base), [1, 1, 2, 1]);
+
+  for (const quantities of [[1], [2, 1]]) {
+    const invalid = {
+      ...guided,
+      commande_collections: [
+        line(first, 2, first.papiers.slice(0, quantities.length).map((paper, index) => ({ papier_cartonne_id: paper.id, quantite_base: quantities[index] }))),
+        guided.commande_collections[1],
+      ],
+    };
+    await api('/commandes', 'POST', invalid, 400);
+  }
+});
+
 test('bilan hors-kit convertit chaque montant avant sommation et conserve paiement absent et période', async () => {
   const f = await fixture();
   for (const montant of [0.1, 0.2, 0.29]) {
