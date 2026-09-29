@@ -73,6 +73,12 @@ export function allocatedPapers(line) {
   return line.papiers.reduce((sum, paper) => sum + (Number(paper.quantite_base) || 0), 0);
 }
 
+export function allocationStatus(line) {
+  const remaining = line.nb_feuilles - allocatedPapers(line);
+  if (remaining > 0) return `${remaining} à répartir`;
+  return remaining < 0 ? `${-remaining} en trop` : 'répartition complète';
+}
+
 export function canAdjustPaperQuantity(form, index, paperId, delta) {
   const line = form.collections[index];
   const paper = line?.papiers.find(item => item.papier_cartonne_id === paperId);

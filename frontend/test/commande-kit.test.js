@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, canAdjustPaperQuantity, adjustPaperQuantity, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
+import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
 
 function catalogue(counts = [1, 1], rubans = 0) {
   return {
@@ -121,6 +121,10 @@ test('C conserve au moins une feuille par papier pendant les ajustements', () =>
   assert.equal(allocatedPapers(form.collections[0]), 5);
   assert.equal(canAdjustPaperQuantity(form, 0, second.id, 1), false);
   assert.deepEqual(form.collections[0].papiers.map(p => p.quantite_base), [3, 1, 1]);
+});
+
+test('une composition éditée qui dépasse sa contribution indique les feuilles en trop', () => {
+  assert.equal(allocationStatus({ nb_feuilles: 5, papiers: [{ quantite_base: 4 }, { quantite_base: 2 }] }), '1 en trop');
 });
 
 test('collections distinctes, appartenance, contributions et quantités sont contrôlées', () => {

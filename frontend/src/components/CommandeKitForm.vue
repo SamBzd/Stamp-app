@@ -124,7 +124,7 @@ import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { clientsAPI, cataloguesAPI } from '../services/api';
 import { useCommandesStore } from '../stores/commandes';
-import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
+import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
 const props = defineProps({ isOpen: { type: Boolean, default: false }, commande: { type: Object, default: null } });
 const emit = defineEmits(['close', 'saved']);
 const store = useCommandesStore();
@@ -157,7 +157,7 @@ const compositionStatus = computed(() => {
   if (remaining > 0) return `${remaining} feuille${remaining > 1 ? 's' : ''} à répartir`;
   return remaining < 0 ? `${-remaining} feuille${remaining < -1 ? 's' : ''} en trop` : 'Composition complète';
 });
-function remainingText(line) { const remaining = line.nb_feuilles - allocated(line); return remaining > 0 ? `${remaining} à répartir` : 'répartition complète'; }
+const remainingText = allocationStatus;
 const collectionName = line => catalogueDetail.value?.collections.find(c => c.id === Number(line.collection_id))?.nom;
 const paperName = (index, paperId) => catalogueDetail.value?.collections.find(c => c.id === Number(form.value.collections[index].collection_id))?.papiers.find(p => p.id === paperId)?.nom;
 function errorTarget(key) { if (key === 'format_type') return id('format-C'); if (key === 'collections') return id('collection_0'); return ['client_id', 'catalogue_id', 'ruban_id', 'methode_paiement', 'prix_manuel_euros', 'collection_0', 'collection_1', 'papiers_0', 'papiers_1', 'produit_promo_texte', 'produit_promo_prix', 'autres_texte', 'autres_prix'].includes(key) ? id(key) : null; }
