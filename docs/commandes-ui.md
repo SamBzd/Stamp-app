@@ -1,4 +1,4 @@
-# Commandes — issue #9
+# Commandes — issues #9 et #29
 
 Ce parcours concerne la future version de Stamp App sur `main`, avec l’API du
 [lot #7](commandes-kit-api.md). Il ne décrit pas le NAS actuellement déployé.
@@ -13,12 +13,18 @@ collection, seul C est proposé ; A/B nécessitent deux collections distinctes.
 - A/B : chaque collection possède ses propres quantités de papiers. Les
   répétitions sont possibles, même si un papier est partagé entre collections.
   La contribution 2/3 est complémentaire automatiquement. À la sélection,
-  le premier papier fournit la contribution ; la répartition reste modifiable.
+  les feuilles sont réparties dans l’ordre des papiers : 1+1 pour deux feuilles,
+  1+1+1 pour trois feuilles, 2+1 lorsque trois feuilles sont réparties sur deux
+  papiers, et toute la contribution sur un papier unique.
 - C : un exemplaire de chacun des papiers est proposé ; les exemplaires
   manquants sont à répartir jusqu’à 5. Un papier unique est proposé ×5. Un total
   incorrect ou l’omission d’un papier empêche l’enregistrement.
 - Les changements de catalogue/format/collection retirent les choix
-  incompatibles. Chaque collection affiche le total et le reste à répartir.
+  incompatibles et recalculent une répartition valide. Les boutons −/+ permettent
+  ensuite de déplacer manuellement une feuille : l'augmentation est bloquée dès
+  que le total attendu est atteint et le message local indique qu’il faut d’abord
+  diminuer un autre papier. Chaque collection affiche en permanence le total
+  attendu, le total réparti et le reste éventuel.
 - Rubans : aucun choix avec zéro, inclusion automatique avec un, sélection
   obligatoire avec deux.
 - L’option à 3,50 € double uniquement les papiers. Le formulaire et son résumé
@@ -55,6 +61,9 @@ après les mutations. Chaque vue recharge également ses données à l’ouvertu
 
 Les erreurs API sont visibles et conservent les saisies. Les actions en cours
 verrouillent les soumissions ; l’abandon de saisies modifiées est confirmé.
+Sur écran large, le résumé et les erreurs restent visibles dans une colonne
+latérale pendant le parcours du formulaire. Sur écran étroit, un état compact de
+la composition reste placé près des actions et les erreurs précèdent les champs.
 
 ## Vérification
 
