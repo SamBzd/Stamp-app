@@ -23,6 +23,11 @@ export default createRouter({
       name: 'catalogues',
       component: () => import('../views/CataloguesView.vue')
     },
+    {
+      path: '/papiers',
+      name: 'papiers',
+      component: () => import('../views/PapiersView.vue')
+    },
     { 
       path: '/stocks', 
       name: 'stocks', 

@@ -7,7 +7,7 @@ function getCatalogueById(id) {
   if (!catalogue) return null;
   catalogue.collections = db.prepare('SELECT * FROM collections WHERE catalogue_id = ? ORDER BY ordre').all(id).map(col => ({
     ...col,
-    papiers: db.prepare(`SELECT pc.id, pc.nom, cp.ordre FROM collection_papiers cp
+    papiers: db.prepare(`SELECT pc.id, pc.nom, pc.archive, cp.ordre FROM collection_papiers cp
       JOIN papiers_cartonnes pc ON pc.id = cp.papier_cartonne_id WHERE cp.collection_id = ? ORDER BY cp.ordre`).all(col.id)
   }));
   catalogue.rubans = db.prepare('SELECT * FROM catalogue_rubans WHERE catalogue_id = ? ORDER BY ordre').all(id);

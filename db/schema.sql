@@ -76,8 +76,11 @@ INSERT INTO settings (cle, valeur) VALUES
 CREATE TABLE papiers_cartonnes (
  id INTEGER PRIMARY KEY AUTOINCREMENT,
  nom TEXT NOT NULL UNIQUE,
- created_at TEXT NOT NULL DEFAULT (datetime('now'))
+ created_at TEXT NOT NULL DEFAULT (datetime('now')),
+ archive INTEGER NOT NULL DEFAULT 0 CHECK (archive IN (0,1))
 );
+CREATE UNIQUE INDEX ux_papiers_cartonnes_nom_normalise
+  ON papiers_cartonnes(lower(trim(nom)));
 
 CREATE TABLE catalogues (
  id INTEGER PRIMARY KEY AUTOINCREMENT,

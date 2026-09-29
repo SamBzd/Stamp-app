@@ -12,7 +12,7 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [API catalogues et archivage](catalogue-api.md) : endpoints, tarifs en centimes, publication, démotion et erreurs de l’issue #6.
 - [API commandes kits](commandes-kit-api.md) : compositions A/B/C, snapshots, prix, règlement, stocks et bilan de l’issue #7.
 - [Quantités à préparer](stocks.md) : identité, provenance historique, quantités de base/finales et rubans de l’issue #10.
-- [Parcours catalogue et archivage](catalogue-ui.md) : préparation/publication, tarifs par défaut et locaux, archivage/restauration de l’issue #8.
+- [Parcours catalogue et bibliothèque](catalogue-ui.md) : préparation/publication, tarifs, sélection et archivage/restauration des issues #8 et #28.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
 - [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.

@@ -81,6 +81,12 @@ euros sont convertis exactement au centime. Les clés absentes prennent les
 valeurs initiales du schéma ; une clé inconnue ou une valeur invalide bloque
 la migration.
 
+La version 3 ajoute l’archivage et l’unicité normalisée des noms de papier. Sur
+une base `main` déjà en version 2, elle conserve les papiers et associations ;
+elle refuse uniquement des noms déjà équivalents après retrait des espaces
+externes et comparaison sans casse ASCII. Le statut doit être contrôlé avant
+puis la migration appliquée explicitement sur une copie sauvegardée.
+
 **Toute donnée métier existante** (papier de bibliothèque, catalogue, collection,
 composition ou commande, y compris hors-kit) bloque la migration. Aucune
 commande n'est reconstituée et aucune donnée n'est supprimée. La transaction

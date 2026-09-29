@@ -1,8 +1,9 @@
-# API catalogues, sources, tarifs et archivage — issue #6
+# API catalogues, sources, tarifs et archivage — issues #6 et #28
 
-Cette API vise la future version, pas le NAS actuellement déployé. Le schéma
-cible de l’issue #5 suffit : aucune migration supplémentaire. Les parcours Vue
-sont intégrés en [#8](catalogue-ui.md) et [#9](commandes-ui.md). Le backend compositions kit et règlement est
+Cette API vise la future version, pas le NAS actuellement déployé. La migration
+`0003_papiers_library.sql` ajoute l’archivage de la bibliothèque et l’unicité
+normalisée des noms. Les parcours Vue sont intégrés en [#8 et #28](catalogue-ui.md)
+et [#9](commandes-ui.md). Le backend compositions kit et règlement est
 livré en #7 : voir [le contrat commandes](commandes-kit-api.md).
 
 ## Champs et conventions
@@ -16,7 +17,8 @@ sont refusés. SQLite conserve les paramètres sous les clés internes
 
 Les titres et noms sont des chaînes non vides après suppression des espaces
 aux extrémités. Le titre est libre et unique, sans obligation de date. Les noms
-de papier sont uniques dans la bibliothèque. `papier_spe` et `embellissement`
+de papier sont uniques dans la bibliothèque après retrait des espaces externes
+et sans distinction de casse. `papier_spe` et `embellissement`
 sont des chaînes ou `null` ; une chaîne blanche devient `null`.
 Les IDs sont des entiers strictement positifs ; les IDs d’association JSON sont
 des nombres, pas des chaînes. Les champs non autorisés sont refusés pour les
@@ -28,7 +30,7 @@ Les réponses catalogue (liste et détail) contiennent les champs SQL : `id`,
 `created_at`, `updated_at`, et les structures :
 
 - `collections`: objets `id`, `catalogue_id`, `nom`, `ordre`, `created_at`,
-  `papiers` (objets `id`, `nom`, `ordre`).
+  `papiers` (objets `id`, `nom`, `archive`, `ordre`).
 - `rubans`: objets `id`, `catalogue_id`, `nom`, `ordre`.
 - `formats_disponibles`: `[]` pour brouillon/archivé, `["C"]` pour un publié
   avec une collection, `["A","B","C"]` à partir de deux collections.
@@ -49,14 +51,15 @@ le corps de l’endpoint d’archivage exige toutefois un booléen JSON.
 | `POST /api/catalogues/:id/publication` | Corps absent ou `{}` ; valide puis publie, retourne le catalogue. |
 | `POST /api/catalogues/:id/collections` | `{ nom }` ; `201`, collection nommée avec ordre automatique, maximum 4. |
 | `PUT /api/catalogues/collections/:id` | `{ nom }` ; retourne la collection. |
-| `PUT /api/catalogues/collections/:id/papiers` | `{ papier_ids: [id, ...] }` ; remplace atomiquement les associations ordonnées ; maximum 5 IDs distincts existants ; tableau vide autorisé en brouillon. Retourne `{ success: true, catalogue }`. |
+| `PUT /api/catalogues/collections/:id/papiers` | `{ papier_ids: [id, ...] }` ; remplace atomiquement les associations ordonnées ; maximum 5 IDs distincts existants ; tableau vide autorisé en brouillon. Un papier archivé déjà associé peut être conservé, mais ne peut pas être ajouté à une autre collection. Retourne `{ success: true, catalogue }`. |
 | `GET /api/collections` / `GET /api/collections/:id` | Lecture des collections (sans papiers imbriqués). |
 | `POST /api/collections` | Alias de création : `{ catalogue_id, nom }`, catalogue obligatoire ; `201`. |
 | `PUT /api/collections/:id` | Alias d’édition de nom, même validation transactionnelle. |
 | `PUT /api/collections/:id/papiers` | Alias de remplacement des associations, même réponse et transaction. |
-| `GET /api/papiers-cartonnes?search=...` | Recherche bibliothèque (20 résultats, 50 sans recherche). |
+| `GET /api/papiers-cartonnes?search=...` | Recherche les papiers actifs (20 résultats avec recherche, 100 sans recherche). `include_archives=true` inclut les archivés et, sans recherche, retourne toute la bibliothèque pour l’écran de gestion. |
 | `POST /api/papiers-cartonnes` | `{ nom }` ; `201`, crée un papier réutilisable par association. |
 | `PUT /api/papiers-cartonnes/:id` | `{ nom }` ; renomme sans réécrire les snapshots et revalide les catalogues associés. |
+| `PATCH /api/papiers-cartonnes/:id/archivage` | Exactement `{ archive: boolean }`. L’archivage est refusé si le papier appartient à un catalogue publié. |
 | `POST /api/catalogues/:id/rubans` | `{ nom }` ; `201`, ruban propre au catalogue, ordre automatique, maximum 2. |
 | `PUT /api/catalogues/rubans/:id` | `{ nom }` ; retourne le ruban renommé. |
 | `PATCH /api/catalogues/:id/archivage` | Exactement `{ archive: boolean }`, retourne le catalogue. |
@@ -80,10 +83,12 @@ annule toute l’opération et conserve son statut précédent.
 
 L’archivage ne supprime aucune donnée ni association. Archiver un catalogue
 le remet en brouillon ; le restaurer ne le republie pas. Une nouvelle publication
-est nécessaire. L’archivage est idempotent. Les rubans, collections et papiers
-ne sont ni archivables ni supprimables : on peut modifier les noms et remplacer
-les associations de papiers, mais pas effacer les objets source. Les tarifs et
-sources modifiés ne réécrivent aucun prix ni snapshot de commande.
+est nécessaire. L’archivage est idempotent. Un papier archivé disparaît des
+nouvelles sélections mais reste visible dans les collections existantes et les
+snapshots de commande ; il peut être restauré. L’archivage d’un papier utilisé
+par un catalogue publié est refusé. Les rubans et collections ne sont pas
+supprimables, et aucune source ne peut être effacée. Les tarifs et sources
+modifiés ne réécrivent aucun prix ni snapshot de commande.
 
 Une nouvelle commande, kit ou hors kit, pour une cliente archivée est refusée
 avant insertion et avant toute mise à jour de fidélité/date. Un catalogue
@@ -98,9 +103,10 @@ Les erreurs métier ont la forme JSON `{ error: "message" }`.
   inconnus dans un corps source ; papiers répétés ; cardinalité maximale
   dépassée ; publication d’un catalogue incomplet.
 - `404` : catalogue, collection, ruban, papier ou cliente inexistant.
-- `409` : titre catalogue ou nom papier déjà utilisé ; publication d’un
-  catalogue archivé ; nouvelle commande pour une cliente archivée ou création
-  kit à partir d’un catalogue indisponible.
+- `409` : titre catalogue ou nom papier normalisé déjà utilisé ; archivage d’un
+  papier utilisé par un catalogue publié ; ajout d’un papier archivé à une
+  nouvelle collection ; publication d’un catalogue archivé ; nouvelle commande
+  pour une cliente archivée ou création kit à partir d’un catalogue indisponible.
 - `405` : les chemins `DELETE` des clientes/catalogues/collections/papiers/rubans
   refusent toute suppression, y compris pour une source non référencée.
 - `500` : erreur interne inattendue, sans détails SQL dans la réponse.

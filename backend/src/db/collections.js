@@ -34,7 +34,11 @@ function setPapiersCollection(id, papierIds) {
   if (new Set(papierIds).size !== papierIds.length) v.invalid('Les papiers doivent être différents');
   mutateCatalogue(col.catalogue_id, () => {
     for (const papierId of papierIds) {
-      if (!db.prepare('SELECT id FROM papiers_cartonnes WHERE id = ?').get(papierId)) v.invalid('Papier non trouvé', 404);
+      const papier = db.prepare('SELECT id,archive FROM papiers_cartonnes WHERE id = ?').get(papierId);
+      if (!papier) v.invalid('Papier non trouvé', 404);
+      const alreadySelected = db.prepare(`SELECT 1 FROM collection_papiers
+        WHERE collection_id=? AND papier_cartonne_id=?`).get(id, papierId);
+      if (papier.archive && !alreadySelected) v.invalid('Un papier archivé ne peut pas être ajouté à une collection', 409);
     }
     db.prepare('DELETE FROM collection_papiers WHERE collection_id = ?').run(id);
     papierIds.forEach((papierId, index) => db.prepare('INSERT INTO collection_papiers(collection_id,papier_cartonne_id,ordre) VALUES (?,?,?)').run(id, papierId, index + 1));

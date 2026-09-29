@@ -3,7 +3,7 @@
 Les fichiers SQL de ce dossier décrivent, dans l'ordre, les évolutions d'une
 base existante de `main`.
 
-- Utiliser le numéro séquentiel suivant, par exemple `0003_description.sql`.
+- Utiliser le numéro séquentiel suivant, par exemple `0004_description.sql`.
 - Ne jamais modifier ni renommer une migration déjà appliquée.
 - Mettre à jour `db/schema.sql` dans le même changement : il représente l'état
   final attendu pour une base neuve.
@@ -21,5 +21,10 @@ schéma de `main`.
 `0002_catalogue_target.sql` prépare le modèle catalogues/kits et convertit les
 tarifs par défaut en centimes. Elle refuse toute donnée métier ancienne non
 convertible sans inventer d'historique ; les clientes locales sont conservées.
+`0003_papiers_library.sql` ajoute l’archivage des papiers et une contrainte
+d’unicité SQLite sur le nom sans distinction de casse ASCII ni d’espaces externes.
+Avant son application, le migrateur vérifie aussi les noms avec la même
+normalisation Unicode française que l’API. Une copie contenant déjà deux noms
+équivalents est refusée sans modification.
 L'initialisation d'une base neuve avec les seules clientes est décrite dans
 [la procédure d'import](../../docs/schema-import-clients.md).

@@ -72,9 +72,14 @@ export const cataloguesAPI = {
  * API Papiers cartonnés
  */
 export const papierCartonnesAPI = {
-  search: (q = '') => apiCall(`/papiers-cartonnes${q ? `?search=${encodeURIComponent(q)}` : ''}`),
+  search: (q = '', { includeArchives = false } = {}) => {
+    const params = new URLSearchParams({ include_archives: String(includeArchives) });
+    if (q) params.set('search', q);
+    return apiCall(`/papiers-cartonnes?${params}`);
+  },
   create: (nom) => apiCall('/papiers-cartonnes', { method: 'POST', body: JSON.stringify({ nom }) }),
   update: (id, nom) => apiCall(`/papiers-cartonnes/${id}`, { method: 'PUT', body: JSON.stringify({ nom }) }),
+  setArchive: (id, archive) => apiCall(`/papiers-cartonnes/${id}/archivage`, { method: 'PATCH', body: JSON.stringify({ archive }) }),
 };
 
 /**

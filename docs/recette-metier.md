@@ -55,7 +55,7 @@ Les identifiants suivants désignent les tests par leur début de titre :
 | UI3 | même fichier | zéro, un et deux rubans |
 | UI4 | même fichier | option et suppléments composent un total exact |
 | UI5 | même fichier | édition utilise les sources actuelles |
-| SQL1 | [catalogue-schema.test.js](../backend/test/catalogue-schema.test.js) | schéma neuf et migration v1 vers v2 correspondent exactement |
+| SQL1 | [catalogue-schema.test.js](../backend/test/catalogue-schema.test.js) | schéma neuf et migrations v1 vers v3 correspondent exactement |
 | SQL2 | même fichier | refuse toute donnée métier ancienne |
 | SQL3 | même fichier | sources protégées, snapshots autonomes ; commande réglée et sa composition sont immuables |
 | IMP1 | [import-clients.test.js](../backend/test/import-clients.test.js) | importe vers le schéma réel par défaut |
@@ -185,7 +185,7 @@ dans `/tmp/stamp-recette-HCBR6T/demo.db`, servie sur les mêmes ports.
 
 ## Contrôles et limites de livraison
 
-- `npm run check` : réussi, 80 tests backend, 22 tests frontend, build Vue.
+- `npm run check` : réussi, 84 tests backend, 29 tests frontend, build Vue.
 - `docker compose config --quiet` : réussi le 18 septembre 2026.
 - CI du socle : [main 05ea8e1](https://github.com/SamBzd/Stamp-app/actions/runs/35322004053)
   et [PR #23](https://github.com/SamBzd/Stamp-app/actions/runs/35321752245) réussies.
@@ -215,5 +215,8 @@ dans `/tmp/stamp-recette-HCBR6T/demo.db`, servie sur les mêmes ports.
   Vérifié dans le navigateur sur la base synthétique : « Format A · virement »,
   « Format B · virement » et « Hors kit · Paypal ». Les contrôles automatisés
   et Docker Compose ont été relancés avec succès après cette correction.
+- Bibliothèque #28 vérifiée sur une base temporaire : création et refus de
+  doublon, trois recherches/sélections successives sans chargement parasite,
+  troisième suggestion visible, retrait puis réajout et sauvegarde à 3/5.
 - CI de la future PR #12 et acceptation humaine en attente. Aucun verdict
   d’acceptation de l’issue ni de préparation au déploiement à ce stade.
