@@ -83,8 +83,9 @@ la migration.
 
 La version 3 ajoute l’archivage et l’unicité normalisée des noms de papier. Sur
 une base `main` déjà en version 2, elle conserve les papiers et associations ;
-elle refuse uniquement des noms déjà équivalents après retrait des espaces
-externes et comparaison sans casse ASCII. Le statut doit être contrôlé avant
+elle refuse les noms déjà équivalents après retrait des espaces externes,
+normalisation Unicode NFC et comparaison sans casse (locale française, comme
+l’API). Le statut doit être contrôlé avant
 puis la migration appliquée explicitement sur une copie sauvegardée.
 
 **Toute donnée métier existante** (papier de bibliothèque, catalogue, collection,
