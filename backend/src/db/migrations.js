@@ -1,6 +1,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const { normalizePaperName } = require('./paper-name');
 
 const DEFAULT_MIGRATIONS_DIRECTORY = path.resolve(__dirname, '../../../db/migrations');
 const MIGRATION_FILENAME = /^(\d{4})_([a-z0-9_]+)\.sql$/;
@@ -131,6 +132,31 @@ function recordMigration(database, migration) {
   `).run(migration);
 }
 
+function assertPaperNamesCanBeNormalized(database) {
+  const papers = database.prepare('SELECT id, nom FROM papiers_cartonnes ORDER BY id').all();
+  const seenNames = new Map();
+
+  for (const paper of papers) {
+    const normalizedName = normalizePaperName(paper.nom);
+    const previous = seenNames.get(normalizedName);
+
+    if (previous) {
+      throw new Error(
+        `Migration papiers_library impossible : les papiers ${previous.id} « ${previous.nom} » ` +
+        `et ${paper.id} « ${paper.nom} » ont le même nom normalisé.`
+      );
+    }
+
+    seenNames.set(normalizedName, paper);
+  }
+}
+
+function runMigrationPreflight(database, migration) {
+  if (migration.name === 'papiers_library') {
+    assertPaperNamesCanBeNormalized(database);
+  }
+}
+
 function applyMigrations(database, options = {}) {
   const targetVersion = options.targetVersion ?? Number.POSITIVE_INFINITY;
   const status = getMigrationStatus(database, options);
@@ -144,6 +170,7 @@ function applyMigrations(database, options = {}) {
   for (const migration of migrationsToApply) {
     database.transaction(() => {
       ensureMigrationTable(database);
+      runMigrationPreflight(database, migration);
       database.exec(migration.sql);
       recordMigration(database, migration);
     })();

@@ -21,7 +21,7 @@ test('fixtures de recette : base neuve versionnée, prix et fidélité attendus,
     assert.equal(report.bilan.chiffre_affaires_cents, 1859);
     const db = new Database(target, { readonly: true });
     try {
-      assertMigrationSchemaCompatible(db, 2);
+      assertMigrationSchemaCompatible(db, 3);
       assert.equal(db.prepare('SELECT count(*) AS n FROM catalogues').get().n, 7);
       assert.equal(db.prepare('SELECT count(*) AS n FROM commandes').get().n, 3);
       const expected = [

@@ -162,6 +162,55 @@ test('maxima et associations refusées sans mutation ni démotion ; bibliothèqu
   assert.equal(alias.catalogue_id, other.id);
 });
 
+test('bibliothèque : doublons normalisés, archivage protégé et sélection répétable', async () => {
+  const kraft = await api('/papiers-cartonnes', 'POST', { nom: 'Kraft naturel' }, 201);
+  await api('/papiers-cartonnes', 'POST', { nom: '  kraft naturel  ' }, 409);
+  const ecru = await api('/papiers-cartonnes', 'POST', { nom: 'ÉCRU' }, 201);
+  await api('/papiers-cartonnes', 'POST', { nom: 'écru' }, 409);
+  assert.equal((await api('/papiers-cartonnes?search=%C3%A9cru'))[0].id, ecru.id);
+  await api(`/papiers-cartonnes/${ecru.id}`, 'PUT', { nom: ' KRAFT NATUREL ' }, 409);
+
+  const draft = await catalogue({ papier_spe: 'Spécial' });
+  const draftCollection = await collection(draft, [kraft.id]);
+  const archived = await api(`/papiers-cartonnes/${kraft.id}/archivage`, 'PATCH', { archive: true });
+  assert.equal(archived.archive, 1);
+  assert.ok(!(await api('/papiers-cartonnes')).some(paper => paper.id === kraft.id));
+  assert.ok((await api('/papiers-cartonnes?include_archives=true')).some(paper => paper.id === kraft.id && paper.archive === 1));
+  assert.equal((await api(`/catalogues/${draft.id}`)).collections[0].papiers[0].nom, kraft.nom);
+  await api(`/collections/${draftCollection.id}/papiers`, 'PUT', { papier_ids: [kraft.id] });
+  const otherCollection = await collection(draft);
+  await api(`/collections/${otherCollection.id}/papiers`, 'PUT', { papier_ids: [kraft.id] }, 409);
+
+  await api(`/papiers-cartonnes/${kraft.id}/archivage`, 'PATCH', { archive: false });
+  await api(`/collections/${otherCollection.id}/papiers`, 'PUT', { papier_ids: [kraft.id] });
+  for (let index = 0; index < 3; index++) {
+    await api(`/collections/${otherCollection.id}/papiers`, 'PUT', { papier_ids: [] });
+    await api(`/collections/${otherCollection.id}/papiers`, 'PUT', { papier_ids: [kraft.id] });
+  }
+
+  const published = await catalogue({ embellissement: 'Fleur' });
+  await collection(published, [ecru.id]);
+  await publish(published);
+  await api(`/papiers-cartonnes/${ecru.id}/archivage`, 'PATCH', { archive: true }, 409);
+  assert.equal((await api('/papiers-cartonnes')).find(paper => paper.id === ecru.id).archive, 0);
+
+  for (const body of [{}, { archive: 1 }, { archive: 'true' }, { archive: null }, { archive: true, autre: 1 }, []]) {
+    await api(`/papiers-cartonnes/${kraft.id}/archivage`, 'PATCH', body, 400);
+  }
+  await api('/papiers-cartonnes?include_archives=oui', 'GET', undefined, 400);
+});
+
+test('la gestion de bibliothèque retourne aussi les papiers au-delà des 100 premiers', async () => {
+  const insert = databaseConnection.prepare('INSERT INTO papiers_cartonnes(nom) VALUES (?)');
+  const insertedIds = databaseConnection.transaction(() => Array.from({ length: 105 }, (_, index) =>
+    Number(insert.run(`Papier bibliothèque volumineuse ${index + 1}`).lastInsertRowid)
+  ))();
+
+  const papers = await api('/papiers-cartonnes?include_archives=true');
+  assert.ok(papers.length > 100);
+  assert.ok(papers.some(paper => paper.id === insertedIds.at(-1)));
+});
+
 test('ajout d’une collection vide démote immédiatement et exige une republication après correction', async () => {
   const cat = await catalogue({ papier_spe: 'Spécial' });
   const paper = await papier();
@@ -209,12 +258,13 @@ test('IDs, références et types invalides répondent 400/404 et sources non sup
   const col = await collection(cat, [paper.id]);
   const ruban = await api(`/catalogues/${cat.id}/rubans`, 'POST', { nom: 'Test' }, 201);
   const before = await api(`/catalogues/${cat.id}`);
-  for (const route of [`/collections/${col.id}`, `/catalogues/rubans/${ruban.id}`, `/papiers-cartonnes/${paper.id}`]) {
+  for (const route of [`/collections/${col.id}`, `/catalogues/rubans/${ruban.id}`]) {
     await api(route, 'PUT', { nom: 'Mutation refusée', archive: true }, 400);
     assert.equal((await fetch(`${baseUrl}/api${route}/archivage`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ archive: true })
     })).status, 404);
   }
+  await api(`/papiers-cartonnes/${paper.id}`, 'PUT', { nom: 'Mutation refusée', archive: true }, 400);
   assert.deepEqual(await api(`/catalogues/${cat.id}`), before);
   assert.equal((await api('/papiers-cartonnes')).find(p => p.id === paper.id).nom, paper.nom);
   for (const id of ['abc', '1oops', '1.5', '0', '-1']) {
@@ -230,7 +280,8 @@ test('IDs, références et types invalides répondent 400/404 et sources non sup
     ['/catalogues/999999/collections', 'POST', { nom: 'C' }],
     ['/catalogues/999999/rubans', 'POST', { nom: 'R' }],
     ['/catalogues/rubans/999999', 'PUT', { nom: 'R' }],
-    ['/papiers-cartonnes/999999', 'PUT', { nom: 'P' }]
+    ['/papiers-cartonnes/999999', 'PUT', { nom: 'P' }],
+    ['/papiers-cartonnes/999999/archivage', 'PATCH', { archive: true }]
   ]) await api(route, method, body, 404);
   for (const route of ['/clients/1', '/catalogues/1', '/collections/1', '/catalogues/collections/1', '/catalogues/rubans/1', '/papiers-cartonnes/1']) await api(route, 'DELETE', undefined, 405);
 });

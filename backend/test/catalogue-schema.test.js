@@ -38,18 +38,50 @@ function seedKit(db) {
   `);
 }
 
-test('schéma neuf et migration v1 vers v2 correspondent exactement', () => {
-  withDatabase(db => assertMigrationSchemaCompatible(db, 2));
+test('schéma neuf et migrations v1 vers v3 correspondent exactement', () => {
+  withDatabase(db => assertMigrationSchemaCompatible(db, 3));
   withDatabase(db => {
     db.exec(`INSERT INTO clients (nom,prenom,points_fidelite) VALUES ('Test','Cliente',3);
       INSERT INTO settings VALUES ('prix_A','35.25');`);
     applyMigrations(db);
-    assertMigrationSchemaCompatible(db, 2);
+    assertMigrationSchemaCompatible(db, 3);
     assert.equal(db.prepare('SELECT archive FROM clients').get().archive, 0);
     assert.equal(db.prepare('SELECT points_fidelite FROM clients').get().points_fidelite, 3);
     assert.equal(db.prepare("SELECT valeur FROM settings WHERE cle='prix_catalogue_A_cents'").get().valeur, 3525);
     assert.equal(applyMigrations(db).length, 0);
   }, true);
+});
+
+test('migration v3 conserve les papiers et associations d’une base v2', () => {
+  const db = new Database(':memory:');
+  db.pragma('foreign_keys = ON');
+  try {
+    applyMigrations(db, { targetVersion: 2 });
+    db.exec(`
+      INSERT INTO catalogues(id,titre) VALUES (1,'Brouillon');
+      INSERT INTO collections(id,catalogue_id,nom,ordre) VALUES (1,1,'Collection',1);
+      INSERT INTO papiers_cartonnes(id,nom) VALUES (1,'Kraft naturel');
+      INSERT INTO collection_papiers(collection_id,papier_cartonne_id,ordre) VALUES (1,1,1);
+    `);
+    assert.deepEqual(applyMigrations(db).map(migration => migration.version), [3]);
+    assert.deepEqual(db.prepare('SELECT id,nom,archive FROM papiers_cartonnes').get(), {
+      id: 1, nom: 'Kraft naturel', archive: 0
+    });
+    assert.equal(db.prepare('SELECT papier_cartonne_id FROM collection_papiers').get().papier_cartonne_id, 1);
+    assertMigrationSchemaCompatible(db, 3);
+  } finally { db.close(); }
+});
+
+test('migration v3 refuse atomiquement deux noms de papier normalisés identiques', () => {
+  const db = new Database(':memory:');
+  try {
+    applyMigrations(db, { targetVersion: 2 });
+    db.exec("INSERT INTO papiers_cartonnes(nom) VALUES ('ÉCRU'),(' écru ')");
+    assert.throws(() => applyMigrations(db), /même nom normalisé/);
+    assert.equal(getMigrationStatus(db).applied.at(-1).version, 2);
+    assert.equal(db.prepare("SELECT COUNT(*) AS count FROM pragma_table_info('papiers_cartonnes') WHERE name='archive'").get().count, 0);
+    assert.equal(db.prepare('SELECT COUNT(*) AS count FROM papiers_cartonnes').get().count, 2);
+  } finally { db.close(); }
 });
 
 test('refuse toute donnée métier ancienne sans la supprimer et sans avancer la version', () => {
@@ -86,6 +118,8 @@ test('contraintes centimes, statut, archivage et cardinalité rubans', () => wit
   db.exec('UPDATE catalogues SET prix_A_cents=0; UPDATE settings SET valeur=10000;');
   assert.throws(() => db.exec("UPDATE catalogues SET statut='autre'"));
   assert.throws(() => db.exec('UPDATE clients SET archive=2'));
+  assert.throws(() => db.exec('UPDATE papiers_cartonnes SET archive=2'));
+  assert.throws(() => db.exec("INSERT INTO papiers_cartonnes(nom) VALUES (' papier ')") );
   db.exec("INSERT INTO catalogue_rubans(catalogue_id,nom,ordre) VALUES (1,'Deuxieme',2)");
   assert.throws(() => db.exec("INSERT INTO catalogue_rubans(catalogue_id,nom,ordre) VALUES (1,'Troisieme',3)"));
   assert.throws(() => db.exec('UPDATE commande_papiers_selectionnes SET quantite_base=0'));
