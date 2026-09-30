@@ -14,7 +14,8 @@ router.post('/', route((req, res) => res.status(201).json(commandes.createComman
 router.put('/:id', route((req, res) => res.json(found(commandes.updateCommande(id(req), req.body)))));
 router.patch('/:id/reglement', route((req, res) => res.json(found(commandes.regleCommande(id(req), req.body)))));
 router.delete('/:id', route((req, res) => {
-  found(commandes.deleteCommande(id(req)));
+  const result = found(commandes.deleteCommande(id(req)));
+  if (result.workflow_avertissements.length) return res.json(result);
   res.status(204).send();
 }));
 

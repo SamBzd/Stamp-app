@@ -26,5 +26,9 @@ d’unicité SQLite sur le nom sans distinction de casse ASCII ni d’espaces ex
 Avant son application, le migrateur vérifie aussi les noms avec la même
 normalisation Unicode française que l’API. Une copie contenant déjà deux noms
 équivalents est refusée sans modification.
+`0004_workflow_fournitures.sql` ajoute les unités physiques et leurs alertes
+persistantes. La migration ne reprend aucune commande existante : une ancienne
+commande kit n’est synchronisée qu’à son premier `PUT`. Les créations suivantes
+génèrent immédiatement leurs unités « À traiter ».
 L'initialisation d'une base neuve avec les seules clientes est décrite dans
 [la procédure d'import](../../docs/schema-import-clients.md).

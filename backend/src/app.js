@@ -10,6 +10,7 @@ const commandesRoutes = require('./routes/commandes');
 const stocksRoutes = require('./routes/stocks');
 const settingsRoutes = require('./routes/settings');
 const papiersCartonnesRoutes = require('./routes/papiers-cartonnes');
+const fournituresRoutes = require('./routes/fournitures');
 
 const app = express();
 const corsOrigins = getCorsOrigins();
@@ -35,6 +36,7 @@ app.use('/api/commandes', commandesRoutes);
 app.use('/api/stocks', stocksRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/papiers-cartonnes', papiersCartonnesRoutes);
+app.use('/api/fournitures', fournituresRoutes);
 
 // Les corps JSON malformés conservent le format d’erreur des endpoints API.
 app.use((error, req, res, next) => {
