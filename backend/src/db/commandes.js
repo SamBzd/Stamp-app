@@ -1,6 +1,7 @@
 const db = require('./connection');
 const v = require('./source-validation');
 const kit = require('./commande-kit');
+const fournitures = require('./fournitures');
 
 // READ - Toutes les commandes avec infos client
 function getAllCommandes() {
@@ -104,9 +105,11 @@ const createCommande = db.transaction(data => {
 
     let id;
     if (data.type === 'kit') {
-        const { scalars, composition, ruban } = kit.buildKit(data);
+        const builtKit = kit.buildKit(data);
+        const { scalars, composition, ruban } = builtKit;
         id = insertOrder({ client_id: clientId, type: 'kit', ...scalars });
         writeComposition(id, composition, ruban);
+        fournitures.synchronizeCommande(id, builtKit);
     } else {
         const scalars = horsKitScalars(data);
         const reglee = kit.flag(data.reglee === undefined ? 0 : data.reglee, 'reglee');
@@ -125,19 +128,23 @@ const updateCommande = db.transaction((id, data) => {
     if (existing.reglee) v.invalid('Une commande réglée est immuable', 409);
     v.fields(data, existing.type === 'kit' ? kit.fields : horsKitFields);
     let scalars;
+    let warnings = [];
     if (existing.type === 'kit') {
         const replacement = kit.buildKit(data, existing);
         scalars = replacement.scalars;
         db.prepare('DELETE FROM commande_collections WHERE commande_id=?').run(id);
         db.prepare('DELETE FROM commande_rubans WHERE commande_id=?').run(id);
         writeComposition(id, replacement.composition, replacement.ruban);
+        warnings = fournitures.synchronizeCommande(id, replacement);
     } else {
         if (Object.keys(data).length === 0) return getCommandeById(id);
         scalars = horsKitScalars(data, existing);
     }
     db.prepare(`UPDATE commandes SET ${Object.keys(scalars).map(key => `${key}=?`).join(',')},updated_at=datetime('now') WHERE id=?`)
         .run(...Object.values(scalars), id);
-    return getCommandeById(id);
+    const result = getCommandeById(id);
+    if (warnings.length) result.workflow_avertissements = warnings;
+    return result;
 });
 
 // Le règlement ne relit aucune source et ne reconstruit aucun snapshot.
@@ -151,10 +158,12 @@ const regleCommande = db.transaction((id, data = {}) => {
 });
 
 const deleteCommande = db.transaction(id => {
-    const existing = db.prepare('SELECT reglee FROM commandes WHERE id=?').get(id);
-    if (!existing) return false;
+    const existing = db.prepare('SELECT type,reglee FROM commandes WHERE id=?').get(id);
+    if (!existing) return null;
     if (existing.reglee) v.invalid('Une commande réglée ne peut pas être supprimée', 409);
-    return db.prepare('DELETE FROM commandes WHERE id=?').run(id).changes > 0;
+    const warnings = existing.type === 'kit' ? fournitures.detachCommande(id) : [];
+    db.prepare('DELETE FROM commandes WHERE id=?').run(id);
+    return { supprimee: true, workflow_avertissements: warnings };
 });
 
 module.exports = {

@@ -85,8 +85,9 @@ La version 3 ajoute l’archivage et l’unicité normalisée des noms de papier
 une base `main` déjà en version 2, elle conserve les papiers et associations ;
 elle refuse les noms déjà équivalents après retrait des espaces externes,
 normalisation Unicode NFC et comparaison sans casse (locale française, comme
-l’API). Le statut doit être contrôlé avant
-puis la migration appliquée explicitement sur une copie sauvegardée.
+l’API). La version 4 ajoute le workflow de fournitures sans reprendre les
+commandes déjà présentes. Le statut doit être contrôlé avant, puis la migration
+appliquée explicitement sur une copie sauvegardée.
 
 **Toute donnée métier existante** (papier de bibliothèque, catalogue, collection,
 composition ou commande, y compris hors-kit) bloque la migration. Aucune

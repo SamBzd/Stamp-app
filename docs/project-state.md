@@ -45,7 +45,10 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   La bibliothèque de papiers (#28) dispose d’une page dédiée, d’un archivage
   protégé et d’une sélection catalogue répétable : voir le
   [parcours catalogue et bibliothèque](catalogue-ui.md). La migration v3 est
-  documentée, mais cette évolution reste non déployée.
+  documentée, mais cette évolution reste non déployée. Le workflow persistant
+  des fournitures (#30) est décrit par son
+  [contrat API et de synchronisation](workflow-fournitures-api.md) et sa
+  migration v4 sans backfill ; le Kanban #31 reste hors périmètre.
   La recette consolidée (#12) est en cours : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
   Ce socle n’est pas prêt pour le déploiement.
