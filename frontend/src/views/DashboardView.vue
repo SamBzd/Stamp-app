@@ -163,7 +163,7 @@
           </div>
         </router-link>
 
-        <!-- Widget Stocks -->
+        <!-- Widget Fournitures -->
         <router-link to="/stocks" class="widget widget-stocks" :style="{ borderRadius: 'var(--card-radius-3)' }">
           <div class="widget-header">
             <div class="widget-icon widget-icon-success">
@@ -174,9 +174,9 @@
               </svg>
             </div>
             <div class="widget-title-group">
-              <h2 class="widget-title">Stocks</h2>
-              <span v-if="stocksACommander.length > 0" class="count-badge count-badge-warning">
-                {{ stocksACommander.length }}
+              <h2 class="widget-title">Fournitures</h2>
+              <span v-if="fournituresQuantite > 0" class="count-badge count-badge-warning">
+                {{ fournituresQuantite }}
               </span>
             </div>
             <div class="arrow-indicator">
@@ -186,33 +186,42 @@
             </div>
           </div>
 
-          <div v-if="stocksACommander.length > 0" class="widget-alert">
+          <div v-if="stocksStore.workflowError" class="widget-alert">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>Workflow indisponible</span>
+          </div>
+
+          <div v-else-if="fournituresQuantite > 0" class="widget-alert">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <circle cx="12" cy="12" r="10"/>
               <line x1="12" y1="8" x2="12" y2="12"/>
               <line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
-            <span>{{ stocksACommander.length }} article(s) à traiter</span>
+            <span>{{ fournituresQuantite }} unité(s) à traiter</span>
           </div>
 
-          <div v-if="stocksACommander.length > 0" class="widget-list">
+          <div v-if="fournituresATraiter.length > 0" class="widget-list">
             <div
-              v-for="(stock, index) in stocksACommanderPreview"
-              :key="index"
+              v-for="fourniture in fournituresPreview"
+              :key="JSON.stringify([fourniture.type, fourniture.nom])"
               class="widget-list-item"
             >
               <div class="list-item-content">
-                <span class="list-item-title">{{ stock.nom || stock.papier_spe || stock.embellissement }}</span>
-                <span class="list-item-meta">{{ stock.nb_feuilles || stock.nb_commandes }} à commander</span>
+                <span class="list-item-title">{{ fourniture.nom }}</span>
+                <span class="list-item-meta">{{ fourniture.quantite }} à traiter</span>
               </div>
             </div>
           </div>
-          <div v-else class="widget-success">
+          <div v-else-if="!stocksStore.workflowError" class="widget-success">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
-            <span>Tous les stocks sont à jour</span>
+            <span>Aucune fourniture à traiter</span>
           </div>
         </router-link>
       </section>
@@ -252,17 +261,13 @@ const recentClients = computed(() => {
     .slice(0, 4);
 });
 
-const stocksACommander = computed(() => {
-  if (!stocksStore.stocks) return [];
-  const papiers = stocksStore.stocks.papiers_cartonnes || [];
-  const specia = stocksStore.stocks.papier_spe || [];
-  const embell = stocksStore.stocks.embellissement || [];
-  return [...papiers, ...specia, ...embell];
-});
+const fournituresATraiter = computed(() => stocksStore.workflow?.groupes
+  ?.filter(group => group.etat === 'À traiter') || []);
 
-const stocksACommanderPreview = computed(() => {
-  return stocksACommander.value.slice(0, 3);
-});
+const fournituresQuantite = computed(() => fournituresATraiter.value
+  .reduce((total, group) => total + group.quantite, 0));
+
+const fournituresPreview = computed(() => fournituresATraiter.value.slice(0, 3));
 
 const getInitials = (client) => {
   const prenom = client.prenom || '';
@@ -280,7 +285,7 @@ onMounted(async () => {
     await Promise.all([
       clientsStore.fetchClients(),
       commandesStore.fetchCommandes(),
-      stocksStore.fetchStocks(),
+      stocksStore.fetchWorkflow(),
     ]);
   } finally {
     loading.value = false;

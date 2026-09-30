@@ -388,8 +388,8 @@ const onCommandeSaved = async (commande) => {
 
 const refreshDependentData = async () => {
   // Ces stores peuvent déjà être affichés dans une autre vue : rafraîchir leurs
-  // snapshots évite de laisser stocks, bilan ou fidélité avec des données périmées.
-  const requests = [stocksStore.fetchStocks(), clientsStore.fetchClients()];
+  // snapshots évite de laisser fournitures, bilan ou fidélité avec des données périmées.
+  const requests = [stocksStore.fetchWorkflow(), clientsStore.fetchClients()];
   if (stocksStore.bilan?.mois) requests.push(stocksStore.fetchBilan(stocksStore.bilan.mois));
   await Promise.allSettled(requests);
 };

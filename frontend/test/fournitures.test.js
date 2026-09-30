@@ -43,19 +43,20 @@ test('une mutation acceptée met à jour localement les piles même avant resync
   assert.equal(archived.groupes.some(group => group.nom === 'Vélin'), false);
 });
 
-test('la vue fournit glisser-déposer, alternative explicite, archivage et réduction des mouvements', async () => {
+test('la vue fournit glisser-déposer sans action de déplacement et réduction des mouvements', async () => {
   const source = await readFile(new URL('../src/views/StocksView.vue', import.meta.url), 'utf8');
   assert.match(source, /draggable="true"/);
   assert.match(source, /@drop\.prevent="dropOn\(column\.etat\)"/);
   assert.match(source, /openMove\(group, state\)/);
   assert.match(source, /title="Quantité à déplacer"/);
-  assert.match(source, /aria-label="Changer de colonne"/);
-  assert.match(source, /v-if="!moveDialog\.targetLocked"/);
-  assert.match(source, /move-target/);
+  assert.doesNotMatch(source, /class="move-button"/);
+  assert.doesNotMatch(source, /move-target/);
   assert.match(source, /return match \? match\[2\] \+ '-' \+ match\[1\] : ''/);
   assert.match(source, /Glissez une pile vers la colonne/);
   assert.match(source, /Quantité à déplacer/);
+  assert.doesNotMatch(source, /class="move-button"/);
   assert.match(source, /archiveWorkflowGroup/);
+  assert.match(source, /Terminer/);
   assert.match(source, /new CustomEvent\('toast'/);
   assert.match(source, /duration: 5000/);
   assert.match(source, /prefers-reduced-motion: reduce/);

@@ -48,7 +48,10 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
   [contrat API et de synchronisation](workflow-fournitures-api.md) et sa
-  migration v4 sans backfill ; le Kanban #31 reste hors périmètre.
+  migration v4 sans backfill. Le Kanban opérationnel #31 consomme ce workflow
+  dans cinq colonnes, avec déplacements partiels, archivage des piles traitées
+  et alertes anonymes : voir le
+  [contrat API et d’interface](workflow-fournitures-api.md).
   La recette consolidée (#12) est en cours : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
   Ce socle n’est pas prêt pour le déploiement.
