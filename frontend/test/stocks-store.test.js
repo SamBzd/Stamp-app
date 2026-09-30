@@ -62,3 +62,52 @@ test('un ancien échec de bilan ne masque pas le mois récemment chargé', async
   assert.equal(store.bilan.mois, '2026-09');
   assert.equal(store.bilanError, null);
 });
+
+test('le workflow charge les piles et conserve le tableau courant après un échec', async t => {
+  setActivePinia(createPinia());
+  const store = useStocksStore();
+  const workflow = { groupes: [{ type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 2 }], alertes: [] };
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', () => ++calls === 1
+    ? Promise.resolve(response(workflow))
+    : Promise.resolve({ ok: false, status: 500, json: async () => ({ error: 'Workflow indisponible' }) }));
+  await store.fetchWorkflow();
+  assert.deepEqual(store.workflow, workflow);
+  await store.fetchWorkflow();
+  assert.deepEqual(store.workflow, workflow);
+  assert.equal(store.workflowError, 'Workflow indisponible');
+});
+
+test('déplacement et archivage utilisent les mutations du workflow puis le rechargent', async t => {
+  setActivePinia(createPinia());
+  const store = useStocksStore();
+  const requests = [];
+  t.mock.method(globalThis, 'fetch', (url, options = {}) => {
+    requests.push({ url, method: options.method || 'GET', body: options.body && JSON.parse(options.body) });
+    return Promise.resolve(response(url.endsWith('/fournitures') ? { groupes: [], alertes: [] } : { quantite: 2 }));
+  });
+  await store.moveWorkflowGroup({ type: 'ruban', nom: 'Lin', etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1 });
+  await store.archiveWorkflowGroup({ type: 'ruban', nom: 'Lin', quantite: 2 });
+  assert.deepEqual(requests.map(request => request.method), ['PATCH', 'GET', 'POST', 'GET']);
+  assert.deepEqual(requests[0].body, { type: 'ruban', nom: 'Lin', etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1 });
+  assert.deepEqual(requests[2].body, { type: 'ruban', nom: 'Lin', quantite: 2 });
+  assert.deepEqual(store.workflow, { groupes: [], alertes: [] });
+  assert.equal(store.mutatingWorkflow, false);
+});
+
+test('une mutation acceptée reste un succès si sa resynchronisation échoue', async t => {
+  setActivePinia(createPinia());
+  const store = useStocksStore();
+  store.workflow = { groupes: [{ type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 2 }], alertes: [] };
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', () => ++calls === 1
+    ? Promise.resolve(response({ quantite: 1 }))
+    : Promise.resolve({ ok: false, status: 500, json: async () => ({ error: 'Lecture impossible' }) }));
+  await store.moveWorkflowGroup({ type: 'ruban', nom: 'Lin', etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1 });
+  assert.deepEqual(store.workflow.groupes, [
+    { type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 1 },
+    { type: 'ruban', nom: 'Lin', etat: 'Commandé', quantite: 1 },
+  ]);
+  assert.match(store.workflowError, /Déplacement enregistré/);
+  assert.equal(store.mutatingWorkflow, false);
+});

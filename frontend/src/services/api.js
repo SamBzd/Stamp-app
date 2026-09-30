@@ -109,3 +109,18 @@ export const stocksAPI = {
   get: () => apiCall('/stocks'),
   getBilan: (mois) => apiCall(`/stocks/bilan?mois=${mois}`),
 };
+
+/**
+ * API Workflow des fournitures
+ */
+export const fournituresAPI = {
+  getWorkflow: () => apiCall('/fournitures'),
+  move: (data) => apiCall('/fournitures/deplacement', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  }),
+  archive: (data) => apiCall('/fournitures/archivage', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  }),
+};
