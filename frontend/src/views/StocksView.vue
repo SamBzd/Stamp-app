@@ -63,7 +63,12 @@
                 :key="fournitureGroupKey(group)"
                 class="fourniture-card"
                 :class="{ 'fourniture-card-dragging': draggedGroup === group }"
+                :role="group.etat === 'Traité' ? undefined : 'button'"
+                :tabindex="group.etat === 'Traité' ? undefined : 0"
                 draggable="true"
+                @click="group.etat !== 'Traité' && openMove(group)"
+                @keydown.enter.prevent="group.etat !== 'Traité' && openMove(group)"
+                @keydown.space.prevent="group.etat !== 'Traité' && openMove(group)"
                 @dragstart="startDrag($event, group)"
                 @dragend="endDrag"
               >
@@ -73,7 +78,7 @@
                 </div>
                 <h3>{{ group.nom }}</h3>
                 <div v-if="group.etat === 'Traité'" class="fourniture-actions">
-                  <button type="button" class="finish-button" :disabled="stocksStore.mutatingWorkflow" @click="archiveGroup = group">Terminer</button>
+                  <button type="button" class="finish-button" :disabled="stocksStore.mutatingWorkflow" @click.stop="archiveGroup = group">Terminer</button>
                 </div>
               </article>
               <div v-if="column.groupes.length === 0" class="column-empty">
@@ -137,6 +142,7 @@
     <Modal :is-open="Boolean(moveDialog)" title="Quantité à déplacer" max-width="460px" @close="closeMove">
       <form v-if="moveDialog" id="move-form" class="move-form" @submit.prevent="submitMove">
         <p><strong>{{ fournitureTypeLabel(moveDialog.group.type) }} · {{ moveDialog.group.nom }}</strong></p>
+        <template v-if="!moveDialog.targetLocked"><label for="move-target">Déplacer vers</label><select id="move-target" v-model="moveDialog.target" :disabled="stocksStore.mutatingWorkflow"><option v-for="state in destinationStates" :key="state" :value="state">{{ state }}</option></select></template>
         <label for="move-quantity">Quantité à déplacer</label>
         <input id="move-quantity" v-model.number="moveDialog.quantite" type="number" inputmode="numeric" min="1" :max="moveDialog.group.quantite" :disabled="stocksStore.mutatingWorkflow" :aria-invalid="moveQuantityError" aria-describedby="move-quantity-help" />
         <p id="move-quantity-help" class="form-help">Entre 1 et {{ moveDialog.group.quantite }} unité(s).</p>
@@ -158,7 +164,7 @@ import Layout from '../components/Layout.vue';
 import Modal from '../components/Modal.vue';
 import { useStocksStore } from '../stores/stocks';
 import { formatMoney } from '../utils/commande-kit';
-import { fournitureGroupKey, fournitureTypeLabel, validMoveQuantity, workflowColumns } from '../utils/fournitures';
+import { FOURNITURE_STATES, fournitureGroupKey, fournitureTypeLabel, validMoveQuantity, workflowColumns } from '../utils/fournitures';
 
 const stocksStore = useStocksStore();
 const activeTab = ref('fournitures');
@@ -171,6 +177,7 @@ const now = new Date();
 const selectedMois = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
 
 const columns = computed(() => workflowColumns(stocksStore.workflow?.groupes));
+const destinationStates = computed(() => FOURNITURE_STATES.filter(state => state !== moveDialog.value?.group.etat));
 const monthPickerOpen = ref(false);
 const pickerYear = ref(now.getFullYear());
 const pickerMonths = [
@@ -187,8 +194,9 @@ const showFeedback = (message) => window.dispatchEvent(new CustomEvent('toast', 
   detail: { message, type: 'success', duration: 5000 },
 }));
 const openMove = (group, target = '') => {
+  const destinations = FOURNITURE_STATES.filter(state => state !== group.etat);
   mutationError.value = '';
-  moveDialog.value = { group, target, quantite: group.quantite };
+  moveDialog.value = { group, target: target || destinations[0], targetLocked: Boolean(target), quantite: group.quantite };
 };
 const closeMove = () => { if (!stocksStore.mutatingWorkflow) { moveDialog.value = null; mutationError.value = ''; } };
 const submitMove = async () => {
@@ -243,7 +251,7 @@ onMounted(refreshWorkflow);
 .tab-btn { min-height: 44px; padding: var(--spacing-3) var(--spacing-5); margin-bottom: -2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
 .tab-btn:hover { background: var(--muted); color: var(--foreground); }
 .tab-btn.active { border-bottom-color: var(--primary); color: var(--primary); }
-.tab-btn:focus-visible, .fourniture-card button:focus-visible, .move-form :is(select, input):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.tab-btn:focus-visible, .fourniture-card:focus-visible, .fourniture-card button:focus-visible, .move-form :is(select, input):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .workflow-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-4); margin-bottom: var(--spacing-5); }
 .workflow-toolbar p { max-width: 70ch; color: var(--text-secondary); line-height: var(--line-height-relaxed); }
 .workflow-alerts { display: grid; gap: var(--spacing-4); margin-bottom: var(--spacing-5); padding: var(--spacing-4); border: 1px solid var(--warning); border-radius: var(--border-radius-xl); background: var(--warning-light); }

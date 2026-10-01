@@ -60,8 +60,9 @@ Toute mutation est atomique.
 La route `/stocks` présente le workflow sous forme de cinq colonnes toujours
 ordonnées : À traiter, Commandé, Disponible, Expédié et Traité. Une carte ne
 montre que le type, le nom et la quantité agrégée de la fourniture. Le
-glisser-déposer ouvre un sélecteur de quantité ; aucune mutation optimiste ne
-masque un refus du serveur.
+glisser-déposer ouvre un sélecteur de quantité. Pour les cartes hors « Traité »,
+un clic ou les touches Entrée/Espace ouvrent aussi le choix de destination et
+de quantité ; aucune mutation optimiste ne masque un refus du serveur.
 
 Sur petit écran, les colonnes passent à la verticale dans le même ordre. Les
 alertes anonymes du workflow sont affichées au-dessus du tableau. Dans Traité,

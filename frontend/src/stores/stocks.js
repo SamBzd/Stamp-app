@@ -73,11 +73,13 @@ export const useStocksStore = defineStore('stocks', {
     },
 
     async moveWorkflowGroup(data) {
+      const workflowBeforeMutation = this.workflow;
+      ++this.workflowRequest;
       this.mutatingWorkflow = true;
       this.workflowError = null;
       try {
         const result = await fournituresAPI.move(data);
-        this.workflow = applyWorkflowMove(this.workflow, data);
+        this.workflow = applyWorkflowMove(workflowBeforeMutation, data);
         const refreshed = await this.fetchWorkflow();
         if (!refreshed) {
           this.workflowError = 'Déplacement enregistré, mais le tableau n’a pas pu être resynchronisé. Actualise avant une nouvelle action.';
@@ -92,11 +94,13 @@ export const useStocksStore = defineStore('stocks', {
     },
 
     async archiveWorkflowGroup(data) {
+      const workflowBeforeMutation = this.workflow;
+      ++this.workflowRequest;
       this.mutatingWorkflow = true;
       this.workflowError = null;
       try {
         const result = await fournituresAPI.archive(data);
-        this.workflow = applyWorkflowArchive(this.workflow, data);
+        this.workflow = applyWorkflowArchive(workflowBeforeMutation, data);
         const refreshed = await this.fetchWorkflow();
         if (!refreshed) {
           this.workflowError = 'Pile terminée, mais le tableau n’a pas pu être resynchronisé. Actualise avant une nouvelle action.';

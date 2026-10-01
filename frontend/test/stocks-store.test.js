@@ -111,3 +111,31 @@ test('une mutation acceptée reste un succès si sa resynchronisation échoue', 
   assert.match(store.workflowError, /Déplacement enregistré/);
   assert.equal(store.mutatingWorkflow, false);
 });
+
+test('un déplacement ignore un rafraîchissement antérieur qui revient entre PATCH et sa réponse', async t => {
+  setActivePinia(createPinia());
+  const store = useStocksStore();
+  store.workflow = { groupes: [{ type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 3 }], alertes: [] };
+  const pendingRead = deferred();
+  const pendingMove = deferred();
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', (url, options = {}) => {
+    calls += 1;
+    if (options.method === 'PATCH') return pendingMove.promise;
+    if (calls === 1) return pendingRead.promise;
+    return Promise.resolve({ ok: false, status: 500, json: async () => ({ error: 'Lecture impossible' }) });
+  });
+  const staleRefresh = store.fetchWorkflow();
+  const move = store.moveWorkflowGroup({ type: 'ruban', nom: 'Lin', etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1 });
+  pendingRead.resolve(response({ groupes: [
+    { type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 2 },
+    { type: 'ruban', nom: 'Lin', etat: 'Commandé', quantite: 1 },
+  ], alertes: [] }));
+  await staleRefresh;
+  pendingMove.resolve(response({ quantite: 1 }));
+  await move;
+  assert.deepEqual(store.workflow.groupes, [
+    { type: 'ruban', nom: 'Lin', etat: 'À traiter', quantite: 2 },
+    { type: 'ruban', nom: 'Lin', etat: 'Commandé', quantite: 1 },
+  ]);
+});

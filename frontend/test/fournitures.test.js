@@ -50,7 +50,10 @@ test('la vue fournit glisser-déposer sans action de déplacement et réduction 
   assert.match(source, /openMove\(group, state\)/);
   assert.match(source, /title="Quantité à déplacer"/);
   assert.doesNotMatch(source, /class="move-button"/);
-  assert.doesNotMatch(source, /move-target/);
+  assert.match(source, /role="group\.etat === 'Traité' \? undefined : 'button'"/);
+  assert.match(source, /@keydown\.enter\.prevent="group\.etat !== 'Traité' && openMove\(group\)"/);
+  assert.match(source, /v-if="!moveDialog\.targetLocked"/);
+  assert.match(source, /move-target/);
   assert.match(source, /return match \? match\[2\] \+ '-' \+ match\[1\] : ''/);
   assert.match(source, /Glissez une pile vers la colonne/);
   assert.match(source, /Quantité à déplacer/);
