@@ -6,7 +6,7 @@ const layout = await readFile(new URL('../src/components/Layout.vue', import.met
 const styles = await readFile(new URL('../src/style.css', import.meta.url), 'utf8');
 
 test('la navigation expose toutes les routes métier et marque la route active', () => {
-  for (const [path, label] of [['/', 'Commandes'], ['/clients', 'Clientes'], ['/catalogues', 'Catalogues'], ['/papiers', 'Papiers'], ['/stocks', 'Stocks']]) {
+  for (const [path, label] of [['/', 'Commandes'], ['/clients', 'Clientes'], ['/catalogues', 'Catalogues'], ['/papiers', 'Papiers'], ['/stocks', 'Fournitures']]) {
     assert.match(layout, new RegExp(`path: '${path.replace('/', '\\/')}'`));
     assert.match(layout, new RegExp(`label: '${label}'`));
   }

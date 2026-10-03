@@ -1,797 +1,332 @@
 <template>
   <Layout class="stocks-layout">
     <div class="stocks-view">
-      <!-- Page Header -->
       <header class="page-header">
         <div>
-          <h1 class="page-title">Stocks</h1>
-          <p class="page-subtitle">Quantités à préparer depuis les commandes enregistrées</p>
+          <h1 class="page-title">Fournitures</h1>
+          <p class="page-subtitle">Suivez chaque fourniture, de la commande jusqu’au traitement.</p>
         </div>
       </header>
 
-      <!-- Tabs -->
-      <div class="tabs">
-        <button
-          :class="['tab-btn', { active: activeTab === 'stocks' }]"
-          :aria-pressed="activeTab === 'stocks'"
-          @click="activeTab = 'stocks'"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-            <line x1="12" y1="22.08" x2="12" y2="12"/>
-          </svg>
-          Stocks
-        </button>
-        <button
-          :class="['tab-btn', { active: activeTab === 'bilan' }]"
-          :aria-pressed="activeTab === 'bilan'"
-          @click="activeTab = 'bilan'"
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-            <line x1="16" y1="2" x2="16" y2="6"/>
-            <line x1="8" y1="2" x2="8" y2="6"/>
-            <line x1="3" y1="10" x2="21" y2="10"/>
-          </svg>
-          Bilan mensuel
-        </button>
+      <div class="tabs" role="tablist" aria-label="Fournitures et bilan">
+        <button id="fournitures-tab" class="tab-btn" :class="{ active: activeTab === 'fournitures' }" role="tab" :aria-selected="activeTab === 'fournitures'" aria-controls="fournitures-panel" @click="activeTab = 'fournitures'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Fournitures</button>
+        <button id="bilan-tab" class="tab-btn" :class="{ active: activeTab === 'bilan' }" role="tab" :aria-selected="activeTab === 'bilan'" aria-controls="bilan-panel" @click="activeTab = 'bilan'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Bilan mensuel</button>
       </div>
 
-      <!-- ===== ONGLET STOCKS ===== -->
-      <div v-if="activeTab === 'stocks'" class="tab-content">
-        <!-- Toolbar -->
-        <div class="stocks-toolbar">
-          <Button @click="stocksStore.fetchStocks()" :loading="stocksStore.loadingStocks">
-            <template #icon>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="23 4 23 10 17 10"/>
-                <polyline points="1 20 1 14 7 14"/>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-              </svg>
-            </template>
-            Actualiser
-          </Button>
+      <section v-if="activeTab === 'fournitures'" id="fournitures-panel" role="tabpanel" aria-labelledby="fournitures-tab">
+        <div class="workflow-toolbar">
+          <p>Glissez une pile vers la colonne où tu veux la placer.</p>
+          <Button variant="secondary" :loading="stocksStore.loadingWorkflow" :disabled="stocksStore.mutatingWorkflow" @click="refreshWorkflow">Actualiser</Button>
         </div>
 
-        <p class="stock-explanation">Toutes les commandes kits conservées sont incluses, réglées ou non. L’option double uniquement les feuilles de base. Les libellés sont ceux enregistrés dans les commandes : une même référence renommée peut apparaître sous plusieurs libellés historiques.</p>
-
-        <div v-if="stocksStore.loadingStocks && !stocksStore.stocks" class="loading-state" role="status">
-          <div class="loading-spinner"></div>
-          <span class="loading-state-text">Chargement...</span>
-        </div>
-
-        <div v-else-if="stocksStore.stocksError" class="error-state" role="alert">
-          <p>{{ stocksStore.stocksError }}</p>
-          <Button variant="secondary" @click="stocksStore.fetchStocks()">Réessayer</Button>
-        </div>
-
-        <div v-else-if="stocksStore.stocks" class="stocks-sections">
-
-          <!-- Papiers cartonnés -->
-          <section class="stock-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-blue"></span>
-              Papiers cartonnés
-            </h2>
-            <div v-if="!stocksStore.stocks.papiers_cartonnes || stocksStore.stocks.papiers_cartonnes.length === 0" class="empty-section">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <span>Aucun papier cartonné à préparer</span>
-            </div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead>
-                  <tr>
-                    <th>Libellé enregistré</th>
-                    <th class="col-number">Feuilles de base</th>
-                    <th class="col-number">Feuilles à préparer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.stocks.papiers_cartonnes" :key="item.cle">
-                    <td class="cell-name">
-                      {{ item.nom }}
-                      <details class="stock-provenance">
-                        <summary>Origine des feuilles · papier n°{{ item.papier_cartonne_id }}</summary>
-                        <ul>
-                          <li v-for="source in item.provenances" :key="source.cle">
-                            {{ source.catalogue_titre }} (catalogue n°{{ source.catalogue_id }}) /
-                            {{ source.collection_nom }} (collection n°{{ source.collection_id }}) :
-                            {{ source.nb_feuilles_base }} de base → {{ source.nb_feuilles }} à préparer
-                          </li>
-                        </ul>
-                      </details>
-                    </td>
-                    <td class="cell-number" data-label="Feuilles de base">{{ item.nb_feuilles_base }}</td>
-                    <td class="cell-number" data-label="Feuilles à préparer">
-                      <span class="badge-count">{{ item.nb_feuilles }}</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <!-- Papier spécial -->
-          <section class="stock-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-purple"></span>
-              Papier spécial
-            </h2>
-            <div v-if="!stocksStore.stocks.papier_spe || stocksStore.stocks.papier_spe.length === 0" class="empty-section">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <span>Aucun papier spécial à préparer</span>
-            </div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead>
-                  <tr>
-                    <th>Papier spécial</th>
-                    <th>Catalogue enregistré</th>
-                    <th class="col-number">Unités à préparer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.stocks.papier_spe" :key="item.cle">
-                    <td class="cell-name">{{ item.papier_spe }}</td>
-                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
-                    <td class="cell-number" data-label="Unités à préparer">
-                      <span class="badge-count">{{ item.nb_commandes }}</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <!-- Embellissement -->
-          <section class="stock-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-amber"></span>
-              Embellissement
-            </h2>
-            <div v-if="!stocksStore.stocks.embellissement || stocksStore.stocks.embellissement.length === 0" class="empty-section">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <span>Aucun embellissement à préparer</span>
-            </div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead>
-                  <tr>
-                    <th>Embellissement</th>
-                    <th>Catalogue enregistré</th>
-                    <th class="col-number">Unités à préparer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.stocks.embellissement" :key="item.cle">
-                    <td class="cell-name">{{ item.embellissement }}</td>
-                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
-                    <td class="cell-number" data-label="Unités à préparer">
-                      <span class="badge-count">{{ item.nb_commandes }}</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <section class="stock-section">
-            <h2 class="section-title"><span class="section-dot section-dot-green"></span>Rubans</h2>
-            <div v-if="!stocksStore.stocks.rubans?.length" class="empty-section">Aucun ruban à préparer</div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead><tr><th>Libellé enregistré</th><th>Catalogue enregistré</th><th class="col-number">Unités à préparer</th></tr></thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.stocks.rubans" :key="item.cle">
-                    <td class="cell-name">{{ item.nom }}<span class="stock-reference">Ruban n°{{ item.ruban_id }}</span></td>
-                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
-                    <td class="cell-number" data-label="Unités à préparer"><span class="badge-count">{{ item.quantite }}</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          <!-- Collections -->
-          <section class="stock-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-green"></span>
-              Collections
-            </h2>
-            <div v-if="!stocksStore.stocks.collections || stocksStore.stocks.collections.length === 0" class="empty-section">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                <polyline points="22 4 12 14.01 9 11.01"/>
-              </svg>
-              <span>Aucune collection à préparer</span>
-            </div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead>
-                  <tr>
-                    <th>Collection</th>
-                    <th>Catalogue</th>
-                    <th class="col-number">Nb commandes</th>
-                    <th class="col-number">Feuilles de base</th>
-                    <th class="col-number">Feuilles à préparer</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.stocks.collections" :key="item.cle">
-                    <td class="cell-name">{{ item.nom }}<span class="stock-reference">Collection n°{{ item.collection_id }}</span></td>
-                    <td class="cell-secondary" data-label="Catalogue"><span>{{ item.catalogue_titre }}<span class="stock-reference">Catalogue n°{{ item.catalogue_id }}</span></span></td>
-                    <td class="cell-number" data-label="Commandes">
-                      <span class="badge-count">{{ item.nb_commandes }}</span>
-                    </td>
-                    <td class="cell-number" data-label="Feuilles de base">{{ item.total_feuilles_base }}</td>
-                    <td class="cell-number" data-label="Feuilles à préparer">{{ item.total_feuilles }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-        </div>
-
-        <div v-else class="empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-            </svg>
+        <div v-if="stocksStore.workflow?.alertes?.length" class="workflow-alerts" role="region" aria-labelledby="workflow-alerts-title">
+          <div class="workflow-alerts-heading">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+            <div><h2 id="workflow-alerts-title">Points d’attention</h2><p>Ces écarts proviennent de commandes modifiées ou supprimées.</p></div>
           </div>
-          <h3 class="empty-state-title">Aucune donnée</h3>
-          <p class="empty-state-description">Cliquez sur "Actualiser" pour charger les quantités à préparer</p>
-          <Button @click="stocksStore.fetchStocks()" :loading="stocksStore.loadingStocks">Actualiser</Button>
+          <ul>
+            <li v-for="alert in stocksStore.workflow.alertes" :key="JSON.stringify([alert.type, alert.nom, alert.code])">
+              <strong>{{ fournitureTypeLabel(alert.type) }} · {{ alert.nom }}</strong>
+              <span>{{ alert.message }}<template v-if="alert.quantite > 1"> (×{{ alert.quantite }})</template></span>
+            </li>
+          </ul>
         </div>
-      </div>
 
-      <!-- ===== ONGLET BILAN MENSUEL ===== -->
-      <div v-if="activeTab === 'bilan'" class="tab-content">
-        <!-- Sélecteur de mois -->
+        <div v-if="stocksStore.workflowError" class="error-state workflow-error" role="alert">
+          <p>{{ stocksStore.workflowError }}</p>
+          <Button v-if="!stocksStore.workflow" variant="secondary" @click="refreshWorkflow">Réessayer</Button>
+        </div>
+        <div v-if="stocksStore.loadingWorkflow && !stocksStore.workflow" class="loading-state" role="status">
+          <div class="loading-spinner"></div><span class="loading-state-text">Chargement des fournitures…</span>
+        </div>
+
+        <div v-else-if="stocksStore.workflow" class="kanban" aria-label="Workflow des fournitures">
+          <section
+            v-for="column in columns"
+            :key="column.etat"
+            class="kanban-column"
+            :class="{ 'kanban-column-drop': dragOverState === column.etat }"
+            :aria-labelledby="`column-${column.index}`"
+            @dragenter.prevent="dragOverState = column.etat"
+            @dragover.prevent
+            @dragleave.self="clearDragOver(column.etat)"
+            @drop.prevent="dropOn(column.etat)"
+          >
+            <header class="kanban-column-header">
+              <span class="column-step" aria-hidden="true">{{ column.index + 1 }}</span>
+              <h2 :id="`column-${column.index}`">{{ column.etat }}</h2>
+              <span class="column-count" :aria-label="`${column.groupes.length} piles`">{{ column.groupes.length }}</span>
+            </header>
+            <div class="kanban-column-content">
+              <article
+                v-for="group in column.groupes"
+                :key="fournitureGroupKey(group)"
+                class="fourniture-card"
+                :class="{ 'fourniture-card-dragging': draggedGroup === group }"
+                :role="group.etat === 'Traité' ? undefined : 'button'"
+                :tabindex="group.etat === 'Traité' ? undefined : 0"
+                draggable="true"
+                @click="group.etat !== 'Traité' && openMove(group)"
+                @keydown.enter.prevent="group.etat !== 'Traité' && openMove(group)"
+                @keydown.space.prevent="group.etat !== 'Traité' && openMove(group)"
+                @dragstart="startDrag($event, group)"
+                @dragend="endDrag"
+              >
+                <div class="fourniture-card-heading">
+                  <span class="fourniture-type">{{ fournitureTypeLabel(group.type) }}</span>
+                  <span class="fourniture-quantity" :aria-label="`${group.quantite} unités`">×{{ group.quantite }}</span>
+                </div>
+                <h3>{{ group.nom }}</h3>
+                <div v-if="group.etat === 'Traité'" class="fourniture-actions">
+                  <button type="button" class="finish-button" :disabled="stocksStore.mutatingWorkflow" @click.stop="archiveGroup = group">Terminer</button>
+                </div>
+              </article>
+              <div v-if="column.groupes.length === 0" class="column-empty">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5v14"/></svg>
+                <span>Aucune fourniture</span>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section v-if="activeTab === 'bilan'" id="bilan-panel" role="tabpanel" aria-labelledby="bilan-tab">
         <div class="bilan-toolbar">
           <div class="month-picker">
-            <label class="month-label" for="month-input">Mois</label>
-            <input
-              id="month-input"
-              v-model="selectedMois"
-              type="month"
-              class="month-input"
-            />
+            <span id="month-label" class="month-label">Mois</span>
+            <button type="button" class="month-input" aria-labelledby="month-label month-value" :aria-expanded="monthPickerOpen" aria-controls="month-picker-panel" @click="monthPickerOpen = !monthPickerOpen">
+              <span id="month-value">{{ formatMonth(selectedMois) }}</span>
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            </button>
+            <div v-if="monthPickerOpen" id="month-picker-panel" class="month-picker-panel" role="dialog" aria-label="Choisir un mois" @keydown.esc="monthPickerOpen = false">
+              <div class="month-picker-year">
+                <button type="button" aria-label="Année précédente" @click="pickerYear -= 1">‹</button>
+                <strong>{{ pickerYear }}</strong>
+                <button type="button" aria-label="Année suivante" @click="pickerYear += 1">›</button>
+              </div>
+              <div class="month-picker-months">
+                <button v-for="month in pickerMonths" :key="month.value" type="button" :class="{ active: selectedMois === pickerYear + '-' + month.value }" @click="selectMonth(month.value)">{{ month.label }}</button>
+              </div>
+            </div>
           </div>
-          <Button @click="handleLoadBilan" :loading="stocksStore.loadingBilan">
-            Charger
-          </Button>
+          <Button :loading="stocksStore.loadingBilan" @click="handleLoadBilan">Charger</Button>
         </div>
-
-        <div v-if="stocksStore.loadingBilan" class="loading-state" role="status">
-          <div class="loading-spinner"></div>
-          <span class="loading-state-text">Chargement du bilan...</span>
-        </div>
-
-        <div v-else-if="stocksStore.bilanError" class="error-state" role="alert">
-          <p>{{ stocksStore.bilanError }}</p>
-        </div>
-
+        <div v-if="stocksStore.loadingBilan" class="loading-state" role="status"><div class="loading-spinner"></div><span class="loading-state-text">Chargement du bilan…</span></div>
+        <div v-else-if="stocksStore.bilanError" class="error-state" role="alert"><p>{{ stocksStore.bilanError }}</p></div>
         <div v-else-if="stocksStore.bilan" class="bilan-content">
-
-          <!-- CA total -->
-          <div class="bilan-ca-card">
-            <div class="bilan-ca-label">Chiffre d'affaires</div>
-            <div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires_cents) }}</div>
-            <p>Commandes réglées du mois de création, aux prix enregistrés.</p>
-          </div>
-
-          <!-- Répartition par méthode de paiement -->
+          <div class="bilan-ca-card"><div class="bilan-ca-label">Chiffre d'affaires</div><div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires_cents) }}</div><p>Commandes réglées du mois de création, aux prix enregistrés.</p></div>
           <section class="bilan-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-green"></span>
-              Répartition par méthode de paiement
-            </h2>
-            <div v-if="stocksStore.bilan.par_methode_paiement.length === 0" class="empty-section">
-              <span>Aucune donnée de paiement</span>
-            </div>
-            <div v-else class="stock-table-wrapper">
-              <table class="stock-table">
-                <thead>
-                  <tr>
-                    <th>Méthode</th>
-                    <th class="col-number">Nb commandes</th>
-                    <th class="col-number">Montant</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="item in stocksStore.bilan.par_methode_paiement" :key="item.methode_paiement">
-                    <td class="cell-name">{{ item.methode_paiement || 'Non renseigné' }}</td>
-                    <td class="cell-number">
-                      <span class="badge-count">{{ item.nb_commandes }}</span>
-                    </td>
-                    <td class="cell-number">{{ formatCurrency(item.total_cents) }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <h2 class="section-title"><span class="section-dot section-dot-green"></span>Répartition par méthode de paiement</h2>
+            <div v-if="stocksStore.bilan.par_methode_paiement.length === 0" class="empty-section"><span>Aucune donnée de paiement</span></div>
+            <div v-else class="stock-table-wrapper"><table class="stock-table"><thead><tr><th>Méthode</th><th class="col-number">Nb commandes</th><th class="col-number">Montant</th></tr></thead><tbody><tr v-for="item in stocksStore.bilan.par_methode_paiement" :key="item.methode_paiement"><td class="cell-name">{{ item.methode_paiement || 'Non renseigné' }}</td><td class="cell-number"><span class="badge-count">{{ item.nb_commandes }}</span></td><td class="cell-number">{{ formatCurrency(item.total_cents) }}</td></tr></tbody></table></div>
           </section>
-
-          <!-- Produits promo -->
           <section class="bilan-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-amber"></span>
-              Produits promotionnels
-            </h2>
-            <div v-if="!stocksStore.bilan.produits_promo || stocksStore.bilan.produits_promo.length === 0" class="empty-section">
-              <span>Aucun produit promotionnel ce mois-ci</span>
-            </div>
-            <div v-else class="promo-list">
-              <div
-                v-for="item in stocksStore.bilan.produits_promo"
-                :key="JSON.stringify([item.texte, item.prix_cents])"
-                class="promo-item"
-              >
-                <div class="promo-info">
-                  <span class="promo-texte">{{ item.texte }}</span>
-                  <span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span>
-                </div>
-                <span class="promo-count">× {{ item.nb_fois }}</span>
-              </div>
-            </div>
+            <h2 class="section-title"><span class="section-dot section-dot-amber"></span>Produits promotionnels</h2>
+            <div v-if="!stocksStore.bilan.produits_promo?.length" class="empty-section"><span>Aucun produit promotionnel ce mois-ci</span></div>
+            <div v-else class="promo-list"><div v-for="item in stocksStore.bilan.produits_promo" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count">× {{ item.nb_fois }}</span></div></div>
           </section>
-
-          <!-- Autres articles -->
           <section class="bilan-section">
-            <h2 class="section-title">
-              <span class="section-dot section-dot-blue"></span>
-              Autres articles
-            </h2>
-            <div v-if="stocksStore.bilan.autres.length === 0" class="empty-section">
-              <span>Aucun autre article ce mois-ci</span>
-            </div>
-            <div v-else class="promo-list">
-              <div
-                v-for="item in stocksStore.bilan.autres"
-                :key="JSON.stringify([item.texte, item.prix_cents])"
-                class="promo-item"
-              >
-                <div class="promo-info">
-                  <span class="promo-texte">{{ item.texte }}</span>
-                  <span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span>
-                </div>
-                <span class="promo-count">× {{ item.nb_fois }}</span>
-              </div>
-            </div>
+            <h2 class="section-title"><span class="section-dot section-dot-blue"></span>Autres articles</h2>
+            <div v-if="stocksStore.bilan.autres.length === 0" class="empty-section"><span>Aucun autre article ce mois-ci</span></div>
+            <div v-else class="promo-list"><div v-for="item in stocksStore.bilan.autres" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count">× {{ item.nb_fois }}</span></div></div>
           </section>
-
           <p>Les suppléments ci-dessus détaillent les prix historiques. Ils sont déjà inclus dans le prix automatique ; après un prix manuel, leur somme ne reconstitue pas nécessairement le total payé.</p>
         </div>
-
         <div v-else class="empty-state">
-          <div class="empty-state-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-              <line x1="16" y1="2" x2="16" y2="6"/>
-              <line x1="8" y1="2" x2="8" y2="6"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-            </svg>
-          </div>
-          <h3 class="empty-state-title">Aucun bilan chargé</h3>
-          <p class="empty-state-description">Sélectionnez un mois et cliquez sur "Charger"</p>
+          <div class="empty-state-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+          <h3 class="empty-state-title">Aucun bilan chargé</h3><p class="empty-state-description">Sélectionnez un mois et cliquez sur « Charger ».</p>
         </div>
-      </div>
-
+      </section>
     </div>
+
+    <Modal :is-open="Boolean(moveDialog)" title="Quantité à déplacer" max-width="460px" @close="closeMove">
+      <form v-if="moveDialog" id="move-form" class="move-form" @submit.prevent="submitMove">
+        <p><strong>{{ fournitureTypeLabel(moveDialog.group.type) }} · {{ moveDialog.group.nom }}</strong></p>
+        <template v-if="!moveDialog.targetLocked"><label for="move-target">Déplacer vers</label><select id="move-target" v-model="moveDialog.target" :disabled="stocksStore.mutatingWorkflow"><option v-for="state in destinationStates" :key="state" :value="state">{{ state }}</option></select></template>
+        <label for="move-quantity">Quantité à déplacer</label>
+        <input id="move-quantity" v-model.number="moveDialog.quantite" type="number" inputmode="numeric" min="1" :max="moveDialog.group.quantite" :disabled="stocksStore.mutatingWorkflow" :aria-invalid="moveQuantityError" aria-describedby="move-quantity-help" />
+        <p id="move-quantity-help" class="form-help">Entre 1 et {{ moveDialog.group.quantite }} unité(s).</p>
+        <p v-if="moveQuantityError" class="form-error" role="alert">Choisis une quantité disponible.</p>
+        <p v-else-if="mutationError" class="form-error" role="alert">{{ mutationError }}</p>
+      </form>
+      <template #footer><Button variant="secondary" :disabled="stocksStore.mutatingWorkflow" @click="closeMove">Annuler</Button><Button type="submit" form="move-form" :loading="stocksStore.mutatingWorkflow" :disabled="moveQuantityError">Déplacer</Button></template>
+    </Modal>
+
+    <ConfirmDialog :is-open="Boolean(archiveGroup)" :loading="stocksStore.mutatingWorkflow" title="Terminer cette pile ?" :message="archiveMessage" confirm-text="Terminer" variant="danger" @confirm="submitArchive" @cancel="archiveGroup = null" />
   </Layout>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import Layout from '../components/Layout.vue';
+import { computed, onMounted, ref } from 'vue';
 import Button from '../components/Button.vue';
+import ConfirmDialog from '../components/ConfirmDialog.vue';
+import Layout from '../components/Layout.vue';
+import Modal from '../components/Modal.vue';
 import { useStocksStore } from '../stores/stocks';
 import { formatMoney } from '../utils/commande-kit';
+import { FOURNITURE_STATES, fournitureGroupKey, fournitureTypeLabel, validMoveQuantity, workflowColumns } from '../utils/fournitures';
 
 const stocksStore = useStocksStore();
-
-const activeTab = ref('stocks');
-
-// Mois courant au format YYYY-MM
+const activeTab = ref('fournitures');
+const moveDialog = ref(null);
+const archiveGroup = ref(null);
+const draggedGroup = ref(null);
+const dragOverState = ref('');
+const mutationError = ref('');
 const now = new Date();
-const selectedMois = ref(
-  `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
-);
+const selectedMois = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`);
 
-const handleLoadBilan = async () => {
-  await stocksStore.fetchBilan(selectedMois.value);
+const columns = computed(() => workflowColumns(stocksStore.workflow?.groupes));
+const destinationStates = computed(() => FOURNITURE_STATES.filter(state => state !== moveDialog.value?.group.etat));
+const monthPickerOpen = ref(false);
+const pickerYear = ref(now.getFullYear());
+const pickerMonths = [
+  { value: '01', label: 'Jan.' }, { value: '02', label: 'Fév.' }, { value: '03', label: 'Mars' },
+  { value: '04', label: 'Avr.' }, { value: '05', label: 'Mai' }, { value: '06', label: 'Juin' },
+  { value: '07', label: 'Juil.' }, { value: '08', label: 'Août' }, { value: '09', label: 'Sept.' },
+  { value: '10', label: 'Oct.' }, { value: '11', label: 'Nov.' }, { value: '12', label: 'Déc.' },
+];
+const moveQuantityError = computed(() => moveDialog.value ? !validMoveQuantity(moveDialog.value.quantite, moveDialog.value.group.quantite) : false);
+const archiveMessage = computed(() => archiveGroup.value ? `Les ${archiveGroup.value.quantite} unité(s) de « ${archiveGroup.value.nom} » seront retirées durablement du tableau.` : '');
+
+const refreshWorkflow = () => stocksStore.fetchWorkflow();
+const showFeedback = (message) => window.dispatchEvent(new CustomEvent('toast', {
+  detail: { message, type: 'success', duration: 5000 },
+}));
+const openMove = (group, target = '') => {
+  const destinations = FOURNITURE_STATES.filter(state => state !== group.etat);
+  mutationError.value = '';
+  moveDialog.value = { group, target: target || destinations[0], targetLocked: Boolean(target), quantite: group.quantite };
 };
-
+const closeMove = () => { if (!stocksStore.mutatingWorkflow) { moveDialog.value = null; mutationError.value = ''; } };
+const submitMove = async () => {
+  if (!moveDialog.value || moveQuantityError.value) return;
+  const { group, target, quantite } = moveDialog.value;
+  try {
+    await stocksStore.moveWorkflowGroup({ type: group.type, nom: group.nom, etat_source: group.etat, etat_cible: target, quantite });
+    showFeedback(`${quantite} unité(s) déplacée(s) vers « ${target} ».`);
+    moveDialog.value = null;
+  } catch { mutationError.value = stocksStore.workflowError; }
+};
+const submitArchive = async () => {
+  if (!archiveGroup.value) return;
+  const group = archiveGroup.value;
+  try {
+    await stocksStore.archiveWorkflowGroup({ type: group.type, nom: group.nom, quantite: group.quantite });
+    showFeedback(`${group.quantite} unité(s) terminée(s) et retirée(s) du tableau.`);
+    archiveGroup.value = null;
+  } catch { archiveGroup.value = null; }
+};
+const startDrag = (event, group) => { draggedGroup.value = group; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('text/plain', fournitureGroupKey(group)); };
+const endDrag = () => { draggedGroup.value = null; dragOverState.value = ''; };
+const clearDragOver = state => { if (dragOverState.value === state) dragOverState.value = ''; };
+const dropOn = state => { const group = draggedGroup.value; endDrag(); if (group && group.etat !== state) openMove(group, state); };
+const moveTabFocus = (event, direction) => {
+  const tabs = [...event.currentTarget.parentElement.querySelectorAll('[role="tab"]')];
+  const current = tabs.indexOf(event.currentTarget);
+  tabs[(current + direction + tabs.length) % tabs.length]?.click();
+  tabs[(current + direction + tabs.length) % tabs.length]?.focus();
+};
+const handleLoadBilan = () => stocksStore.fetchBilan(selectedMois.value);
+const selectMonth = (month) => {
+  selectedMois.value = pickerYear.value + '-' + month;
+  monthPickerOpen.value = false;
+};
+const formatMonth = (mois) => {
+  const match = /^(\d{4})-(\d{2})$/.exec(mois || '');
+  return match ? match[2] + '-' + match[1] : '';
+};
 const formatCurrency = (value) => {
   return value < 0 ? `-${formatMoney(-value)}` : formatMoney(value);
 };
 
-onMounted(async () => {
-  await stocksStore.fetchStocks();
-});
+onMounted(refreshWorkflow);
 </script>
 
 <style scoped>
 .stocks-layout :deep(.main-content) { min-width: 0; }
-
 .stocks-view { max-width: var(--content-max-width); }
-
-/* === Page Title === */
-.page-title {
-  font-family: var(--font-heading);
-}
-
-/* === Tabs === */
-.tabs {
-  display: flex;
-  gap: var(--spacing-2);
-  margin-bottom: var(--spacing-6);
-  border-bottom: 2px solid var(--border-light);
-}
-
-.tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-3) var(--spacing-5);
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  font-family: var(--font-family);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.tab-btn svg {
-  width: 16px;
-  height: 16px;
-}
-
-.tab-btn:hover {
-  color: var(--foreground);
-  background: var(--muted);
-  border-radius: var(--border-radius) var(--border-radius) 0 0;
-}
-
-.tab-btn.active {
-  color: var(--primary);
-  border-bottom-color: var(--primary);
-}
-
-/* === Tab Content === */
-
-/* === Toolbars === */
-.stocks-toolbar,
-.bilan-toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  margin-bottom: var(--spacing-6);
-}
-
-.month-picker {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.month-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-}
-
-.month-input {
-  padding: var(--spacing-2) var(--spacing-4);
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius);
-  font-family: var(--font-family);
-  font-size: var(--font-size-sm);
-  color: var(--foreground);
-  background: var(--card);
-  outline: none;
-  transition: border-color var(--transition-fast);
-}
-
-.month-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(93, 112, 82, 0.1);
-}
-
-/* === Sections === */
-.stocks-sections {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8);
-}
-
-.stock-explanation {
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin: 0 0 var(--spacing-6);
-}
-
-.stock-provenance,
-.stock-reference {
-  color: var(--text-secondary);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-normal);
-  margin-top: var(--spacing-2);
-}
-
-.stock-reference { display: block; }
-.stock-provenance summary { cursor: pointer; }
-.stock-provenance summary:focus-visible,
-.tab-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.stock-provenance ul { padding-left: var(--spacing-5); line-height: 1.6; }
-
-.stock-section,
-.bilan-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-4);
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  font-family: var(--font-heading);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-  margin: 0;
-}
-
-.section-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.section-dot-blue   { background: var(--info); }
-.section-dot-purple { background: #8b5cf6; }
-.section-dot-amber  { background: var(--secondary); }
-.section-dot-green  { background: var(--success); }
-
-/* === Tables === */
-.stock-table-wrapper {
-  min-width: 0;
-  max-width: 100%;
-  background: var(--card);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
-  overflow-x: auto;
-}
-
-.stock-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: var(--font-size-sm);
-}
-
-.stock-table thead tr {
-  background: var(--muted);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.stock-table th {
-  padding: var(--spacing-3) var(--spacing-5);
-  text-align: left;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.stock-table th.col-number {
-  text-align: right;
-}
-
-.stock-table tbody tr {
-  border-bottom: 1px solid var(--border-light);
-  transition: background var(--transition-fast);
-}
-
-.stock-table tbody tr:last-child {
-  border-bottom: none;
-}
-
-.stock-table tbody tr:hover {
-  background: var(--muted);
-}
-
-.stock-table td {
-  padding: var(--spacing-4) var(--spacing-5);
-  color: var(--foreground);
-  overflow-wrap: anywhere;
-}
-
-.cell-name {
-  font-weight: var(--font-weight-medium);
-}
-
-.cell-secondary {
-  color: var(--text-secondary);
-}
-
-.cell-number {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.badge-count {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  padding: var(--spacing-1) var(--spacing-2);
-  background: var(--primary-light);
-  color: var(--primary);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-}
-
-/* === Bilan CA === */
-.bilan-content {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-8);
-}
-
-.bilan-ca-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding: var(--spacing-6) var(--spacing-8);
-  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
-  border-radius: var(--border-radius-2xl);
-  box-shadow: 0 4px 20px rgba(93, 112, 82, 0.25);
-}
-
-.bilan-ca-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.bilan-ca-value {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-4xl);
-  font-weight: 800;
-  color: white;
-  line-height: 1;
-}
-
-/* === Promo List === */
-.promo-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.promo-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-3) var(--spacing-5);
-  background: var(--card);
-  border-radius: var(--border-radius-xl);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-card);
-  transition: all var(--transition-fast);
-}
-
-.promo-item:hover {
-  border-color: var(--border);
-  transform: translateX(2px);
-}
-
-.promo-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  min-width: 0;
-}
-
-.promo-texte {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.promo-price {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  flex-shrink: 0;
-}
-
-.promo-count {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary);
-  flex-shrink: 0;
-}
-
-/* === Empty states === */
-.empty-section {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-5) var(--spacing-6);
-  background: var(--muted);
-  border-radius: var(--border-radius-xl);
-  color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
-  font-style: italic;
-}
-
-.empty-section svg {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: var(--success);
-}
-
-/* === Responsive === */
+.page-title { font-family: var(--font-heading); }
+.tabs { display: flex; gap: var(--spacing-2); margin-bottom: var(--spacing-6); border-bottom: 2px solid var(--border-light); }
+.tab-btn { min-height: 44px; padding: var(--spacing-3) var(--spacing-5); margin-bottom: -2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
+.tab-btn:hover { background: var(--muted); color: var(--foreground); }
+.tab-btn.active { border-bottom-color: var(--primary); color: var(--primary); }
+.tab-btn:focus-visible, .fourniture-card:focus-visible, .fourniture-card button:focus-visible, .move-form :is(select, input):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+.workflow-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-4); margin-bottom: var(--spacing-5); }
+.workflow-toolbar p { max-width: 70ch; color: var(--text-secondary); line-height: var(--line-height-relaxed); }
+.workflow-alerts { display: grid; gap: var(--spacing-4); margin-bottom: var(--spacing-5); padding: var(--spacing-4); border: 1px solid var(--warning); border-radius: var(--border-radius-xl); background: var(--warning-light); }
+.workflow-alerts-heading { display: flex; align-items: flex-start; gap: var(--spacing-3); }
+.workflow-alerts-heading svg { width: 22px; flex: 0 0 22px; color: var(--warning-dark); }
+.workflow-alerts h2 { margin: 0; font-size: var(--font-size-lg); }
+.workflow-alerts p { color: var(--text-secondary); }
+.workflow-alerts ul { display: grid; gap: var(--spacing-2); padding-left: var(--spacing-6); }
+.workflow-alerts li span { display: block; color: var(--text-secondary); }
+.workflow-error { margin-bottom: var(--spacing-4); }
+.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: var(--spacing-3); }
+.kanban-column { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--border-radius-xl); background: var(--bg-secondary); transition: border-color var(--transition-fast), background-color var(--transition-fast); }
+.kanban-column-drop { border-color: var(--primary); background: var(--primary-light); }
+.kanban-column-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 58px; padding: var(--spacing-3); border-bottom: 1px solid var(--border); background: var(--card); }
+.kanban-column-header h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--font-size-sm); line-height: var(--line-height-tight); }
+.column-step, .column-count { display: inline-grid; min-width: 26px; height: 26px; place-items: center; border-radius: var(--border-radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
+.column-step { background: var(--primary); color: var(--primary-foreground); }
+.column-count { background: var(--muted); color: var(--text-secondary); }
+.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 180px; padding: var(--spacing-3); }
+.fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 1px solid var(--border-light); border-radius: var(--border-radius); background: var(--card); box-shadow: var(--shadow-sm); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.fourniture-card:hover { border-color: var(--border); box-shadow: var(--shadow-card-hover); }
+.fourniture-card:active { cursor: grabbing; }
+.fourniture-card-dragging { opacity: .45; }
+.fourniture-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-2); }
+.fourniture-type { color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); line-height: var(--line-height-normal); }
+.fourniture-quantity { flex: 0 0 auto; padding: 3px 8px; border-radius: var(--border-radius-full); background: var(--primary-light); color: var(--primary); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
+.fourniture-card h3 { overflow-wrap: anywhere; font-size: var(--font-size-md); line-height: var(--line-height-normal); }
+.fourniture-actions { display: grid; gap: var(--spacing-2); }
+.fourniture-actions button { min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); cursor: pointer; }
+.fourniture-actions button:hover { border-color: var(--primary); color: var(--primary); }
+.fourniture-actions button:disabled { cursor: not-allowed; opacity: .55; }
+.fourniture-actions .finish-button { border-color: var(--destructive); color: var(--destructive); }
+.column-empty { display: grid; min-height: 130px; place-items: center; align-content: center; gap: var(--spacing-2); color: var(--text-tertiary); text-align: center; font-size: var(--font-size-sm); }
+.column-empty svg { width: 26px; }
+.move-form { display: grid; gap: var(--spacing-3); }
+.move-form label { font-weight: var(--font-weight-semibold); }
+.move-form :is(select, input) { width: 100%; min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); font: inherit; }
+.move-form input[aria-invalid="true"] { border-color: var(--error); }
+.form-help { color: var(--text-secondary); font-size: var(--font-size-sm); }
+.form-error { color: var(--error-dark); font-weight: var(--font-weight-medium); }
+.bilan-toolbar { display: flex; align-items: end; gap: var(--spacing-4); margin-bottom: var(--spacing-6); }
+.month-picker { position: relative; display: grid; gap: var(--spacing-2); }
+.month-label { color: var(--text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+.month-input { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-5); min-width: 146px; min-height: 44px; padding: var(--spacing-2) var(--spacing-4); border: 1px solid var(--border); border-radius: var(--border-radius); background: var(--card); color: var(--foreground); font: inherit; cursor: pointer; }
+.month-input:hover, .month-input:focus-visible { border-color: var(--primary); }.month-input:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }.month-input svg { width: 18px; }
+.month-picker-panel { position: absolute; z-index: var(--z-dropdown); top: calc(100% + var(--spacing-2)); left: 0; width: 286px; padding: var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-xl); background: var(--card); box-shadow: var(--shadow-float); }
+.month-picker-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-3); }.month-picker-year button { width: 36px; height: 36px; border: 0; border-radius: var(--border-radius-sm); background: var(--muted); color: var(--foreground); font-size: var(--font-size-xl); cursor: pointer; }.month-picker-year button:hover { background: var(--primary-light); color: var(--primary); }
+.month-picker-months { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-2); }.month-picker-months button { min-height: 40px; border: 1px solid var(--border-light); border-radius: var(--border-radius-sm); background: var(--card); color: var(--foreground); font: inherit; cursor: pointer; }.month-picker-months button:hover, .month-picker-months button.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: var(--font-weight-semibold); }
+.bilan-content, .bilan-section { display: grid; gap: var(--spacing-4); }
+.bilan-content { gap: var(--spacing-8); }
+.bilan-ca-card { display: grid; gap: var(--spacing-2); padding: var(--spacing-6) var(--spacing-8); border-radius: var(--border-radius-2xl); background: linear-gradient(135deg, var(--primary), var(--success-dark)); color: var(--text-inverse); }
+.bilan-ca-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: var(--letter-spacing-wider); }
+.bilan-ca-value { font-family: var(--font-heading); font-size: var(--font-size-4xl); font-weight: 800; }
+.section-title { display: flex; align-items: center; gap: var(--spacing-3); font-size: var(--font-size-lg); }
+.section-dot { width: 10px; height: 10px; border-radius: 50%; }
+.section-dot-blue { background: var(--info); }.section-dot-amber { background: var(--secondary); }.section-dot-green { background: var(--success); }
+.stock-table-wrapper { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--border-radius-xl); background: var(--card); }
+.stock-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+.stock-table th, .stock-table td { padding: var(--spacing-3) var(--spacing-5); border-bottom: 1px solid var(--border-light); text-align: left; }
+.stock-table th { background: var(--muted); color: var(--text-tertiary); font-size: var(--font-size-xs); text-transform: uppercase; }
+.stock-table .col-number, .stock-table .cell-number { text-align: right; font-variant-numeric: tabular-nums; }
+.badge-count { display: inline-flex; padding: var(--spacing-1) var(--spacing-2); border-radius: var(--border-radius-full); background: var(--primary-light); color: var(--primary); font-weight: var(--font-weight-bold); }
+.empty-section { padding: var(--spacing-5); border-radius: var(--border-radius-xl); background: var(--muted); color: var(--text-tertiary); }
+.promo-list { display: grid; gap: var(--spacing-2); }
+.promo-item { display: flex; justify-content: space-between; gap: var(--spacing-4); padding: var(--spacing-3) var(--spacing-5); border: 1px solid var(--border-light); border-radius: var(--border-radius-xl); background: var(--card); }
+.promo-info { display: flex; min-width: 0; gap: var(--spacing-4); }.promo-texte { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); }.promo-price { color: var(--text-secondary); }.promo-count { color: var(--primary); font-weight: var(--font-weight-bold); }
+@media (max-width: 1100px) { .kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
-  .stocks-sections .stock-table thead { display: none; }
-  .stocks-sections .stock-table tbody tr { display: block; padding: var(--spacing-4); }
-  .stocks-sections .stock-table td {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--spacing-3);
-    padding: var(--spacing-2) 0;
-    text-align: right;
-  }
-  .stocks-sections .stock-table td:first-child { display: block; text-align: left; }
-  .stocks-sections .stock-table td[data-label]::before {
-    content: attr(data-label);
-    color: var(--text-secondary);
-    font-weight: var(--font-weight-normal);
-    text-align: left;
-  }
-
-  .bilan-ca-value {
-    font-size: var(--font-size-3xl);
-  }
-
-  .stocks-toolbar,
-  .bilan-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .month-picker {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .month-input {
-    flex: 1;
-  }
+  .workflow-toolbar, .bilan-toolbar { align-items: stretch; flex-direction: column; }
+  .kanban { grid-template-columns: 1fr; }
+  .kanban-column-content { min-height: 120px; }
+  .tabs { overflow-x: auto; }
+  .tab-btn { flex: 1 0 auto; }
+  .bilan-ca-card { padding: var(--spacing-5); }
+  .bilan-ca-value { font-size: var(--font-size-3xl); }
 }
+@media (prefers-reduced-motion: reduce) { .kanban-column, .fourniture-card { transition: none; } }
 </style>

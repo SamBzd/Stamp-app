@@ -1,10 +1,10 @@
 <template>
   <router-view />
+  <Toast />
 </template>
 
 <script setup>
-// Le composant App sert uniquement de conteneur pour le router
-// Le Layout est géré dans chaque vue individuellement
+import Toast from './components/Toast.vue';
 </script>
 
 <style>

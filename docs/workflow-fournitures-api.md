@@ -55,6 +55,20 @@ Les corps ou enums invalides produisent `400`; une quantité indisponible produi
 `409`; une erreur SQL inattendue reste masquée derrière le `500` API commun.
 Toute mutation est atomique.
 
+## Interface Kanban — issue #31
+
+La route `/stocks` présente le workflow sous forme de cinq colonnes toujours
+ordonnées : À traiter, Commandé, Disponible, Expédié et Traité. Une carte ne
+montre que le type, le nom et la quantité agrégée de la fourniture. Le
+glisser-déposer ouvre un sélecteur de quantité. Pour les cartes hors « Traité »,
+un clic ou les touches Entrée/Espace ouvrent aussi le choix de destination et
+de quantité ; aucune mutation optimiste ne masque un refus du serveur.
+
+Sur petit écran, les colonnes passent à la verticale dans le même ordre. Les
+alertes anonymes du workflow sont affichées au-dessus du tableau. Dans Traité,
+« Terminer » archive toute la pile après confirmation. Le bilan mensuel reste
+disponible dans un second onglet de la même route.
+
 ## Synchronisation avec les commandes
 
 La synchronisation est interne aux transactions `POST`, `PUT` et `DELETE` des

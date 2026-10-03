@@ -15,15 +15,21 @@ const render = new Function('Vue', compile(descriptor.template.content, { mode: 
 const formatCurrency = new Function('formatMoney',
   `return (${source.match(/const formatCurrency = ([\s\S]*?\n\});/)[1]});`)(formatMoney);
 
+const formatMonth = (mois) => mois.slice(5) + '-' + mois.slice(0, 4);
+
 async function renderBilan(bilan) {
   const app = Vue.createSSRApp({
     render,
     setup: () => ({ activeTab: 'bilan', selectedMois: bilan.mois,
       stocksStore: { bilan, loadingBilan: false, bilanError: null },
-      formatCurrency, handleLoadBilan() {} })
+      formatCurrency, formatMonth, monthPickerOpen: false, pickerYear: 2023, pickerMonths: [],
+      selectMonth() {}, handleLoadBilan() {}, moveDialog: null, archiveGroup: null,
+      archiveMessage: '', closeMove() {}, submitArchive() {} })
   });
   app.component('Layout', { template: '<main><slot /></main>' });
   app.component('Button', { template: '<button><slot /></button>' });
+  app.component('Modal', { template: '<div></div>' });
+  app.component('ConfirmDialog', { template: '<div></div>' });
   return renderToString(app);
 }
 
@@ -36,8 +42,10 @@ test('le bilan affiche centimes, paiements et détails historiques sans retotali
     assert.ok(html.includes(text), text);
   }
   assert.ok(!html.includes('Aucune donnée de paiement'));
+  assert.ok(html.includes('06-2023'));
   assert.equal(formatCurrency(Number.MAX_SAFE_INTEGER), formatMoney(Number.MAX_SAFE_INTEGER));
   assert.equal(formatCurrency(-29), `-${formatMoney(29)}`);
+  assert.equal(formatMonth('2023-06'), '06-2023');
 });
 
 test('un mois vide affiche zéro et les trois états vides', async () => {
