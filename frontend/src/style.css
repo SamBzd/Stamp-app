@@ -12,7 +12,7 @@
 .catalogue-workspace input[aria-invalid="true"] { border-color: var(--error); }
 .catalogue-workspace input:disabled, .catalogue-workspace select:disabled { background: var(--muted); color: var(--text-secondary); }
 .catalogue-workspace fieldset { border: 0; display: grid; gap: var(--spacing-4); min-width: 0; }
-.catalogue-workspace button:not(.btn) { min-height: 44px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--border-radius-sm); color: var(--text-primary); font: inherit; cursor: pointer; }
+.catalogue-workspace button:not(.btn):where(:not(.slide-panel-close)) { min-height: 44px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--border-radius-sm); color: var(--text-primary); font: inherit; cursor: pointer; }
 .catalogue-workspace button:disabled { cursor: not-allowed; opacity: .6; }
 .catalogue-workspace :is(input, select, button, a, summary):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .catalogue-workspace .btn:hover, .catalogue-workspace .btn:active { transform: none; }
@@ -67,6 +67,8 @@
   --primary-foreground: #FFF8FC;
   --primary-light: #FFF8DE;
   --primary-medium: #EAE3E8;
+  --surface-hover: #F0E7ED;
+  --surface-selected: #E6D6E1;
   --secondary: #6C4B60;
   --secondary-foreground: #FFFFFF;
   --secondary-light: rgba(108, 75, 96, 0.12);
@@ -1057,3 +1059,6 @@ a:hover {
   .atelier-glass::before { background: var(--card); backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
 @media (max-width: 760px) { :root { --atelier-gutter: 16px; } }
+
+/* Survol commun aux tableaux, distinct du fond citron de l’application. */
+table tbody tr:hover { background: var(--surface-hover); }

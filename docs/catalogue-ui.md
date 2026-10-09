@@ -36,7 +36,7 @@ avec le backend de l’issue #7.
 ## Tarifs
 
 L’onglet Paramètres (`/catalogues?onglet=parametres`), également accessible depuis
-la barre supérieure, gère les tarifs par défaut. Modifier ces paramètres
+l’en-tête de la zone Catalogues, gère les tarifs par défaut. Modifier ces paramètres
 n’altère aucun catalogue existant. Les tarifs locaux s’éditent dans chaque
 catalogue et ne modifient pas les commandes historiques.
 
@@ -83,3 +83,50 @@ Recette navigateur à effectuer sur une base temporaire :
 7. Depuis `/papiers`, renommer puis archiver un papier de brouillon, vérifier
    sa conservation dans la collection et son exclusion des nouveaux choix ;
    restaurer le papier. Vérifier que l’archivage est refusé pour un catalogue publié.
+
+## Présentation atelier — lot 3B.1
+
+Composition validée visuellement par Sam le 9 octobre 2026 :
+[recette et captures](ui/recette-jalon3b1/README.md). Sam a préféré la proposition
+« Fiches horizontales » au tableau, demandé des fiches allégées et un détail de
+l’élément sélectionné, puis précisé que le panneau doit être **à droite**,
+harmonisé avec Clientes/Commandes.
+
+La liste reste à gauche sur desktop : nom, statut et formats disponibles, sans
+prix ni composition exhaustive. Chaque fiche entière est un bouton clavier.
+La sélection utilise un prune plus soutenu et un trait prune à gauche ; le
+survol prune pâle est commun aux tableaux de l’application et aux fiches.
+Les noms longs reviennent à la ligne.
+
+Le panneau de consultation à droite conserve toutes les informations : formats,
+tarifs A/B/C (zéro distingué de À définir), papier spécial et embellissement,
+collections et leurs papiers (sources archivées identifiées), rubans. Un lien
+Ouvrir la préparation rejoint `/catalogues/:id` ; pour un catalogue archivé,
+le libellé devient Consulter ou restaurer. Aucune publication/restauration
+n’est déclenchée par la consultation. Le détail est relu par l’API existante ;
+chargement et erreur avec reprise restent locaux au panneau, les réponses
+anciennes sont ignorées. En dessous de 901 px, le même contenu est modal,
+avec scroll interne, fermeture Échap et retour du focus sur la fiche.
+Le panneau desktop permet de continuer à parcourir la liste sans bloquer le
+scroll ou piéger le focus. Un filtrage retirant la sélection ferme le panneau
+et conserve le focus dans le filtre ; passer à Paramètres ferme le détail.
+
+Les liens Catalogues/Paramètres soulignés sont dans l’en-tête de la liste. Le
+bouton Filtres déplie la recherche par titre et le choix actifs/archivés inline,
+fermés au chargement. Les critères conservés restent signalés par un compteur
+et un libellé accessible lorsqu’ils sont cachés. Effacer les filtres rétablit
+la liste active et replace le focus sur la recherche ou son bouton d’ouverture.
+La recherche conserve sa correspondance actuelle par sous-chaîne, sans
+ignorer les accents. Chargement, refus avec reprise, liste vide et recherche
+sans résultat sont distincts.
+
+Paramètres présente trois champs tarifaires et un enregistrement explicite.
+Le formulaire reste monté entre ces deux onglets : une saisie non enregistrée,
+un refus et un enregistrement en cours survivent au changement d’onglet. Une
+navigation vers une autre page ou un rechargement quitte ce formulaire et peut
+perdre une saisie non enregistrée, comme précédemment. Cette conservation entre
+onglets ne remplace pas les protections de départ propres à l’éditeur.
+
+La création et l’éditeur de catalogue n’ont pas reçu la refonte atelier dans
+cette étape. Ils constituent 3B.2, après validation de la liste et des Paramètres.
+La recette réelle Mac/Safari et le zoom 200 % restent ouverts.
