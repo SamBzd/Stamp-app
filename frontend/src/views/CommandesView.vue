@@ -1,12 +1,7 @@
 <template>
-  <Layout>
+  <Layout title="Commandes" subtitle="Des kits choisis aux commandes réglées, tout l’atelier en un regard.">
     <div class="commandes-view">
-      <!-- Page Header -->
-      <header class="page-header">
-        <div>
-          <h1 class="page-title">Commandes</h1>
-          <p class="page-subtitle">Gérez vos commandes kits et hors kit</p>
-        </div>
+      <div class="commandes-toolbar">
         <div class="header-actions">
           <Button variant="secondary" @click="openKitForm">
             <template #icon>
@@ -27,22 +22,53 @@
             Nouvelle hors kit
           </Button>
         </div>
-      </header>
+      </div>
 
       <p v-if="operationError" class="form-error-global" role="alert">{{ operationError }}</p>
 
+      <div class="commandes-workspace">
+      <section class="commandes-list-panel" aria-labelledby="commandes-list-title">
+        <header id="commandes-list-header" ref="listHeading" class="commandes-list-heading" tabindex="-1">
+          <h2 id="commandes-list-title" class="sr-only">{{ activeType === 'kit' ? 'Commandes kits' : 'Commandes hors kit' }}</h2>
+          <nav class="commandes-pages" aria-label="Types de commandes">
+            <router-link :to="pageLink('kit')" :aria-current="activeType === 'kit' ? 'page' : undefined">Kits <span>{{ kitCount }}</span></router-link>
+            <router-link :to="pageLink('hors_kit')" :aria-current="activeType === 'hors_kit' ? 'page' : undefined">Hors kit <span>{{ horsKitCount }}</span></router-link>
+          </nav>
+          <div class="commandes-list-tools">
+            <p role="status">{{ visibleCommandes.length }} / {{ pageCount }}<span class="sr-only"> commandes affichées</span></p>
+            <button id="commandes-filter-toggle" type="button" class="commandes-filter-toggle" :aria-expanded="filtersExpanded" aria-controls="commandes-filter-fields" :aria-label="filterSummary ? `Recherche et filtres, ${filterSummary}` : 'Recherche et filtres'" @click="toggleFilters">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              Filtres <span v-if="activeFilterCount" class="filter-count">{{ activeFilterCount }}</span>
+              <svg class="filter-chevron" :class="{ expanded: filtersExpanded }" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg>
+            </button>
+          </div>
+        </header>
+        <div v-show="filtersExpanded" id="commandes-filter-fields" class="commandes-filters" role="region" aria-label="Recherche et filtres">
+          <div class="commande-filter">
+            <label for="commande-client-search">Cliente</label>
+            <input id="commande-client-search" type="search" :value="search" @input="setSearch($event.target.value)" placeholder="Prénom ou nom…" autocomplete="off" />
+          </div>
+          <div v-if="activeType === 'kit'" class="commande-filter">
+            <label for="commande-catalogue-filter">Catalogue</label>
+            <select id="commande-catalogue-filter" :value="catalogueId" @change="setCatalogue($event.target.value)">
+              <option value="">Tous les catalogues</option>
+              <option v-for="catalogue in catalogueOptions" :key="catalogue.value" :value="catalogue.value">{{ catalogue.label }}</option>
+            </select>
+          </div>
+          <button v-if="hasFilters" type="button" class="commande-filter-reset" @click="resetFilters">Effacer les filtres</button>
+        </div>
       <!-- States -->
-      <div v-if="commandesStore.loading" class="loading-state">
+      <div v-if="commandesStore.loading" class="loading-state" role="status">
         <div class="loading-spinner"></div>
         <span class="loading-state-text">Chargement des commandes...</span>
       </div>
 
-      <div v-else-if="commandesStore.error" class="error-state">
+      <div v-else-if="commandesStore.error" class="error-state" role="alert">
         <p>{{ commandesStore.error }}</p>
         <Button variant="secondary" @click="commandesStore.fetchCommandes()">Réessayer</Button>
       </div>
 
-      <div v-else-if="commandesStore.commandes.length === 0" class="empty-state">
+      <div v-else-if="pageCount === 0" class="empty-state">
         <div class="empty-state-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <circle cx="9" cy="21" r="1"/>
@@ -50,7 +76,7 @@
             <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
           </svg>
         </div>
-        <h3 class="empty-state-title">Aucune commande</h3>
+        <h3 class="empty-state-title">{{ activeType === 'kit' ? 'Aucune commande kit' : 'Aucune commande hors kit' }}</h3>
         <p class="empty-state-description">Commencez par créer votre première commande</p>
         <div class="empty-state-actions">
           <Button variant="secondary" @click="openKitForm">Nouveau kit</Button>
@@ -58,66 +84,47 @@
         </div>
       </div>
 
-      <!-- Commandes List -->
-      <div v-else class="commandes-list">
-        <div
-          v-for="commande in commandesStore.commandes"
-          :key="commande.id"
-          class="commande-card"
-          @click="viewCommande(commande)"
-          @keydown.enter="viewCommande(commande)"
-          @keydown.space.prevent="viewCommande(commande)"
-          role="button"
-          tabindex="0"
-        >
-          <!-- Badge type -->
-          <span :class="['type-badge', commande.type === 'kit' ? 'type-badge-kit' : 'type-badge-hors-kit']">
-            {{ commande.type === 'kit' ? 'Kit' : 'Hors kit' }}
-          </span>
-
-          <!-- Client -->
-          <div class="commande-client">
-            <div class="client-avatar-sm">
-              {{ getClientInitials(commande) }}
-            </div>
-            <span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span>
-          </div>
-
-          <!-- Infos principales -->
-          <div class="commande-infos">
-            <span v-if="commande.type === 'kit'" :class="['format-badge', `format-badge-${commande.format_type?.toLowerCase()}`]">
-              Format {{ commande.format_type }}
-            </span>
-            <span class="commande-montant">
-              {{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}
-            </span>
-          </div>
-
-          <!-- Statut + Date -->
-          <div class="commande-meta">
-            <span :class="['status-badge', commande.reglee ? 'status-badge-regle' : 'status-badge-attente']">
-              {{ commande.reglee ? 'Réglée' : 'En attente' }}
-            </span>
-            <span class="commande-date">{{ formatDate(commande.created_at) }}</span>
-          </div>
-
-          <div class="arrow-indicator">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </div>
-        </div>
+      <div v-else-if="visibleCommandes.length === 0" class="empty-state">
+        <h3 class="empty-state-title">Aucune commande ne correspond</h3>
+        <p class="empty-state-description">Essaie un autre nom ou efface les filtres pour retrouver les commandes.</p>
+        <Button variant="secondary" @click="resetFilters">Effacer les filtres</Button>
       </div>
+
+      <div v-else class="commandes-table-wrapper">
+        <table class="commandes-table">
+          <caption class="sr-only">Commandes kits et hors-kit : cliente, type, montant et règlement</caption>
+          <thead><tr><th scope="col">Cliente</th><th scope="col">Type</th><th scope="col" class="col-money">Montant</th><th scope="col">Règlement</th></tr></thead>
+          <tbody>
+            <tr v-for="commande in visibleCommandes" :key="commande.id" :class="{ 'commande-selected': isViewPanelOpen && detailCommandeId === commande.id }" @click="viewCommande(commande)">
+              <th scope="row">
+                <button type="button" class="commande-open" :id="`commande-open-${commande.id}`" :aria-label="`Voir la commande #${commande.id} de ${commande.client?.prenom || commande.client_prenom || ''} ${commande.client?.nom || commande.client_nom || ''}`" :aria-pressed="isViewPanelOpen && detailCommandeId === commande.id" @click.stop="viewCommande(commande)">
+                  <span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span>
+                  <span class="commande-reference">#{{ commande.id }} · {{ formatDate(commande.created_at) }}</span>
+                </button>
+              </th>
+              <td><span class="commande-type">{{ commande.type === 'kit' ? `Kit ${commande.format_type || ''}` : 'Hors kit' }}</span></td>
+              <td class="col-money">{{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}</td>
+              <td><span :class="['status-badge', commande.reglee ? 'status-badge-regle' : 'status-badge-attente']">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      </section>
+      <aside v-if="!isViewPanelOpen" class="commande-placeholder" aria-label="Détail de la commande">
+        <h2>Le détail de ta commande</h2><p>Sélectionne une ligne pour consulter sa composition, son prix et son règlement.</p>
+      </aside>
 
       <!-- SlidePanel détail commande -->
       <SlidePanel
         :is-open="isViewPanelOpen"
+        :inline="desktopDetails"
+        :return-focus-id="visibleCommandes.some(commande => commande.id === detailCommandeId) ? `commande-open-${detailCommandeId}` : 'commandes-list-header'"
         :title="selectedCommande ? `Commande #${selectedCommande.id}` : 'Détail de la commande'"
         @close="closeViewPanel"
         max-width="540px"
       >
         <div v-if="detailError" class="form-error-global" role="alert"><p>{{ detailError }}</p><Button v-if="detailCommandeId" variant="secondary" @click="viewCommande({ id: detailCommandeId })">Recharger le détail</Button></div>
-        <div v-else-if="loadingDetail" class="loading-state">
+        <div v-else-if="loadingDetail" class="loading-state" role="status">
           <div class="loading-spinner"></div>
           <span class="loading-state-text">Chargement du détail…</span>
         </div>
@@ -136,7 +143,7 @@
           </div>
 
           <!-- Client -->
-          <div class="detail-client">
+          <div class="detail-client atelier-glass">
             <div class="client-avatar-md">
               {{ getClientInitials(selectedCommande) }}
             </div>
@@ -145,13 +152,16 @@
                 {{ selectedCommande.client?.prenom || selectedCommande.client_prenom }}
                 {{ selectedCommande.client?.nom || selectedCommande.client_nom }}
               </span>
-              <span class="detail-client-label">Cliente</span>
+              <span class="detail-client-label">
+                {{ selectedCommande.type === 'kit' ? formatMoney(selectedCommande.prix_applique_cents) : formatEuro(selectedCommande.montant) }}
+                · {{ selectedCommande.type === 'kit' ? (selectedCommande.prix_origine === 'manuelle' ? 'Correction manuelle' : 'Prix automatique') : 'Hors kit' }}
+              </span>
             </div>
           </div>
 
           <!-- Infos kit -->
           <div v-if="selectedCommande.type === 'kit'" class="detail-section">
-            <h4 class="detail-section-title">Détails du kit</h4>
+            <h3 class="detail-section-title">Détails du kit</h3>
             <div class="detail-rows">
               <div class="detail-row">
                 <span class="detail-label">Format</span>
@@ -240,7 +250,7 @@
 
           <!-- Infos hors kit -->
           <div v-else class="detail-section">
-            <h4 class="detail-section-title">Détails hors kit</h4>
+            <h3 class="detail-section-title">Détails hors kit</h3>
             <div class="detail-rows">
               <div class="detail-row">
                 <span class="detail-label">Montant</span>
@@ -292,6 +302,7 @@
           </Button>
         </template>
       </SlidePanel>
+      </div>
 
       <!-- Modal Kit -->
       <CommandeKitForm
@@ -325,7 +336,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
 import SlidePanel from '../components/SlidePanel.vue';
@@ -337,6 +348,13 @@ import { useCommandesStore } from '../stores/commandes';
 import { useStocksStore } from '../stores/stocks';
 import { useClientsStore } from '../stores/clients';
 import { formatMoney, historicalComposition } from '../utils/commande-kit';
+import { filterCommandes, commandeCatalogueOptions } from '../utils/commandes-list';
+
+const desktopMedia = window.matchMedia('(min-width: 901px)');
+const desktopDetails = ref(desktopMedia.matches);
+const updateDesktopDetails = event => { desktopDetails.value = event.matches; };
+onMounted(() => desktopMedia.addEventListener('change', updateDesktopDetails));
+onUnmounted(() => desktopMedia.removeEventListener('change', updateDesktopDetails));
 
 const commandesStore = useCommandesStore();
 const stocksStore = useStocksStore();
@@ -357,7 +375,65 @@ const detailError = ref('');
 const loadingDetail = ref(false);
 const operationError = ref('');
 const detailCommandeId = ref(null);
+const listHeading = ref(null);
 let detailGeneration = 0;
+let initialized = false;
+
+const activeType = computed(() => route.meta.commandeType || 'kit');
+const filters = ref({ kit: { search: '', catalogueId: '' }, hors_kit: { search: '' } });
+const filtersExpanded = ref(false);
+const search = computed(() => filters.value[activeType.value].search);
+const catalogueId = computed(() => filters.value.kit.catalogueId);
+const kitCount = computed(() => commandesStore.commandes.filter(commande => commande.type === 'kit').length);
+const horsKitCount = computed(() => commandesStore.commandes.filter(commande => commande.type === 'hors_kit').length);
+const pageCount = computed(() => activeType.value === 'kit' ? kitCount.value : horsKitCount.value);
+const visibleCommandes = computed(() => filterCommandes(commandesStore.commandes, { type: activeType.value, ...filters.value[activeType.value] }));
+const catalogueOptions = computed(() => commandeCatalogueOptions(commandesStore.commandes));
+const hasFilters = computed(() => Boolean(search.value || (activeType.value === 'kit' && catalogueId.value)));
+const activeFilterCount = computed(() => Number(Boolean(search.value.trim())) + Number(activeType.value === 'kit' && Boolean(catalogueId.value)));
+const filterSummary = computed(() => [
+  search.value.trim() ? `cliente : ${search.value.trim()}` : '',
+  activeType.value === 'kit' && catalogueId.value ? `catalogue : ${catalogueOptions.value.find(option => option.value === catalogueId.value)?.label || catalogueId.value}` : '',
+].filter(Boolean).join(', '));
+const toggleFilters = async () => {
+  filtersExpanded.value = !filtersExpanded.value;
+  if (filtersExpanded.value) {
+    await nextTick();
+    document.getElementById('commande-client-search')?.focus();
+  }
+};
+watch([catalogueOptions, () => commandesStore.loading], ([options, loading]) => {
+  if (!loading && catalogueId.value && !options.some(option => option.value === catalogueId.value)) {
+    filters.value.kit.catalogueId = '';
+  }
+});
+const pageLink = type => {
+  const query = { ...route.query };
+  delete query.commande;
+  return { path: type === 'kit' ? '/commandes/kits' : '/commandes/hors-kit', query };
+};
+const resetFilters = async () => {
+  filters.value[activeType.value] = activeType.value === 'kit' ? { search: '', catalogueId: '' } : { search: '' };
+  await nextTick();
+  document.getElementById(filtersExpanded.value ? 'commande-client-search' : 'commandes-filter-toggle')?.focus();
+};
+const dismissFilteredDetail = async () => {
+  if (!isViewPanelOpen.value || visibleCommandes.value.some(commande => commande.id === detailCommandeId.value)) return;
+  const focusedFilter = document.activeElement;
+  await closeViewPanel();
+  await nextTick();
+  if (focusedFilter?.isConnected) focusedFilter.focus();
+};
+const setSearch = value => { filters.value[activeType.value].search = value; void dismissFilteredDetail(); };
+const setCatalogue = value => { filters.value.kit.catalogueId = value; void dismissFilteredDetail(); };
+const revealCommande = async commande => {
+  // Un lien historique ou une création depuis l’autre page ouvre le bon tableau.
+  if (!filterCommandes([commande], { type: commande.type, ...filters.value[commande.type] }).length) {
+    filters.value[commande.type] = commande.type === 'kit' ? { search: '', catalogueId: '' } : { search: '' };
+  }
+  const path = commande.type === activeType.value ? route.path : pageLink(commande.type).path;
+  await router.replace({ path, query: { ...route.query, commande: String(commande.id) } });
+};
 
 const kitComposition = computed(() => selectedCommande.value?.type === 'kit'
   ? historicalComposition(selectedCommande.value)
@@ -380,7 +456,7 @@ const onCommandeSaved = async (commande) => {
     selectedCommande.value = commande;
     isViewPanelOpen.value = true;
     detailError.value = '';
-    await router.replace({ query: { ...route.query, commande: String(commande.id) } });
+    await revealCommande(commande);
   }
   editingCommande.value = null;
   await refreshDependentData();
@@ -433,8 +509,8 @@ const viewCommande = async (commande) => {
     const detail = await commandesStore.fetchCommande(commande.id);
     if (generation !== detailGeneration || !isViewPanelOpen.value) return;
     selectedCommande.value = detail;
-    if (route.query.commande !== String(commande.id)) {
-      await router.replace({ query: { ...route.query, commande: String(commande.id) } });
+    if (route.query.commande !== String(commande.id) || detail.type !== activeType.value) {
+      await revealCommande(detail);
     }
   } catch (error) {
     if (generation === detailGeneration) detailError.value = error.message || 'Impossible de charger le détail complet de cette commande.';
@@ -453,7 +529,7 @@ const closeViewPanel = async () => {
   if (route.query.commande) {
     const query = { ...route.query };
     delete query.commande;
-    await router.replace({ query });
+    await router.replace({ path: route.path, query });
   }
 };
 
@@ -472,10 +548,10 @@ const marquerReglee = async () => {
   }
 };
 
-const confirmDeleteFromView = () => {
+const confirmDeleteFromView = async () => {
   if (!selectedCommande.value || selectedCommande.value.reglee || markingReglee.value) return;
   commandeToDelete.value = selectedCommande.value;
-  closeViewPanel();
+  await closeViewPanel();
   isDeleteDialogOpen.value = true;
 };
 
@@ -500,415 +576,119 @@ const deleteCommande = async () => {
     deletingCommande.value = false;
     isDeleteDialogOpen.value = false;
     commandeToDelete.value = null;
+    await nextTick();
+    listHeading.value?.focus();
   }
 };
 
-onMounted(async () => {
-  await commandesStore.fetchCommandes();
+const syncDetailFromRoute = async () => {
   const id = Number(route.query.commande);
   if (Number.isInteger(id) && id > 0) {
-    await viewCommande({ id });
+    if (detailCommandeId.value !== id || !isViewPanelOpen.value) await viewCommande({ id });
+  } else if (isViewPanelOpen.value) {
+    await closeViewPanel();
   }
+};
+watch(() => route.fullPath, () => { if (initialized) void syncDetailFromRoute(); });
+onMounted(async () => {
+  await commandesStore.fetchCommandes();
+  initialized = true;
+  await syncDetailFromRoute();
 });
 </script>
 
 <style scoped>
-.commandes-view { max-width: var(--content-max-width); }
-
-.page-title {
-  font-family: var(--font-heading);
+.commandes-view { width: 100%; min-width: 0; }
+.commandes-pages { display: flex; gap: 16px; }
+.commandes-pages a { display: inline-flex; align-items: center; gap: 6px; min-height: 56px; padding: 12px 6px; border-bottom: 2px solid transparent; color: var(--text-secondary); font-size: var(--font-size-sm); text-decoration: none; }
+.commandes-pages a:hover { color: var(--primary); border-bottom-color: var(--border); }
+.commandes-pages a[aria-current="page"] { color: var(--primary); border-bottom-color: var(--primary); font-weight: var(--font-weight-semibold); }
+.commandes-pages span { font-variant-numeric: tabular-nums; font-size: var(--font-size-xs); }
+.commandes-list-tools { display: flex; align-items: center; gap: 12px; }
+.commandes-list-tools > p { color: var(--text-secondary); font-size: var(--font-size-xs); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.commandes-filter-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-xs); cursor: pointer; }
+.commandes-filter-toggle:hover, .commandes-filter-toggle[aria-expanded="true"] { color: var(--primary); background: var(--primary-light); }
+.commandes-filter-toggle > svg { width: 17px; height: 17px; }
+.commandes-filter-toggle .filter-chevron { width: 12px; height: 12px; }
+.filter-chevron.expanded { transform: rotate(180deg); }
+.filter-count { min-width: 17px; padding: 1px 4px; border-radius: 4px; background: var(--primary); color: var(--primary-foreground); text-align: center; font-variant-numeric: tabular-nums; }
+.commandes-filters { display: flex; align-items: end; flex-wrap: wrap; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+.commande-filter { display: grid; gap: 6px; flex: 1 1 180px; min-width: 0; }
+.commande-filter label { color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
+.commande-filter input, .commande-filter select { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; background: var(--card); border: 1.5px solid var(--border); border-radius: 6px; color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); }
+.commande-filter-reset { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: var(--font-size-xs); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.commandes-toolbar { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: var(--spacing-4); margin-bottom: var(--spacing-4); }
+.header-actions, .empty-state-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-3); }
+.commandes-workspace { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: var(--spacing-4); align-items: start; }
+.commandes-list-panel, .commande-placeholder { min-width: 0; background: var(--card); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-sm); }
+.commandes-list-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 0 14px; border-bottom: 1px solid var(--border-light); }
+.commande-placeholder { display: grid; gap: var(--spacing-3); padding: 24px 18px; }
+.commande-placeholder h2 { color: var(--primary); font-size: var(--font-size-lg); }
+.commande-placeholder p { color: var(--text-secondary); line-height: 1.65; }
+.commandes-table-wrapper { min-width: 0; padding-bottom: var(--spacing-4); }
+.commandes-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--font-size-sm); }
+.commandes-table thead th { padding: 12px; text-align: left; background: var(--atelier-header); color: var(--primary-foreground); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
+.commandes-table thead th:first-child { width: 40%; padding-left: 18px; }
+.commandes-table thead th:nth-child(2) { width: 16%; }
+.commandes-table thead th:nth-child(3) { width: 20%; }
+.commandes-table thead th:last-child { width: 24%; padding-right: 18px; }
+.commandes-table tbody th, .commandes-table td { height: 63px; padding: 9px 12px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.commandes-table tbody th { padding-left: 18px; font-weight: var(--font-weight-normal); }
+.commandes-table td:last-child { padding-right: 18px; }
+.commandes-table tbody tr { cursor: pointer; }
+.commandes-table tbody tr:hover, .commandes-table .commande-selected { background: var(--primary-light); }
+.commande-selected > th { box-shadow: inset 3px 0 var(--accent); }
+.commande-open { display: grid; align-content: center; min-height: 44px; gap: 3px; width: 100%; border: 0; border-radius: var(--border-radius-xs); background: transparent; color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; }
+.client-name { font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+.commande-reference { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.commandes-table .col-money { text-align: right; font-variant-numeric: tabular-nums; }
+.commande-type { color: var(--text-secondary); }
+.form-error-global { margin: var(--spacing-4) 0; padding: var(--spacing-3); border-radius: var(--border-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
+.status-badge, .status-badge-lg, .type-badge { display: inline-flex; padding: 4px 8px; border-radius: var(--border-radius-sm); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
+.status-badge-regle { background: var(--success-light); color: var(--success-dark); }
+.status-badge-attente { background: var(--warning-light); color: var(--warning-dark); }
+.type-badge-kit, .type-badge-hors-kit { background: var(--primary-light); color: var(--primary); }
+.commande-detail { display: grid; gap: var(--spacing-4); min-width: 0; }
+.detail-header, .detail-id-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); }
+.detail-header { justify-content: space-between; }
+.detail-id { font-size: var(--font-size-sm); color: var(--text-secondary); }
+.detail-client { display: flex; align-items: center; gap: var(--spacing-3); padding: 16px 14px; border-radius: var(--atelier-card-radius); }
+.client-avatar-md { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: var(--border-radius-sm); color: var(--primary); background: var(--primary-light); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.detail-client-info { display: grid; gap: 4px; min-width: 0; }
+.detail-client-name { overflow-wrap: anywhere; color: var(--primary); font-size: 21px; font-weight: var(--font-weight-semibold); line-height: 1.3; }
+.detail-client-label { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.detail-section { display: grid; gap: var(--spacing-3); }
+.detail-section-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); color: var(--primary); }
+.detail-rows { display: grid; }
+.detail-row { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-3); padding: 9px 0; border-bottom: 1px solid var(--border-light); font-size: var(--font-size-sm); }
+.detail-row > * { min-width: 0; overflow-wrap: anywhere; }
+.detail-row > :last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.detail-label { color: var(--text-secondary); font-size: var(--font-size-sm); }
+.detail-price { color: var(--primary); font-weight: var(--font-weight-semibold); }
+.format-badge { display: inline-flex; padding: 3px 8px; border-radius: var(--border-radius-sm); background: var(--primary-light); color: var(--primary); font-weight: var(--font-weight-semibold); }
+.detail-collections, .detail-papiers { display: grid; gap: var(--spacing-2); }
+.collections-chips, .papiers-list { display: grid; gap: var(--spacing-2); }
+.collection-chip, .papier-chip { display: block; padding: 8px 0; border-bottom: 1px solid var(--border-light); color: var(--text-primary); font-size: var(--font-size-sm); overflow-wrap: anywhere; }
+.chip-count { display: block; padding-top: 4px; color: var(--text-secondary); font-size: var(--font-size-xs); }
+@media (max-width: 900px) {
+  .commandes-workspace { grid-template-columns: 1fr; }
+  .commande-placeholder { display: none; }
 }
-
-.form-error-global {
-  margin: var(--spacing-4) 0;
-  padding: var(--spacing-3);
-  border-radius: var(--border-radius);
-  background: var(--error-light, #fde8e8);
-  color: var(--error, #c0392b);
-}
-
-/* === Header actions === */
-.header-actions {
-  display: flex;
-  gap: var(--spacing-3);
-  align-items: center;
-}
-
-/* === Empty state actions === */
-.empty-state-actions {
-  display: flex;
-  gap: var(--spacing-3);
-}
-
-/* === Commandes List === */
-.commandes-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.commande-card {
-  background: var(--card);
-  border-radius: var(--border-radius-2xl);
-  padding: var(--spacing-4) var(--spacing-5);
-  border: 1px solid var(--border-light);
-  box-shadow: none;
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  cursor: pointer;
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
-  position: relative;
-}
-
-.commande-card:hover {
-  border-color: var(--primary);
-  background: var(--bg-tertiary);
-}
-
-.commande-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.collection-chip, .papier-chip { overflow-wrap: anywhere; max-width: 100%; }
-
-.commande-card:hover .arrow-indicator {
-  opacity: 1;
-  transform: translateX(4px);
-  color: var(--primary);
-}
-
-/* === Type badge === */
-.type-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: var(--letter-spacing-wide);
-  flex-shrink: 0;
-}
-
-.type-badge-kit {
-  background: var(--info-light, #dbeafe);
-  color: var(--info-dark, #1d4ed8);
-}
-
-.type-badge-hors-kit {
-  background: var(--success-light);
-  color: var(--success-dark);
-}
-
-/* === Client === */
-.commande-client {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  flex: 1;
-  min-width: 0;
-}
-
-.client-avatar-sm {
-  width: 34px;
-  height: 34px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
-  border-radius: var(--border-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-foreground);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
-  flex-shrink: 0;
-}
-
-.client-name {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* === Infos === */
-.commande-infos {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-  flex-shrink: 0;
-}
-
-.commande-montant {
-  font-family: var(--font-heading);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-md);
-  color: var(--foreground);
-}
-
-/* === Format badge === */
-.format-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: var(--border-radius-sm);
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-sm);
-  font-family: var(--font-heading);
-}
-
-.format-badge-a {
-  background: rgba(93, 112, 82, 0.15);
-  color: var(--format-a, var(--primary));
-}
-
-.format-badge-b {
-  background: rgba(168, 121, 72, 0.15);
-  color: var(--format-b, var(--secondary));
-}
-
-.format-badge-c {
-  background: rgba(88, 122, 168, 0.15);
-  color: var(--format-c, #1d4ed8);
-}
-
-/* === Meta === */
-.commande-meta {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: var(--spacing-1);
-  flex-shrink: 0;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 10px;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-}
-
-.status-badge-regle {
-  background: var(--success-light);
-  color: var(--success-dark);
-}
-
-.status-badge-attente {
-  background: var(--warning-light);
-  color: var(--warning-dark);
-}
-
-.commande-date {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-}
-
-.arrow-indicator {
-  width: 20px;
-  height: 20px;
-  color: var(--text-tertiary);
-  opacity: 0;
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-}
-
-.arrow-indicator svg {
-  width: 100%;
-  height: 100%;
-}
-
-/* === Détail SlidePanel === */
-.commande-detail {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-5);
-}
-
-.detail-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: var(--spacing-4);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.detail-id-row {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-3);
-}
-
-.detail-id {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--foreground);
-}
-
-.status-badge-lg {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 16px;
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-}
-
-.detail-client {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-  padding: var(--spacing-4);
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-}
-
-.client-avatar-md {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-foreground);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-bold);
-  flex-shrink: 0;
-}
-
-.detail-client-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.detail-client-name {
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-}
-
-.detail-client-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.detail-section {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.detail-section-title {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--primary);
-  margin: 0 0 var(--spacing-2) 0;
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.detail-rows {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-2) 0;
-  border-bottom: 1px solid var(--border-light);
-  font-size: var(--font-size-sm);
-}
-
-.detail-row:last-child {
-  border-bottom: none;
-}
-
-.detail-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.detail-price {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  color: var(--primary);
-}
-
-.detail-date-row {
-  padding: var(--spacing-2) 0;
-  border-bottom: none;
-}
-
-/* === Collections chips === */
-.detail-collections,
-.detail-papiers {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-2);
-  padding-top: var(--spacing-2);
-  border-top: 1px solid var(--border-light);
-}
-
-.collections-chips,
-.papiers-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-  margin-top: var(--spacing-2);
-}
-
-.collection-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-1);
-  padding: 4px 12px;
-  background: var(--primary-light);
-  border: 1px solid rgba(93, 112, 82, 0.2);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  color: var(--primary);
-  font-weight: var(--font-weight-medium);
-}
-
-.chip-count {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  background: var(--card);
-  padding: 1px 5px;
-  border-radius: var(--border-radius-full);
-}
-
-.papier-chip {
-  padding: 3px 10px;
-  background: var(--muted);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-/* === Responsive === */
-@media (max-width: 640px) {
-  .commande-card {
-    flex-wrap: wrap;
-  }
-
-  .header-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
+@media (max-width: 480px) {
+  .commandes-list-heading { padding-inline: 10px; gap: 0 6px; }
+  .commandes-pages { gap: 8px; }
+  .commandes-pages a { padding-inline: 4px; }
+  .commandes-list-tools { gap: 6px; }
+  .commandes-filters { padding: 12px; }
+  .header-actions { width: 100%; }
+  .header-actions > :deep(button) { flex: 1 1 140px; }
+  .commandes-table thead th, .commandes-table tbody th, .commandes-table td { padding-inline: 7px; }
+  .commandes-table thead th:first-child, .commandes-table tbody th { padding-left: 12px; width: 36%; }
+  .commandes-table thead th:nth-child(2) { width: 16%; }
+  .commandes-table thead th:nth-child(3) { width: 23%; }
+  .commandes-table thead th:last-child { width: 25%; }
+  .commandes-table td:last-child, .commandes-table thead th:last-child { padding-right: 12px; }
+  .status-badge { padding: 3px 4px; }
+  .detail-row { flex-wrap: wrap; }
 }
 </style>

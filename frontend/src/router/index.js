@@ -6,7 +6,15 @@ export default createRouter({
     { 
       path: '/', 
       name: 'commandes', 
+      alias: '/commandes/kits',
+      meta: { commandeType: 'kit' },
       component: () => import('../views/CommandesView.vue') 
+    },
+    {
+      path: '/commandes/hors-kit',
+      name: 'commandes-hors-kit',
+      meta: { commandeType: 'hors_kit' },
+      component: () => import('../views/CommandesView.vue')
     },
     { 
       path: '/clients', 

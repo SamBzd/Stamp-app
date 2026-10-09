@@ -36,7 +36,7 @@ const navItems = [
   { path: '/papiers', label: 'Papiers', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>' },
   { path: '/stocks', label: 'Fournitures', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4Z"/><path d="m3.27 6.96 8.73 5.05 8.73-5.05M12 22.08v-10.07"/></svg>' },
 ];
-const isActive = path => path === '/' ? route.path === '/' : route.path.startsWith(path);
+const isActive = path => path === '/' ? route.path === '/' || route.path.startsWith('/commandes/') : route.path.startsWith(path);
 </script>
 
 <style scoped>
