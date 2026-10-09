@@ -13,6 +13,8 @@ Ce dossier est le point d'entrée de la documentation maintenue du projet. Il s�
 - [API commandes kits](commandes-kit-api.md) : compositions A/B/C, snapshots, prix, règlement, stocks et bilan de l’issue #7.
 - [Quantités à préparer](stocks.md) : identité, provenance historique, quantités de base/finales et rubans de l’issue #10.
 - [Parcours catalogue et bibliothèque](catalogue-ui.md) : préparation/publication, tarifs, sélection et archivage/restauration des issues #8 et #28.
+- [Identité UI atelier prune/citron](ui/identite-atelier.md) : direction visuelle validée, maquettes figées et règles de transposition sans changement métier.
+- [Issue UI #39](ui/issue-ui-atelier.md) : cadrage accepté et publié le 9 octobre 2026, jalons de validation avec Sam et critères de fidélité ; références et maquettes versionnées.
 - [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
 - [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
 - [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.

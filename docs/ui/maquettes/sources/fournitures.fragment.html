@@ -1,0 +1,417 @@
+<style>
+#stamp-atelier-citron .stamp-screen{--ink:#293b32;--muted:#637067;--green:#45664f;--line:#cbd0bf;--paper:#faf8f1;--glass:rgba(255,255,249,.68);font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--ink);background:#eee9db;min-height:640px;padding:24px 24px 18px;box-sizing:border-box;border-radius:18px;position:relative;isolation:isolate;overflow:hidden;font-size:14px;line-height:1.45;color-scheme:light}
+#stamp-atelier-citron *{box-sizing:border-box}
+#stamp-atelier-citron .stamp-screen:before{content:'';position:absolute;z-index:-1;inset:0;background:radial-gradient(ellipse at 88% 88%,#becbb0 0,transparent 53%),radial-gradient(ellipse at 5% 0%,#e1d4b8 0,transparent 47%)}
+#stamp-atelier-citron .stamp-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;padding-right:80px}
+#stamp-atelier-citron .stamp-brand{font-family:'Snell Roundhand','Apple Chancery',cursive;font-style:italic;font-size:29px;letter-spacing:-1px;white-space:nowrap;position:relative}
+#stamp-atelier-citron .stamp-brand:after{content:'';position:absolute;left:8px;right:2px;height:3px;bottom:2px;background:#76916d;transform:rotate(-3deg);border-radius:80%}
+#stamp-atelier-citron .stamp-top small{color:var(--muted);font-size:12px}
+#stamp-atelier-citron .stamp-page-head{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+#stamp-atelier-citron h2{font:600 27px/1.15 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;letter-spacing:-.7px;margin:0 0 6px}
+#stamp-atelier-citron .stamp-caption{margin:0;color:var(--muted);font-size:13px}
+#stamp-atelier-citron .stamp-screen button{font:inherit;color:inherit;border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:8px 11px;display:inline-flex;gap:7px;align-items:center;justify-content:center;min-height:34px}
+#stamp-atelier-citron .stamp-screen button:focus-visible{outline:3px solid #76916d;outline-offset:3px}
+#stamp-atelier-citron .stamp-screen svg{width:16px;height:16px;flex:none}
+#stamp-atelier-citron .stamp-period{display:flex;align-items:center;gap:8px;padding:5px;border:1px solid rgba(255,255,255,.85);border-radius:13px;background:var(--glass);box-shadow:0 3px 12px #32402a0a;backdrop-filter:blur(18px)}
+#stamp-atelier-citron .stamp-period button{border:0;background:transparent;padding:5px}
+#stamp-atelier-citron .stamp-period span{font-weight:500;padding:0 9px}
+#stamp-atelier-citron .stamp-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px;color:var(--muted);font-size:12px}
+#stamp-atelier-citron .stamp-summary{display:flex;gap:20px;flex-wrap:wrap}
+#stamp-atelier-citron .stamp-summary b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+#stamp-atelier-citron .stamp-board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;min-height:330px}
+#stamp-atelier-citron .stamp-column{min-width:0}
+#stamp-atelier-citron .stamp-column-head{display:flex;justify-content:space-between;gap:6px;align-items:center;margin:0 0 12px;padding:0 3px;font-size:13px;font-weight:600}
+#stamp-atelier-citron .stamp-count{font-size:11px;color:var(--muted);font-weight:400;padding:2px 6px;background:#ffffff70;border-radius:6px}
+#stamp-atelier-citron .stamp-item{display:block!important;width:100%;text-align:left;align-items:stretch!important;flex-direction:column;margin-bottom:10px;padding:13px!important;background:var(--paper)!important;border:1px solid #d4d7c9!important;border-radius:10px!important;box-shadow:0 2px 4px #24332404}
+#stamp-atelier-citron .stamp-item strong{font-weight:600;font-size:13px;display:block;margin-bottom:5px}
+#stamp-atelier-citron .stamp-item span{font-size:12px;display:block;color:var(--muted)}
+#stamp-atelier-citron .stamp-item .stamp-qty{display:flex;justify-content:space-between;gap:6px;border-top:1px solid #e4e5db;margin-top:13px;padding-top:9px;color:var(--ink);font-variant-numeric:tabular-nums}
+#stamp-atelier-citron .stamp-item:hover{border-color:#82997b!important}
+#stamp-atelier-citron .stamp-empty{color:var(--muted);text-align:center;padding:30px 5px;font-size:12px}
+#stamp-atelier-citron .stamp-dock-wrap{display:flex;justify-content:center;position:relative;margin-top:22px}
+#stamp-atelier-citron .stamp-dock{display:flex;align-items:center;justify-content:center;gap:5px;padding:8px 30px;background:linear-gradient(150deg,#ffffffac,#e1ead4a6);border-top:1px solid #fffffff2;border-bottom:1px solid #9caa9050;box-shadow:0 7px 20px #3c4b2d1c,inset 0 1px 5px #ffffffa1;backdrop-filter:blur(22px);position:relative;clip-path:polygon(0 3%,98% 0,96.5% 23%,100% 51%,97% 76%,99% 98%,1% 100%,3% 76%,0 53%,3% 28%)}
+#stamp-atelier-citron .stamp-dock button{border:0;background:transparent;flex-direction:column;gap:4px;padding:7px 12px;border-radius:9px;font-size:11px;color:#53634f;min-width:63px}
+#stamp-atelier-citron .stamp-dock button svg{width:19px;height:19px}
+#stamp-atelier-citron .stamp-dock button[aria-current=page]{background:#44634f;color:#faf8ef;box-shadow:0 2px 5px #30453218}
+#stamp-atelier-citron .stamp-scissors{position:absolute;right:calc(50% - 318px);bottom:10px;color:#617456;transform:rotate(-30deg)}
+#stamp-atelier-citron .stamp-scissors svg{width:24px;height:24px}
+#stamp-atelier-citron .stamp-foot{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:12px;gap:12px}
+#stamp-atelier-citron .stamp-tab{background:#d5dfc5;padding:7px 16px 9px;clip-path:polygon(1% 9%,96% 0,100% 84%,3% 100%);transform:rotate(-1.5deg);font-size:12px;color:#405a42}
+#stamp-atelier-citron .stamp-screen.surface{padding-top:18px}
+#stamp-atelier-citron .surface .stamp-top{margin-bottom:18px}
+#stamp-atelier-citron .surface .stamp-page-head{background:#ffffff80;border:1px solid #ffffffd0;box-shadow:0 5px 20px #34432e09;backdrop-filter:blur(20px);padding:20px;border-radius:17px;margin-bottom:14px}
+#stamp-atelier-citron .surface .stamp-board{background:#f8f6ee;padding:18px 14px;border:1px solid #d5d8ca;border-radius:15px;gap:0;min-height:330px}
+#stamp-atelier-citron .surface .stamp-column{padding:0 10px;border-right:1px solid #e1e4d8}
+#stamp-atelier-citron .surface .stamp-column:last-child{border-right:0}
+#stamp-atelier-citron .surface .stamp-item{background:#fffef9!important;box-shadow:none;border-color:#e0e3d6!important}
+#stamp-atelier-citron .surface .stamp-dock{border-radius:20px;clip-path:none;padding:7px 16px}
+#stamp-atelier-citron .surface .stamp-scissors{display:none}
+#stamp-atelier-citron .surface .stamp-tab{background:#e5dcc5;color:#675c43}
+#stamp-atelier-citron .stamp-detail{position:absolute;inset:0;background:#293b3255;display:grid;place-items:center;padding:20px;z-index:4}
+#stamp-atelier-citron .stamp-detail[hidden]{display:none}
+#stamp-atelier-citron .stamp-detail-content{background:var(--paper);border-radius:16px;padding:24px;width:min(380px,100%);box-shadow:0 16px 50px #293b3233}
+#stamp-atelier-citron .stamp-detail-content h3{font-size:19px;margin:0 0 12px;font-weight:600}
+#stamp-atelier-citron .stamp-detail-content p{color:var(--muted)}
+@media(max-width:760px){#stamp-atelier-citron .stamp-screen{padding:18px 14px;min-height:640px}#stamp-atelier-citron .stamp-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}#stamp-atelier-citron .stamp-top{padding-right:0}#stamp-atelier-citron .stamp-page-head{flex-wrap:wrap}#stamp-atelier-citron .stamp-dock{flex-wrap:wrap;padding:9px 18px}#stamp-atelier-citron .stamp-scissors{display:none}#stamp-atelier-citron .surface .stamp-column{border:0;padding:0 5px}}
+@media(max-width:450px){#stamp-atelier-citron .stamp-board{grid-template-columns:repeat(2,minmax(0,1fr))}#stamp-atelier-citron .stamp-toolbar{align-items:flex-start;flex-direction:column}#stamp-atelier-citron .stamp-top small{display:none}#stamp-atelier-citron .stamp-dock button{min-width:55px;padding:7px}#stamp-atelier-citron .stamp-foot{flex-wrap:wrap}}
+</style>
+<style>
+#stamp-atelier-citron .refined{background:#eee9db;padding:20px 24px 16px;min-height:650px}
+#stamp-atelier-citron .refined:before{background:radial-gradient(ellipse at 92% 98%,#c5d0b650,transparent 58%)}
+#stamp-atelier-citron .refined .stamp-top{margin-bottom:25px;align-items:center}
+#stamp-atelier-citron .refined .stamp-brand{display:flex;align-items:baseline;gap:8px;letter-spacing:-1.4px;font-family:'Snell Roundhand','Apple Chancery',cursive;font-size:33px;transform:rotate(-2deg);padding:0 5px}
+#stamp-atelier-citron .refined .stamp-brand:after{bottom:-1px;left:12px;right:27px;height:2px;background:#637c5c;transform:rotate(-2deg);border-radius:70%}
+#stamp-atelier-citron .refined .stamp-brand small{font:500 10px/1 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;letter-spacing:2px;color:#526b51;transform:rotate(2deg)}
+#stamp-atelier-citron .refined .stamp-page-head{padding:0;margin-bottom:23px;background:transparent;border:0;border-radius:0;box-shadow:none;backdrop-filter:none}
+#stamp-atelier-citron .refined h2{position:relative;isolation:isolate;display:inline-block;margin:0 0 12px;padding:8px 25px 9px 17px;font-size:25px;letter-spacing:-.6px}
+#stamp-atelier-citron .refined h2:before{content:'';position:absolute;inset:0;z-index:-1;background:#d3dfc4;clip-path:polygon(0 11%,97% 0,100% 22%,98% 55%,100% 89%,4% 100%,1% 74%,2% 36%);transform:rotate(-1deg)}
+#stamp-atelier-citron .refined .stamp-caption{padding-left:3px}
+#stamp-atelier-citron .refined .stamp-toolbar{margin-bottom:13px}
+#stamp-atelier-citron .refined .stamp-tab{transform:rotate(1deg);padding:6px 15px 8px;background:#e2d7bc;clip-path:polygon(0 12%,97% 0,100% 91%,3% 100%);color:#64583f}
+#stamp-atelier-citron .refined .stamp-summary{gap:0}
+#stamp-atelier-citron .refined .stamp-summary>span{padding:0 14px;border-right:1px solid #c4c9b8}
+#stamp-atelier-citron .refined .stamp-summary>span:first-child{padding-left:3px}
+#stamp-atelier-citron .refined .stamp-summary>span:last-child{border:0}
+#stamp-atelier-citron .refined .stamp-board{border-radius:5px;border:1px solid #bbc4b1;background:#f7f6ed;padding:0;gap:0;min-height:355px;box-shadow:none}
+#stamp-atelier-citron .refined .stamp-column{padding:0 12px 18px;border-right:1px solid #d8ddce}
+#stamp-atelier-citron .refined .stamp-column:last-child{border:0}
+#stamp-atelier-citron .refined .stamp-column-head{padding:13px 0 12px;border-bottom:1px solid #cbd3c0;margin-bottom:13px;min-height:48px;font-weight:500}
+#stamp-atelier-citron .refined .stamp-count{border-radius:0;padding:0;background:none;font-variant-numeric:tabular-nums;color:#62725c}
+#stamp-atelier-citron .refined .stamp-item{background:#fffef8!important;border:1px solid #d7dcce!important;border-radius:3px!important;box-shadow:none;padding:12px 10px!important;margin-bottom:8px;position:relative}
+#stamp-atelier-citron .refined .stamp-item strong{font-size:13px;font-weight:500;line-height:1.4;margin-bottom:3px}
+#stamp-atelier-citron .refined .stamp-item:hover{background:#f0f3e8!important;border-color:#7a9270!important}
+#stamp-atelier-citron .refined .stamp-item .stamp-qty{margin-top:11px;padding-top:9px;border-color:#e0e4d6}
+#stamp-atelier-citron .refined .stamp-item .stamp-qty span{font-size:12px;font-weight:500;color:#354d36}
+#stamp-atelier-citron .refined .stamp-screen button{border-radius:5px}
+#stamp-atelier-citron .refined .stamp-period{border-radius:12px;padding:4px;box-shadow:0 3px 8px #34432e08;background:linear-gradient(135deg,#ffffffe0,#e5ebdbb8);border-color:#fffef8}
+#stamp-atelier-citron .refined .stamp-period span{font-size:13px}
+#stamp-atelier-citron .refined .stamp-dock-wrap{margin-top:20px}
+#stamp-atelier-citron .refined .stamp-dock{padding:6px 17px;border-radius:16px;gap:3px;background:linear-gradient(150deg,#ffffffe3,#dce6cebe);border:1px solid #ffffffd6;box-shadow:0 5px 14px #3f51341c,inset 0 1px 2px #ffffffb0;clip-path:none}
+#stamp-atelier-citron .refined .stamp-dock button{border-radius:7px;padding:7px 13px;gap:4px}
+#stamp-atelier-citron .refined .stamp-dock button[aria-current=page]{background:#44634f;border-radius:6px;box-shadow:none}
+#stamp-atelier-citron .refined .stamp-foot{margin-top:13px}
+@media(max-width:760px){#stamp-atelier-citron .refined{padding:18px 14px}#stamp-atelier-citron .refined .stamp-column{border-right:0;padding:0 10px 12px}#stamp-atelier-citron .refined .stamp-board{gap:0}#stamp-atelier-citron .refined .stamp-dock button{padding:7px 10px}}
+</style>
+<style>
+#stamp-atelier-citron .bear{min-height:650px}
+#stamp-atelier-citron .bear .stamp-top{margin-bottom:29px}
+#stamp-atelier-citron .bear .stamp-page-head{margin-bottom:25px}
+#stamp-atelier-citron .bear .stamp-toolbar{padding:0 3px;margin-bottom:14px}
+#stamp-atelier-citron .bear .stamp-board{background:#faf9f3;border:0;border-radius:13px;overflow:hidden;box-shadow:0 8px 24px #3b4c3010;min-height:360px;gap:0;padding:0}
+#stamp-atelier-citron .bear .stamp-column{border:0!important;padding:0 13px 20px;background:#f4f4ec;min-width:0}
+#stamp-atelier-citron .bear .stamp-column:nth-child(even){background:#faf9f3}
+#stamp-atelier-citron .bear .stamp-column-head{padding:16px 2px 15px;border:0;margin-bottom:3px;font-size:13px;font-weight:600;min-height:52px}
+#stamp-atelier-citron .bear .stamp-count{padding:0 2px;background:transparent;color:#73816b;font-size:12px}
+#stamp-atelier-citron .bear .stamp-item{background:transparent!important;border:0!important;border-bottom:1px solid #dfe3d7!important;border-radius:0!important;box-shadow:none!important;padding:14px 5px 16px!important;margin:0;min-height:107px;transition:background-color .12s ease}
+#stamp-atelier-citron .bear .stamp-item strong{font-weight:500;font-size:14px;margin-bottom:4px;color:#2d3e31;letter-spacing:-.15px}
+#stamp-atelier-citron .bear .stamp-item>span{font-size:12px;line-height:1.55}
+#stamp-atelier-citron .bear .stamp-item .stamp-qty{border:0;padding:0;margin-top:10px;align-items:center}
+#stamp-atelier-citron .bear .stamp-item .stamp-qty span{color:#486244;font-size:12px;font-weight:500}
+#stamp-atelier-citron .bear .stamp-item .stamp-qty svg{color:#7b8873;width:13px;height:13px}
+#stamp-atelier-citron .bear .stamp-item:hover{background:#e6ecdd!important;border-bottom-color:#c6d2be!important}
+#stamp-atelier-citron .bear .stamp-item[aria-pressed=true]{background:#e6ecdd!important;border-radius:6px!important;box-shadow:inset 3px 0 #6d8862!important;padding-left:10px!important}
+#stamp-atelier-citron .bear .stamp-item:focus-visible{outline-offset:-2px}
+#stamp-atelier-citron .bear .stamp-dock-wrap{margin-top:23px}
+#stamp-atelier-citron .bear .stamp-dock{border-radius:16px;box-shadow:0 5px 15px #3c4e3219,inset 0 1px 3px #ffffffb0; background:linear-gradient(135deg,#fffef7ef,#dbe5d0c9)}
+#stamp-atelier-citron .bear .stamp-dock button[aria-current=page]{background:#e0e9d6;color:#304e36;box-shadow:inset 0 0 0 1px #b7c9ac55}
+#stamp-atelier-citron .bear .stamp-dock button[aria-current=page] svg{stroke-width:2.2}
+#stamp-atelier-citron .bear .stamp-period{background:linear-gradient(135deg,#fffef7f0,#e9ecdddb)}
+#stamp-atelier-citron .bear .stamp-detail-content{border-radius:13px;box-shadow:0 12px 44px #293b3226}
+@media(max-width:760px){#stamp-atelier-citron .bear .stamp-board{grid-template-columns:repeat(3,minmax(0,1fr))}#stamp-atelier-citron .bear .stamp-column{padding:0 10px 14px}}
+@media(max-width:450px){#stamp-atelier-citron .bear .stamp-board{grid-template-columns:repeat(2,minmax(0,1fr))}#stamp-atelier-citron .bear .stamp-dock button{padding:7px 8px}}
+@media(prefers-reduced-motion:reduce){#stamp-atelier-citron .bear .stamp-item{transition:none}}
+</style>
+<style>
+#stamp-atelier-citron .contrast{--ink:#203c2e;--muted:#52634f;--paper:#fffdf4;background:#ded0ae}
+#stamp-atelier-citron .contrast:before{background:radial-gradient(ellipse at 90% 100%,#83946640,transparent 58%)}
+#stamp-atelier-citron .contrast .stamp-brand{color:#234d36;display:block;font-size:33px}
+#stamp-atelier-citron .contrast h2{color:#fffdf1}
+#stamp-atelier-citron .contrast h2:before{background:var(--signature-green,#3b6445)}
+#stamp-atelier-citron .contrast .stamp-top small,#stamp-atelier-citron .contrast .stamp-caption,#stamp-atelier-citron .contrast .stamp-foot{color:#4d5a42}
+#stamp-atelier-citron .contrast .stamp-tab{background:#b79b65;color:#2f3929}
+#stamp-atelier-citron .contrast .stamp-summary>span{border-color:#a69976}
+#stamp-atelier-citron .contrast .stamp-period{border:0;border-radius:0;box-shadow:none;background:transparent;backdrop-filter:none;gap:12px;padding:0}
+#stamp-atelier-citron .contrast .stamp-period span{font-size:16px;font-weight:500;color:#284532;letter-spacing:-.3px;padding:0 2px}
+#stamp-atelier-citron .contrast .stamp-period button{border:0;border-radius:4px;background:transparent;padding:5px;min-height:30px;color:#385336}
+#stamp-atelier-citron .contrast .stamp-period button:hover{background:#cabc96}
+#stamp-atelier-citron .contrast .stamp-board{background:#fffdf5;box-shadow:0 8px 24px #3b442415}
+#stamp-atelier-citron .contrast .stamp-column{background:#ececdd}
+#stamp-atelier-citron .contrast .stamp-column:nth-child(even){background:#fffdf5}
+#stamp-atelier-citron .contrast .stamp-column-head{color:#244530}
+#stamp-atelier-citron .contrast .stamp-item strong{color:#213e2c}
+#stamp-atelier-citron .contrast .stamp-item>span{color:#52634c}
+#stamp-atelier-citron .contrast .stamp-item .stamp-qty span{color:#2d5b38}
+#stamp-atelier-citron .contrast .stamp-item{border-bottom-color:#cbd3bd!important}
+#stamp-atelier-citron .contrast .stamp-count{color:#556b49}
+#stamp-atelier-citron .contrast .stamp-dock-wrap{isolation:isolate;padding-top:4px;margin-top:20px}
+#stamp-atelier-citron .contrast .stamp-dock-wrap:before{content:'';position:absolute;width:min(410px,70%);height:38px;bottom:0;background:#3e683b;border-radius:50%;filter:blur(19px);opacity:.6;z-index:-1}
+#stamp-atelier-citron .contrast .stamp-dock{overflow:hidden;position:relative;background:linear-gradient(125deg,#fffef89c 0%,#ffffff36 33%,#ecf6d24d 67%,#fffff8a3 100%);border:1px solid #fffef6e6;border-radius:20px;backdrop-filter:blur(25px) saturate(165%);box-shadow:inset 0 2px 3px #ffffffed,inset 0 -2px 3px #36573538,inset 2px 0 6px #ffffff8c,0 7px 17px #32482c2c;padding:7px 17px}
+#stamp-atelier-citron .contrast .stamp-dock:before{content:'';position:absolute;top:2px;left:18px;right:18px;height:1px;background:linear-gradient(90deg,transparent,#ffffff,transparent);pointer-events:none}
+#stamp-atelier-citron .contrast .stamp-dock button{color:#284632;position:relative;z-index:1}
+#stamp-atelier-citron .contrast .stamp-dock button[aria-current=page]{background:linear-gradient(135deg,#426f48,#234a32);color:#fffdf2;box-shadow:inset 0 1px 1px #cde2bc66,0 2px 5px #243c2720;border-radius:9px}
+#stamp-atelier-citron .contrast .stamp-dock button:hover:not([aria-current=page]){background:#fffef552}
+</style>
+<style>
+#stamp-atelier-citron .liquid .stamp-board{background:#fffef8;box-shadow:0 9px 24px #4a45201a,0 1px 2px #4a452015}
+#stamp-atelier-citron .liquid .stamp-column{background:#dce2d0}
+#stamp-atelier-citron .liquid .stamp-column:nth-child(even){background:#fffef8}
+#stamp-atelier-citron .liquid .stamp-column-head{color:#263d2d}
+#stamp-atelier-citron .liquid .stamp-item{border-bottom-color:#b8c6ab!important}
+#stamp-atelier-citron .liquid .stamp-column:nth-child(even) .stamp-item{border-bottom-color:#dbdfcf!important}
+#stamp-atelier-citron .liquid .stamp-dock-wrap:before{width:min(370px,66%);height:15px;bottom:-2px;background:#81775e;filter:blur(17px);opacity:.17}
+#stamp-atelier-citron .liquid .stamp-dock{background:linear-gradient(115deg,#fffef94d 0%,#fffef90a 25%,#fffef924 55%,#fffef959 100%);border:1px solid #fffef9c9;border-radius:23px;backdrop-filter:blur(9px) saturate(108%);box-shadow:inset 0 1px 1px #fffffff2,inset 0 -1px 2px #fffef999,inset 2px 0 3px #ffffff66,inset -2px 0 3px #ffffff66,0 5px 12px #665f4012;padding:8px 17px}
+#stamp-atelier-citron .liquid .stamp-dock:before{height:20px;top:1px;left:3px;right:3px;border-radius:22px 22px 70% 70%;background:linear-gradient(180deg,#ffffff5e,#ffffff00)}
+#stamp-atelier-citron .liquid .stamp-dock:after{content:'';position:absolute;left:25px;right:25px;bottom:2px;height:1px;background:linear-gradient(90deg,transparent,#ffffffe6,transparent);pointer-events:none}
+#stamp-atelier-citron .liquid .stamp-dock button{color:#3f493c;box-shadow:none;padding:7px 13px}
+#stamp-atelier-citron .liquid .stamp-dock button[aria-current=page]{background:linear-gradient(140deg,#ffffff80,#ffffff33);color:#314735;box-shadow:inset 0 1px 1px #fffffff0,inset 0 -1px 1px #ffffff66,0 1px 3px #625c3810;border-radius:13px}
+#stamp-atelier-citron .liquid .stamp-dock button:hover:not([aria-current=page]){background:#ffffff35}
+</style>
+<style>
+#stamp-atelier-citron .optics .stamp-board{padding-bottom:0}
+#stamp-atelier-citron .optics .stamp-column{padding-bottom:41px}
+#stamp-atelier-citron .optics .stamp-dock-wrap{margin-top:-17px;padding-top:0;z-index:2}
+#stamp-atelier-citron .optics .stamp-dock-wrap:before{display:none}
+#stamp-atelier-citron .optics .stamp-dock{isolation:isolate;overflow:visible;background:transparent;border:0;border-radius:23px;backdrop-filter:none;box-shadow:0 7px 15px #38432c17,0 1px 2px #38432c10;padding:8px 17px}
+#stamp-atelier-citron .optics .stamp-dock:before,#stamp-atelier-citron .optics .stamp-dock:after{display:none}
+#stamp-atelier-citron .optics .stamp-glass-layer{position:absolute;inset:0;border-radius:inherit;overflow:hidden;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#ffffff18,#b8b8b80d);border:1px solid #33452e1b;backdrop-filter:blur(3px) saturate(120%);-webkit-backdrop-filter:blur(3px) saturate(120%);box-shadow:inset 0 1.5px 1px #ffffffe6,inset 1.5px 0 2px #ffffffa8,inset -1px 0 1px #ffffff4d,inset 0 -1px 1px #ffffff73}
+#stamp-atelier-citron .optics .stamp-glass-layer:before{content:'';position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from 115deg,#ffffff04,#ffffff96 14%,#ffffff08 29%,#ffffffec 52%,#ffffff94 61%,#ffffff0d 78%,#ffffff73);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor}
+#stamp-atelier-citron .optics .stamp-glass-layer:after{content:'';position:absolute;inset:1px;background:radial-gradient(ellipse at 12% 0%,#ffffff33,transparent 56%);border-radius:inherit}
+#stamp-atelier-citron .optics .stamp-dock button{border:0;background:transparent;box-shadow:none;border-radius:0;color:#40513c}
+#stamp-atelier-citron .optics .stamp-dock button[aria-current=page]{background:transparent;box-shadow:none;border-radius:0;color:#274a30;font-weight:600}
+#stamp-atelier-citron .optics .stamp-dock button[aria-current=page]:after{content:'';position:absolute;bottom:0;left:43%;right:43%;height:2px;border-radius:2px;background:#526e4c}
+#stamp-atelier-citron .optics .stamp-dock button:hover:not([aria-current=page]){background:transparent;color:#23482f}
+#stamp-atelier-citron .optics .stamp-foot{margin-top:18px}
+</style>
+<style>
+#stamp-atelier-citron .liquidcards .stamp-item{position:relative;isolation:isolate;overflow:visible;border:0!important;border-radius:12px!important;padding:13px 11px 14px!important;margin:0 0 12px;background:transparent!important;box-shadow:0 4px 11px #39482d12,0 1px 2px #39482d0a!important;min-height:111px}
+#stamp-atelier-citron .liquidcards .stamp-item>strong,#stamp-atelier-citron .liquidcards .stamp-item>span:not(.stamp-glass-layer){position:relative;z-index:1}
+#stamp-atelier-citron .liquidcards .stamp-item .stamp-glass-layer{border-radius:12px;background:linear-gradient(145deg,#ffffff12,#ffffff04);box-shadow:inset 0 1px 1px #ffffffbc,inset 1px 0 1px #ffffff69,inset 0 -1px 1px #ffffff50}
+#stamp-atelier-citron .liquidcards .stamp-item .stamp-qty{padding-top:9px;margin-top:10px;border-top:1px solid #54674420}
+#stamp-atelier-citron .liquidcards .stamp-item:hover{background:#ffffff16!important;border:0!important;box-shadow:0 5px 13px #39482d1c!important}
+#stamp-atelier-citron .liquidcards .stamp-item[aria-pressed=true]{background:#ffffff18!important;border-radius:12px!important;padding-left:11px!important;box-shadow:0 0 0 1.5px #6d8862,0 4px 11px #39482d12!important}
+</style>
+<style>
+#stamp-atelier-citron .palette-screen{--ink:var(--p-ink);--muted:var(--p-muted);--paper:var(--p-paper);--line:var(--p-line);--green:var(--p-primary);background:var(--p-bg);color:var(--p-ink)}
+#stamp-atelier-citron .palette-screen:before{background:none}
+#stamp-atelier-citron .palette-screen .stamp-brand{color:var(--p-primary)}
+#stamp-atelier-citron .palette-screen .stamp-brand:after{background:var(--p-accent)}
+#stamp-atelier-citron .palette-screen h2{color:#fff}
+#stamp-atelier-citron .palette-screen h2:before{background:var(--p-primary)}
+#stamp-atelier-citron .palette-screen .stamp-top small,#stamp-atelier-citron .palette-screen .stamp-caption,#stamp-atelier-citron .palette-screen .stamp-foot,#stamp-atelier-citron .palette-screen .stamp-toolbar{color:var(--p-muted)}
+#stamp-atelier-citron .palette-screen .stamp-tab{background:var(--p-accent);color:var(--p-accentInk)}
+#stamp-atelier-citron .palette-screen .stamp-summary>span{border-color:var(--p-line)}
+#stamp-atelier-citron .palette-screen .stamp-period span,#stamp-atelier-citron .palette-screen .stamp-period button{color:var(--p-ink)}
+#stamp-atelier-citron .palette-screen .stamp-period button:hover{background:var(--p-group)}
+#stamp-atelier-citron .palette-screen .stamp-board{background:var(--p-paper);box-shadow:0 9px 24px #201b2714,0 1px 2px #201b270e}
+#stamp-atelier-citron .palette-screen .stamp-column{background:var(--p-group)}
+#stamp-atelier-citron .palette-screen .stamp-column:nth-child(even){background:var(--p-paper)}
+#stamp-atelier-citron .palette-screen .stamp-column-head,#stamp-atelier-citron .palette-screen .stamp-item strong{color:var(--p-ink)}
+#stamp-atelier-citron .palette-screen .stamp-item>span,#stamp-atelier-citron .palette-screen .stamp-count,#stamp-atelier-citron .palette-screen .stamp-empty{color:var(--p-muted)}
+#stamp-atelier-citron .palette-screen .stamp-item .stamp-qty span{color:var(--p-ink)}
+#stamp-atelier-citron .palette-screen .stamp-item .stamp-qty svg{color:var(--p-muted)}
+#stamp-atelier-citron .palette-screen .stamp-item{border-bottom-color:var(--p-line)!important}
+#stamp-atelier-citron .palette-screen .stamp-item:hover{background:#ffffff38!important;border-bottom-color:var(--p-line)!important}
+#stamp-atelier-citron .palette-screen .stamp-item[aria-pressed=true]{background:#ffffff60!important;box-shadow:inset 3px 0 var(--p-primary)!important}
+#stamp-atelier-citron .palette-screen button:focus-visible{outline-color:var(--p-primary)}
+#stamp-atelier-citron .palette-screen .stamp-dock{box-shadow:0 7px 15px #201b2717,0 1px 2px #201b2710}
+#stamp-atelier-citron .palette-screen .stamp-dock button{color:var(--p-muted)}
+#stamp-atelier-citron .palette-screen .stamp-dock button[aria-current=page],#stamp-atelier-citron .palette-screen .stamp-dock button:hover{color:var(--p-primary);background:transparent}
+#stamp-atelier-citron .palette-screen .stamp-dock button[aria-current=page]:after{background:var(--p-primary)}
+#stamp-atelier-citron .palette-screen .stamp-glass-layer{border-color:#302a361b}
+#stamp-atelier-citron .palette-screen .stamp-detail{background:#201b2755}
+#stamp-atelier-citron .palette-screen .stamp-detail-content{background:var(--p-paper);box-shadow:0 16px 50px #201b2733}
+#stamp-atelier-citron .palette-screen:not(.liquidcards) .stamp-item .stamp-glass-layer{display:none}
+#stamp-atelier-citron .palette-screen.liquidcards .stamp-item{border:0!important;box-shadow:0 4px 11px #201b2712,0 1px 2px #201b270a!important}
+#stamp-atelier-citron .palette-screen.liquidcards .stamp-item .stamp-qty{border-color:#302a3620}
+#stamp-atelier-citron .palette-screen.liquidcards .stamp-item[aria-pressed=true]{box-shadow:0 0 0 1.5px var(--p-primary),0 4px 11px #201b2712!important}
+#stamp-atelier-citron .palette-swatches{display:flex;flex-wrap:wrap;gap:14px;padding:14px 4px 6px;font:12px/1.4 -apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:light-dark(#353139,#e3e0e6)}
+#stamp-atelier-citron .palette-swatches span{display:flex;gap:7px;align-items:center;white-space:nowrap}
+#stamp-atelier-citron .palette-swatches i{display:block;width:19px;height:19px;background:var(--swatch);border-radius:4px;box-shadow:inset 0 0 0 1px #302a3620}
+</style>
+<style>
+#stamp-atelier-citron .stamp-screen.atelier{--p-bg:#EEEFEF;--p-paper:#FFFFFF;--p-group:#FFFFFF;--p-ink:#30272F;--p-muted:#615660;--p-primary:#432838;--p-accent:#D5A22D;--p-accentInk:#30272F;--p-line:#DDD8DC;background:#EEEFEF;padding:0 0 15px;min-height:650px}
+#stamp-atelier-citron .atelier .stamp-hero{background:var(--p-primary);padding:18px 24px 22px;color:#FFF}
+#stamp-atelier-citron .atelier .stamp-top{margin-bottom:17px}
+#stamp-atelier-citron .atelier .stamp-brand{color:#FFF}
+#stamp-atelier-citron .atelier .stamp-brand:after{background:var(--p-accent)}
+#stamp-atelier-citron .atelier .stamp-top small{color:#E8DEE5}
+#stamp-atelier-citron .atelier .stamp-page-head{margin-bottom:0}
+#stamp-atelier-citron .atelier h2{color:var(--p-primary)}
+#stamp-atelier-citron .atelier h2:before{background:#FFF}
+#stamp-atelier-citron .atelier .stamp-caption{color:#E8DEE5}
+#stamp-atelier-citron .atelier .stamp-period span,#stamp-atelier-citron .atelier .stamp-period button{color:#FFF}
+#stamp-atelier-citron .atelier .stamp-period button:hover{background:#FFFFFF1C}
+#stamp-atelier-citron .atelier .stamp-period button:focus-visible{outline-color:#FFF}
+#stamp-atelier-citron .atelier .stamp-toolbar{margin:18px 24px 12px}
+#stamp-atelier-citron .atelier .stamp-tab{background:var(--p-accent);color:var(--p-accentInk)}
+#stamp-atelier-citron .atelier .stamp-board{margin:0 24px;background:#FFF;min-height:330px;border-radius:12px;box-shadow:0 3px 14px #33212B0A}
+#stamp-atelier-citron .atelier .stamp-column,#stamp-atelier-citron .atelier .stamp-column:nth-child(even){background:#FFF;border-right:1px solid #E4E0E3!important}
+#stamp-atelier-citron .atelier .stamp-column:last-child{border-right:0!important}
+#stamp-atelier-citron .atelier .stamp-column-head{color:var(--p-primary);padding-top:17px;padding-bottom:13px}
+#stamp-atelier-citron .atelier .stamp-count{color:var(--p-muted)}
+#stamp-atelier-citron .atelier .stamp-item{border-bottom-color:#E5E1E4!important}
+#stamp-atelier-citron .atelier .stamp-item strong{color:var(--p-ink)}
+#stamp-atelier-citron .atelier .stamp-item>span{color:var(--p-muted)}
+#stamp-atelier-citron .atelier .stamp-item .stamp-qty span{color:var(--p-primary)}
+#stamp-atelier-citron .atelier .stamp-item:hover{background:#F4F1F3!important}
+#stamp-atelier-citron .atelier .stamp-item[aria-pressed=true]{background:#F4F1F3!important;box-shadow:inset 3px 0 var(--p-primary)!important}
+#stamp-atelier-citron .atelier .stamp-dock-wrap{margin-left:20px;margin-right:20px}
+#stamp-atelier-citron .atelier .stamp-foot{margin-left:24px;margin-right:24px}
+#stamp-atelier-citron .atelier.liquidcards .stamp-item{border:0!important;box-shadow:0 4px 11px #201b2712,0 1px 2px #201b270a!important}
+#stamp-atelier-citron .atelier.liquidcards .stamp-item:hover{background:#FFFFFF16!important}
+#stamp-atelier-citron .atelier.liquidcards .stamp-item[aria-pressed=true]{box-shadow:0 0 0 1.5px var(--p-primary),0 4px 11px #201b2712!important}
+@media(max-width:760px){#stamp-atelier-citron .atelier{padding:0 0 14px}#stamp-atelier-citron .atelier .stamp-hero{padding:18px 16px 22px}#stamp-atelier-citron .atelier .stamp-toolbar{margin-left:16px;margin-right:16px}#stamp-atelier-citron .atelier .stamp-board{margin-left:16px;margin-right:16px}#stamp-atelier-citron .atelier .stamp-foot{margin-left:16px;margin-right:16px}#stamp-atelier-citron .atelier .stamp-column:nth-child(3){border-right:0!important}}
+@media(max-width:450px){#stamp-atelier-citron .atelier .stamp-column:nth-child(3){border-right:1px solid #E4E0E3!important}#stamp-atelier-citron .atelier .stamp-column:nth-child(even){border-right:0!important}#stamp-atelier-citron .atelier .stamp-hero{padding:18px 14px 22px}#stamp-atelier-citron .atelier .stamp-board{margin-left:12px;margin-right:12px}}
+</style>
+<style>
+#stamp-atelier-citron .rowhero .stamp-hero{display:grid;grid-template-columns:150px max-content minmax(140px,1fr) max-content;align-items:center;column-gap:27px;min-height:var(--hero-height,150px);padding:24px}
+#stamp-atelier-citron .rowhero .stamp-top{margin:0;padding-right:0}
+#stamp-atelier-citron .rowhero .stamp-brand{font-size:33px;white-space:nowrap}
+#stamp-atelier-citron .rowhero .stamp-hero>h2{margin:0;padding:8px 25px 9px 17px;align-self:center}
+#stamp-atelier-citron .rowhero .stamp-hero>.stamp-caption{margin:0;padding:0;max-width:350px;line-height:1.65;color:#E8DEE5}
+#stamp-atelier-citron .rowhero .stamp-period{justify-self:end}
+#stamp-atelier-citron .rowhero .stamp-period span{font-size:15px}
+#stamp-atelier-citron .rowhero .stamp-toolbar{margin-top:20px}
+#stamp-atelier-citron .rowhero .stamp-board{background:transparent;box-shadow:none;overflow:visible;gap:12px;min-height:350px}
+#stamp-atelier-citron .rowhero .stamp-column,#stamp-atelier-citron .rowhero .stamp-column:nth-child(even){border:0!important;border-radius:10px;min-height:350px;padding:0 12px 41px}
+#stamp-atelier-citron .variant-solid.stamp-screen{--p-bg:#D5D6D9;--p-muted:#554B53;--p-ink:#2D2029;background:var(--p-bg)}
+#stamp-atelier-citron .variant-solid .stamp-column,#stamp-atelier-citron .variant-solid .stamp-column:nth-child(even){background:#FFF;box-shadow:0 1px 2px #2D202911}
+#stamp-atelier-citron .variant-solid .stamp-column-head{background:#513443;color:#FFF;padding:13px 12px;margin:0 -12px 4px;border-radius:10px 10px 0 0;min-height:48px}
+#stamp-atelier-citron .variant-solid .stamp-count{color:#EADDE5}
+#stamp-atelier-citron .variant-solid .stamp-item{border-bottom-color:#C2BAC0!important}
+#stamp-atelier-citron .variant-solid .stamp-item:hover{background:#F1EDF0!important}
+#stamp-atelier-citron .variant-glass.stamp-screen{--p-bg:#D5D6D9;--p-muted:#554B53;--p-ink:#2D2029;background:var(--p-bg)}
+#stamp-atelier-citron .variant-glass .stamp-column,#stamp-atelier-citron .variant-glass .stamp-column:nth-child(even){background:#EBECEF;box-shadow:none}
+#stamp-atelier-citron .variant-glass .stamp-column-head{padding:15px 1px 14px;margin-bottom:7px;color:#432838;min-height:48px}
+#stamp-atelier-citron .variant-glass .stamp-count{color:#554B53}
+#stamp-atelier-citron .variant-glass .stamp-item .stamp-glass-layer{background:linear-gradient(145deg,rgba(255,255,255,var(--card-glass-fill,.23)),#FFFFFF0A);border-color:#30202B26;box-shadow:inset 0 1.5px 1px #FFFFFFF0,inset 1.5px 0 2px #FFFFFFA8,inset -1px 0 1px #FFFFFF78,inset 0 -1px 1px #FFFFFF9C}
+#stamp-atelier-citron .variant-glass .stamp-item .stamp-qty{border-color:#43283829}
+#stamp-atelier-citron .variant-glass .stamp-item strong{color:#2D2029}
+#stamp-atelier-citron .variant-glass .stamp-item>span{color:#554B53}
+#stamp-atelier-citron .variant-glass .stamp-item .stamp-qty span{color:#432838}
+#stamp-atelier-citron .rowhero .stamp-item{overflow-wrap:anywhere}
+@media(max-width:900px){#stamp-atelier-citron .rowhero .stamp-hero{grid-template-columns:150px max-content 1fr;gap:18px 25px}#stamp-atelier-citron .rowhero .stamp-period{grid-column:3;grid-row:2}#stamp-atelier-citron .rowhero .stamp-hero>.stamp-caption{grid-column:1 / span 2;grid-row:2;max-width:430px}#stamp-atelier-citron .rowhero .stamp-hero>h2{grid-column:2;grid-row:1}}
+@media(max-width:760px){#stamp-atelier-citron .rowhero .stamp-board{gap:12px}#stamp-atelier-citron .rowhero .stamp-column,#stamp-atelier-citron .rowhero .stamp-column:nth-child(even){border:0!important}#stamp-atelier-citron .rowhero .stamp-hero{padding:22px 16px;grid-template-columns:150px 1fr}#stamp-atelier-citron .rowhero .stamp-period{grid-column:2;grid-row:3}#stamp-atelier-citron .rowhero .stamp-hero>.stamp-caption{grid-column:1 / -1;grid-row:2}}
+@media(max-width:450px){#stamp-atelier-citron .rowhero .stamp-hero{grid-template-columns:1fr;padding:20px 14px;row-gap:16px}#stamp-atelier-citron .rowhero .stamp-hero>h2{grid-column:1;grid-row:2;justify-self:end}#stamp-atelier-citron .rowhero .stamp-hero>.stamp-caption{grid-column:1;grid-row:3}#stamp-atelier-citron .rowhero .stamp-period{grid-column:1;grid-row:4}#stamp-atelier-citron .rowhero .stamp-board{gap:10px}#stamp-atelier-citron .rowhero .stamp-column,#stamp-atelier-citron .rowhero .stamp-column:nth-child(even){padding-left:10px;padding-right:10px}#stamp-atelier-citron .variant-solid .stamp-column-head{margin-left:-10px;margin-right:-10px;padding-left:10px;padding-right:10px}}
+</style>
+<style>
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item{border:0!important;box-shadow:0 3px 10px #43283817,0 1px 2px #43283810!important}
+#stamp-atelier-citron .variant-whiteglass .stamp-column-head{margin-bottom:12px}
+#stamp-atelier-citron .variant-whiteglass .stamp-item .stamp-glass-layer{background:linear-gradient(145deg,rgba(255,255,255,var(--card-glass-fill,.16)),#FFFFFF04);border-color:#43283826;box-shadow:inset 0 1.5px 1px #FFFFFFF2,inset 1.5px 0 2px #FFFFFFBD,inset -1px 0 1px #FFFFFF88,inset 0 -1px 1px #FFFFFFB3}
+#stamp-atelier-citron .variant-whiteglass .stamp-item .stamp-qty{border-color:#43283824}
+#stamp-atelier-citron .variant-whiteglass .stamp-item strong{color:#2D2029}
+#stamp-atelier-citron .variant-whiteglass .stamp-item>span{color:#554B53}
+#stamp-atelier-citron .variant-whiteglass .stamp-item .stamp-qty span{color:#432838}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item:hover{background:#FFFFFF12!important;box-shadow:0 4px 12px #43283820,0 1px 2px #43283810!important}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item[aria-pressed=true]{background:#FFFFFF1A!important;box-shadow:0 0 0 1.5px #432838,0 3px 10px #43283817!important}
+</style>
+
+<style>
+#stamp-atelier-citron .stamp-screen.atelier.variant-whiteglass{
+  --p-bg:#FCF3CF;--p-primary:#6C4B60;--p-muted:#61505B;--p-ink:#30232D;
+  --p-accent:#E4B63C;--p-accentInk:#30232D;--p-head:#745668;--p-head-count:#F6DA86;--p-nav-mark:#A67408;
+  background:var(--p-bg);
+}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-hero{background:var(--p-primary)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-caption{color:#FFF8FC}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-column-head{background:var(--p-head)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-count{color:var(--p-head-count)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-tab:before{background:var(--p-accent)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-tab{color:var(--p-accentInk)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-dock button[aria-current=page]:after{background:var(--p-nav-mark)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item .stamp-qty span{color:var(--p-primary)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item strong{color:var(--p-ink)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item>span{color:var(--p-muted)}
+#stamp-atelier-citron .atelier.variant-whiteglass .stamp-item[aria-pressed=true]{box-shadow:0 0 0 1.5px var(--p-primary),0 3px 10px #6C4B6017!important}
+</style>
+<div id="stamp-atelier-citron" aria-label="Kanban blanc avec cartes Liquid Glass">
+<div class="stamp-screen surface refined bear contrast liquid optics palette-screen atelier rowhero variant-solid variant-whiteglass liquidcards" data-screen="contrast" data-palette="prune" aria-label="Prune douce, citron et Liquid Glass"></div>
+</div>
+<script>
+(()=>{
+const root=document.getElementById('stamp-atelier-citron');
+const palettes={"encre":{"name":"Encre & vermillon","bg":"#E3E5E8","paper":"#FFFFFF","group":"#D2D8E1","ink":"#24334A","muted":"#465469","primary":"#283F61","accent":"#B94434","accentInk":"#FFFFFF","line":"#B2BCCB"},"prune":{"name":"Prune & safran","bg":"#E6E1E5","paper":"#FFFCFD","group":"#D4CAD2","ink":"#382735","muted":"#594856","primary":"#693B55","accent":"#D39B27","accentInk":"#382735","line":"#B8A9B3"},"cobalt":{"name":"Cobalt & mandarine","bg":"#E4E7EA","paper":"#FFFFFF","group":"#CCD5E0","ink":"#283044","muted":"#475369","primary":"#2F4EA2","accent":"#BF542D","accentInk":"#FFFFFF","line":"#AAB8CB"},"graphite":{"name":"Graphite & cerise","bg":"#E3E1E2","paper":"#FFFFFF","group":"#D1CCCE","ink":"#332C30","muted":"#594C53","primary":"#40353C","accent":"#A72D4E","accentInk":"#FFFFFF","line":"#B4ABAF"}};
+const columns=[['À commander',[['Papier Sauge','Collection Jardin calme','12 feuilles'],['Ruban écru','Largeur 10 mm','3 mètres']]],['Commandé',[['Papier Pétale','Collection Douce saison','8 feuilles']]],['Reçu',[['Papier Lin','Collection Jardin calme','16 feuilles'],['Ruban olive','Largeur 6 mm','2 mètres']]],['À traiter',[['Papier Terracotta','Collection Douce saison','6 feuilles']]],['Traité',[['Papier Crème','Collection Jardin calme','10 feuilles']]]];
+const nav=[['users','Clientes'],['layers','Catalogue'],['shopping-bag','Commandes'],['scissors','Fournitures'],['archive','Stocks'],['chart-no-axes-combined','Bilan']];
+root.querySelectorAll('[data-screen]').forEach(screen=>{
+const palette=palettes[screen.dataset.palette];if(!screen.classList.contains('atelier'))Object.entries(palette).forEach(([key,value])=>{if(key!=='name')screen.style.setProperty('--p-'+key,value);});
+screen.innerHTML=`<header class="stamp-top"><div class="stamp-brand">Stamp App</div><small>L’atelier · Gestion du scrapbooking</small></header><div class="stamp-page-head"><div><h2>Fournitures</h2><p class="stamp-caption">Tout le nécessaire, du papier commandé au travail terminé.</p></div><div class="stamp-period"><button type="button" aria-label="Mois précédent"><i data-lucide="chevron-left" aria-hidden="true"></i></button><span>Octobre 2026</span><button type="button" aria-label="Mois suivant"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div></div><div class="stamp-toolbar"><div class="stamp-summary"><span><b>62</b> feuilles</span><span><b>5 m</b> de ruban</span><span><b>7</b> piles</span></div><span class="stamp-tab">Mon atelier en cours</span></div><main class="stamp-board" aria-label="Traitement des cartes du Kanban">${columns.map(([name,items])=>`<section class="stamp-column" aria-label="${name}"><h3 class="stamp-column-head">${name}<span class="stamp-count">${items.length}</span></h3>${items.map(([title,subtitle,qty])=>`<button type="button" class="stamp-item cursor-interaction" data-title="${title}" data-qty="${qty}"><strong>${title}</strong><span>${subtitle}</span><span class="stamp-qty"><span>${qty}</span><i data-lucide="arrow-up-right" aria-hidden="true"></i></span></button>`).join('')}</section>`).join('')}</main><div class="stamp-dock-wrap"><nav class="stamp-dock" aria-label="Navigation principale">${nav.map(([icon,label])=>`<button type="button" class="cursor-interaction" ${label==='Fournitures'?'aria-current="page"':''}><i data-lucide="${icon}" aria-hidden="true"></i>${label}</button>`).join('')}</nav><span class="stamp-scissors" aria-hidden="true"><i data-lucide="scissors"></i></span></div><footer class="stamp-foot"><span>Octobre · Vue mensuelle</span><span data-feedback aria-live="polite">Données de démonstration</span></footer><div class="stamp-detail" hidden><section class="stamp-detail-content" role="dialog" aria-modal="true" aria-label="Aperçu de pile"><h3></h3><p></p><button type="button" class="cursor-interaction" data-close>Fermer l’aperçu</button></section></div>`;
+if(screen.classList.contains('atelier')){
+const hero=document.createElement('div');hero.className='stamp-hero';hero.setAttribute('aria-label','Composition du bandeau');screen.prepend(hero);
+hero.append(screen.querySelector('.stamp-top'),screen.querySelector('.stamp-page-head'));
+if(screen.classList.contains('rowhero')){
+const brandRow=hero.querySelector('.stamp-top');brandRow.querySelector('small')?.remove();
+const label=hero.querySelector('h2'),caption=hero.querySelector('.stamp-caption'),period=hero.querySelector('.stamp-period');
+hero.replaceChildren(brandRow,label,caption,period);
+}
+}
+const feedback=screen.querySelector('[data-feedback]');
+if(screen.dataset.screen==='refined'||screen.dataset.screen==='bear'||screen.dataset.screen==='contrast'){
+  screen.querySelector('.stamp-brand').innerHTML='Stamp <small>APP</small>';
+  screen.querySelector('.stamp-tab').textContent='Mon atelier';
+  screen.querySelector('.stamp-caption').textContent='Les fournitures du mois, de la commande au travail terminé.';
+}
+if(screen.dataset.screen==='contrast')screen.querySelector('.stamp-brand').textContent='Stamp App';
+screen.querySelector('.stamp-summary b').textContent='52';
+if(screen.classList.contains('bear')){
+screen.querySelectorAll('.stamp-item').forEach(button=>button.setAttribute('aria-pressed','false'));
+}
+screen.querySelectorAll('.stamp-dock button').forEach(button=>button.addEventListener('click',()=>{feedback.textContent=button.textContent.trim()+' · aperçu non inclus dans cette maquette';}));
+screen.querySelectorAll('.stamp-period button').forEach(button=>button.addEventListener('click',()=>{feedback.textContent='Comparaison visuelle sur le même mois : octobre 2026';}));
+const detail=screen.querySelector('.stamp-detail');let opener;
+screen.querySelectorAll('.stamp-item').forEach(button=>button.addEventListener('click',()=>{opener=button;if(screen.classList.contains('bear')){screen.querySelectorAll('.stamp-item').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));}detail.querySelector('h3').textContent=button.dataset.title;detail.querySelector('p').textContent=button.dataset.qty+' · Aperçu visuel de la pile. Le parcours métier reste à conserver.';detail.hidden=false;detail.querySelector('[data-close]').focus();}));
+const close=()=>{detail.hidden=true;if(opener)opener.focus();};
+detail.querySelector('[data-close]').addEventListener('click',close);
+detail.addEventListener('click',event=>{if(event.target===detail)close();});
+screen.addEventListener('keydown',event=>{if(!detail.hidden){if(event.key==='Escape')close();if(event.key==='Tab'){event.preventDefault();detail.querySelector('[data-close]').focus();}}});
+const state={heroHeight:150,glassFill:16};
+const render=()=>{screen.style.setProperty('--hero-height',state.heroHeight+'px');screen.style.setProperty('--card-glass-fill',String(state.glassFill/100));};
+if(globalThis.Tweak){
+const heroTweak=new Tweak({container:screen.querySelector('.stamp-hero'),onChange:render});heroTweak.addSlider(state,'heroHeight',{label:'Hauteur du bandeau',min:120,max:180,step:2,unit:'px'});
+if(screen.classList.contains('variant-whiteglass')){const glassTweak=new Tweak({container:screen.querySelector('.stamp-board'),onChange:render});glassTweak.addSlider(state,'glassFill',{label:'Voile du verre',min:5,max:40,unit:'%'});}
+}
+
+});
+if(globalThis.lucide)lucide.createIcons({attrs:{width:16,height:16}});
+// Original edge-local lens approximation, informed by kube.io's refraction study.
+// Text remains on an unfiltered foreground; only the live backdrop is displaced.
+root.querySelectorAll('.optics .stamp-dock, .palette-screen .stamp-item').forEach((dock,index)=>{
+const layer=document.createElement('span');layer.className='stamp-glass-layer';layer.setAttribute('aria-hidden','true');dock.prepend(layer);
+const chromium=/Chrom(e|ium)\//.test(navigator.userAgent)&&!(/EdgiOS|CriOS/.test(navigator.userAgent));
+if(!chromium)return;
+const ns='http://www.w3.org/2000/svg';
+const svg=document.createElementNS(ns,'svg');svg.setAttribute('width','0');svg.setAttribute('height','0');svg.setAttribute('aria-hidden','true');svg.style.position='absolute';
+const defs=document.createElementNS(ns,'defs');svg.append(defs);root.append(svg);
+const id='stamp-lens-'+index;let key='';let frame;
+const build=()=>{
+const box=dock.getBoundingClientRect();if(!box.width||!box.height)return;
+const w=Math.round(box.width),h=Math.round(box.height),r=Math.min(parseFloat(getComputedStyle(dock).borderRadius)||23,h/2);
+const next=[w,h,r].join(':');if(next===key)return;key=next;
+const pad=14;const density=Math.min(2,1200/w);const canvas=document.createElement('canvas');canvas.width=Math.ceil((w+pad*2)*density);canvas.height=Math.ceil((h+pad*2)*density);
+const ctx=canvas.getContext('2d');if(!ctx)return;const map=ctx.createImageData(canvas.width,canvas.height);const scale=22;
+for(let y=0;y<canvas.height;y++)for(let x=0;x<canvas.width;x++){
+const px=(x+.5)/density-pad-w/2,py=(y+.5)/density-pad-h/2;
+const qx=Math.abs(px)-(w/2-r),qy=Math.abs(py)-(h/2-r),ox=Math.max(qx,0),oy=Math.max(qy,0);
+const distance=Math.hypot(ox,oy)+Math.min(Math.max(qx,qy),0)-r;
+let nx=0,ny=0;if(ox+oy>0){const len=Math.hypot(ox,oy);nx=Math.sign(px)*ox/len;ny=Math.sign(py)*oy/len;}else if(qx>qy)nx=Math.sign(px);else ny=Math.sign(py);
+const depth=Math.max(0,-distance);const bend=distance>0?0:8.2*Math.exp(-depth/3.5)*(1-Math.exp(-depth/1.1));
+const offset=(y*canvas.width+x)*4;
+map.data[offset]=Math.round(127.5+255*nx*bend/scale);map.data[offset+1]=Math.round(127.5+255*ny*bend/scale);map.data[offset+2]=128;map.data[offset+3]=255;
+}
+ctx.putImageData(map,0,0);
+const filter=document.createElementNS(ns,'filter');filter.id=id;filter.setAttribute('filterUnits','userSpaceOnUse');filter.setAttribute('x','-14');filter.setAttribute('y','-14');filter.setAttribute('width',String(w+28));filter.setAttribute('height',String(h+28));filter.setAttribute('color-interpolation-filters','sRGB');
+const image=document.createElementNS(ns,'feImage');image.setAttribute('href',canvas.toDataURL());image.setAttribute('x',String(-pad));image.setAttribute('y',String(-pad));image.setAttribute('width',String(w+pad*2));image.setAttribute('height',String(h+pad*2));image.setAttribute('preserveAspectRatio','none');image.setAttribute('result','lens');filter.append(image);
+const displacement=document.createElementNS(ns,'feDisplacementMap');displacement.setAttribute('in','SourceGraphic');displacement.setAttribute('in2','lens');displacement.setAttribute('scale',String(scale));displacement.setAttribute('xChannelSelector','R');displacement.setAttribute('yChannelSelector','G');filter.append(displacement);
+const blur=document.createElementNS(ns,'feGaussianBlur');blur.setAttribute('stdDeviation','.45');filter.append(blur);
+defs.replaceChildren(filter);layer.style.backdropFilter='url(#'+id+')';layer.style.webkitBackdropFilter='url(#'+id+')';
+};
+const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(build);};
+const observer=new ResizeObserver(schedule);observer.observe(dock);schedule();
+window.addEventListener('pagehide',()=>{observer.disconnect();cancelAnimationFrame(frame);},{once:true});
+});
+})();
+</script>
+
+
+
+
