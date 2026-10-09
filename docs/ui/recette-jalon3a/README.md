@@ -1,5 +1,9 @@
 # Recette Clientes — lot 3A
 
+Cette recette conserve les captures historiques du tableau validé initialement.
+Sam a ensuite demandé des fiches inspirées de Catalogues : la
+[recette d’harmonisation](../recette-fiches/README.md) décrit le rendu actuel.
+
 Réalisation locale du 9 octobre 2026, après autorisation de Sam de passer au lot
 suivant. **Sam a validé le rendu final le 9 octobre 2026 et autorisé les commits
 et le push.** Catalogues et les lots suivants ne sont pas engagés ;

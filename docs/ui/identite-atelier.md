@@ -57,8 +57,20 @@ pas une exigence de la version validée.
 | Jaune accent | `#E4B63C` | Étiquette « Mon atelier », trait du logo |
 | Jaune des compteurs | `#F6DA86` | Compteurs sur les en-têtes prune |
 | Or du repère actif | `#A67408` | Petit trait du dock, pas un fond opaque |
-| Citron de sélection | `#FFF8DE` | Ligne sélectionnée et rappel ponctuel |
+| Citron doux | `#FFF8DE` | Rappel ponctuel et contrôles secondaires |
+| Prune de survol | `#F0E7ED` | Survol commun des lignes et des fiches |
+| Prune de sélection | `#E6D6E1` | Élément sélectionné avec trait prune à gauche |
 | Séparateur de tableau | `#EAE3E8` | Division discrète, pas contour de carte |
+
+Sam a validé le 9 octobre 2026 la proposition prune de survol/sélection, pour
+mieux distinguer les lignes du fond citron. Cette décision remplace le citron
+de sélection des maquettes initiales ; leurs fichiers de référence restent
+historiques. Les tokens applicatifs dédiés sont `--surface-hover` et
+`--surface-selected` ; `--primary-light` garde ses autres usages.
+Sam a ensuite validé la composition Catalogues et demandé d’aligner les listes
+Clientes/Commandes : fiches horizontales compactes, sans en-tête de colonnes
+prune ni colonnes fixes. Les onglets restent dans l’en-tête blanc et le détail
+sélectionné à droite ; voir la [recette](recette-fiches/README.md).
 
 Le jaune ne devient pas une couleur de texte sur blanc. Les couleurs
 d’erreur, de succès et d’avertissement restent sémantiques, associées à un
@@ -68,7 +80,10 @@ Repères de contraste calculés sur aplats : texte secondaire/citron 6,72:1,
 blanc/prune douce 7,47:1, compteur jaune/en-tête prune 4,67:1,
 repère or/citron 3,68:1. Ces mesures ne valident pas à elles seules le verre,
 les bordures de champs ni tous les états interactifs : les contrôler sur
-leur fond réellement composé lors de l’implémentation.
+leur fond réellement composé lors de l’implémentation. Pour les nouveaux états
+approuvés le 9 octobre : texte secondaire/survol prune 6,18:1, texte
+secondaire/sélection prune 5,37:1, repère prune/sélection 5,36:1, statut
+publié/sélection 7,17:1 (aplats).
 
 ## Typographie
 
@@ -119,7 +134,8 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
 
 - Colonnes et panneaux blancs, bien délimités par leur surface et les
   espacements, sans gros cadre de couleur.
-- Tableau continu : séparateurs fins, sélection citron et petit repère jaune,
+- Tableau continu : séparateurs fins, survol prune pâle, sélection prune plus
+  soutenue et petit repère prune,
   pas une carte en verre par cellule ou par ligne.
 - Cartes Kanban : relief léger, bord optique, voile blanc de référence 16 %,
   contenu net ; ne pas teinter chaque carte en prune ou en jaune.

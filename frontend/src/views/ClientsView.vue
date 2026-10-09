@@ -29,19 +29,18 @@
             <button v-if="activeFilterCount" type="button" class="client-filter-reset" @click="resetFilters">Effacer les filtres</button>
             <Button v-else-if="archiveFilter === 'actifs'" @click="openCreateModal">Ajouter une cliente</Button>
           </div>
-          <div v-else class="clients-table-wrapper">
-            <table class="clients-table"><caption class="sr-only">Clientes {{ archiveFilter === 'actifs' ? 'actives' : 'archivées' }} : nom, coordonnées et favori</caption>
-              <thead><tr><th scope="col">Cliente</th><th scope="col">Coordonnées</th><th scope="col" class="favorite-column">Favori</th></tr></thead>
-              <tbody><tr v-for="client in filteredClients" :key="client.id" :class="{ 'client-selected': isViewModalOpen && selectedClient?.id === client.id }" @click="viewClient(client)">
-                <th scope="row"><button :id="`client-open-${client.id}`" type="button" class="client-open" :aria-label="`Voir la fiche de ${client.prenom} ${client.nom}`" :aria-pressed="isViewModalOpen && selectedClient?.id === client.id" :disabled="archiving || pointsSaving" @click.stop="viewClient(client)"><span class="client-name">{{ client.prenom }} {{ client.nom }}</span><span v-if="client.ville" class="client-city">{{ client.ville }}</span></button></th>
-                <td class="client-contact"><span v-if="client.email">{{ client.email }}</span><span v-if="client.telephone_raw">{{ client.telephone_raw }}</span><span v-if="!client.email && !client.telephone_raw" class="client-city">Non renseignées</span></td>
-                <td class="favorite-column"><button type="button" class="favorite-btn" :class="{ 'favorite-btn-active': client.contacter === 1 }" :disabled="favoriteBusy(client.id) || archiving || pointsSaving" :aria-label="client.contacter === 1 ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`" :aria-pressed="client.contacter === 1" @click.stop="toggleFavoriteFromList(client)"><svg aria-hidden="true" viewBox="0 0 24 24" :fill="client.contacter === 1 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button></td>
-              </tr></tbody>
-            </table>
-          </div>
+          <ul v-else class="clients-list" aria-label="Clientes">
+            <li v-for="client in filteredClients" :key="client.id" class="client-list-item" :class="{ 'client-selected': isViewModalOpen && selectedClient?.id === client.id }">
+              <button :id="`client-open-${client.id}`" type="button" class="client-open" :aria-label="`Voir la fiche de ${client.prenom} ${client.nom}`" :aria-pressed="isViewModalOpen && selectedClient?.id === client.id" :disabled="archiving || pointsSaving" @click="viewClient(client)">
+                <span class="client-summary"><span class="client-name">{{ client.prenom }} {{ client.nom }}</span><span v-if="client.ville" class="client-city">{{ client.ville }}</span></span>
+                <span class="client-contact"><span v-if="client.email">{{ client.email }}</span><span v-if="client.telephone_raw">{{ client.telephone_raw }}</span><span v-if="!client.email && !client.telephone_raw" class="client-city">Coordonnées non renseignées</span></span>
+              </button>
+              <button type="button" class="favorite-btn" :class="{ 'favorite-btn-active': client.contacter === 1 }" :disabled="favoriteBusy(client.id) || archiving || pointsSaving" :aria-label="client.contacter === 1 ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`" :aria-pressed="client.contacter === 1" @click="toggleFavoriteFromList(client)"><svg aria-hidden="true" viewBox="0 0 24 24" :fill="client.contacter === 1 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+            </li>
+          </ul>
         </div>
       </section>
-      <aside v-if="!isViewModalOpen" class="client-placeholder"><h2>La fiche de ta cliente</h2><p>Sélectionne une ligne pour retrouver ses coordonnées, ses préférences et ses commandes.</p></aside>
+      <aside v-if="!isViewModalOpen" class="client-placeholder"><h2>La fiche de ta cliente</h2><p>Sélectionne une fiche pour retrouver ses coordonnées, ses préférences et ses commandes.</p></aside>
 
       <!-- Panel consultation client -->
       <SlidePanel
@@ -782,6 +781,7 @@ onMounted(async () => {
 .clients-toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
 .clients-workspace { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 16px; align-items: start; }
 .clients-list-panel, .client-placeholder { min-width: 0; background: var(--card); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-sm); }
+.clients-list-panel { overflow: hidden; }
 .client-placeholder { padding: 24px 18px; }
 .client-placeholder h2 { color: var(--primary); font-size: var(--font-size-lg); margin-bottom: 12px; }
 .client-placeholder p { color: var(--text-secondary); line-height: 1.65; }
@@ -806,21 +806,20 @@ onMounted(async () => {
 .favorites-filter { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text-secondary); font-size: var(--font-size-sm); cursor: pointer; }
 .favorites-filter input { accent-color: var(--primary); width: 17px; height: 17px; }
 .client-filter-reset { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: var(--font-size-xs); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
-.clients-table-wrapper { padding-bottom: 16px; }
-.clients-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: var(--font-size-sm); }
-.clients-table thead th { padding: 12px; color: var(--primary-foreground); background: var(--atelier-header); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); text-align: left; }
-.clients-table thead th:first-child { width: 40%; padding-left: 18px; }
-.clients-table tbody th, .clients-table td { padding: 9px 12px; height: 63px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
-.clients-table tbody th { padding-left: 18px; font-weight: var(--font-weight-normal); }
-.clients-table .favorite-column { width: 72px; text-align: center; }
-.clients-table tbody tr { cursor: pointer; }
-.clients-table tbody tr:hover, .clients-table .client-selected { background: var(--primary-light); }
-.client-selected > th { box-shadow: inset 3px 0 var(--accent); }
-.client-open { display: grid; gap: 3px; align-content: center; width: 100%; min-height: 44px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
-.client-name { font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
-.client-city { font-size: var(--font-size-xs); color: var(--text-secondary); }
-.client-contact > span { display: block; overflow-wrap: anywhere; }
-.favorite-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.clients-list { list-style: none; margin: 0; padding: 0; }
+.client-list-item { position: relative; }
+.client-list-item + .client-list-item { border-top: 1px solid var(--border-light); }
+.client-list-item:hover { background: var(--surface-hover); }
+.client-list-item.client-selected { background: var(--surface-selected); box-shadow: inset 3px 0 var(--primary); }
+.client-open { display: grid; align-content: center; min-height: 72px; gap: 6px; width: 100%; padding: 12px 72px 12px 20px; border: 0; border-radius: 0; background: transparent; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.client-open:focus-visible { outline-offset: -4px; }
+.client-open:disabled { cursor: wait; }
+.client-summary, .client-contact { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.client-name { font-size: var(--font-size-base); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.client-city { min-width: 0; overflow-wrap: anywhere; }
+.client-city, .client-contact { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.client-contact > span { min-width: 0; overflow-wrap: anywhere; }
+.favorite-btn { position: absolute; right: 14px; top: calc(50% - 22px); display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
 .favorite-btn svg { width: 18px; height: 18px; }
 .favorite-btn-active, .favorite-btn:hover { color: var(--primary); background: var(--primary-light); }
 .favorite-btn:disabled { opacity: .6; cursor: wait; }
@@ -938,5 +937,5 @@ onMounted(async () => {
 
 
 @media (max-width: 900px) { .clients-workspace { grid-template-columns: 1fr; } .client-placeholder { display: none; } }
-@media (max-width: 480px) { .clients-list-heading { padding-inline: 10px; gap: 0 6px; } .clients-tabs { gap: 8px; } .clients-tabs button { padding-inline: 4px; } .clients-list-tools { gap: 6px; } .clients-filters { padding: 12px; } .clients-table thead th, .clients-table tbody th, .clients-table td { padding-inline: 7px; } .clients-table thead th:first-child, .clients-table tbody th { padding-left: 12px; } .clients-table .favorite-column { width: 58px; padding-inline: 5px; } .form-row { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .clients-list-heading { padding-inline: 10px; gap: 0 6px; } .clients-tabs { gap: 8px; } .clients-tabs button { padding-inline: 4px; } .clients-list-tools { gap: 6px; } .clients-filters { padding: 12px; } .client-open { padding-left: 16px; } .form-row { grid-template-columns: 1fr; } }
 </style>

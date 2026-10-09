@@ -90,28 +90,18 @@
         <Button variant="secondary" @click="resetFilters">Effacer les filtres</Button>
       </div>
 
-      <div v-else class="commandes-table-wrapper">
-        <table class="commandes-table">
-          <caption class="sr-only">Commandes kits et hors-kit : cliente, type, montant et règlement</caption>
-          <thead><tr><th scope="col">Cliente</th><th scope="col">Type</th><th scope="col" class="col-money">Montant</th><th scope="col">Règlement</th></tr></thead>
-          <tbody>
-            <tr v-for="commande in visibleCommandes" :key="commande.id" :class="{ 'commande-selected': isViewPanelOpen && detailCommandeId === commande.id }" @click="viewCommande(commande)">
-              <th scope="row">
-                <button type="button" class="commande-open" :id="`commande-open-${commande.id}`" :aria-label="`Voir la commande #${commande.id} de ${commande.client?.prenom || commande.client_prenom || ''} ${commande.client?.nom || commande.client_nom || ''}`" :aria-pressed="isViewPanelOpen && detailCommandeId === commande.id" @click.stop="viewCommande(commande)">
-                  <span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span>
-                  <span class="commande-reference">#{{ commande.id }} · {{ formatDate(commande.created_at) }}</span>
-                </button>
-              </th>
-              <td><span class="commande-type">{{ commande.type === 'kit' ? `Kit ${commande.format_type || ''}` : 'Hors kit' }}</span></td>
-              <td class="col-money">{{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}</td>
-              <td><span :class="['status-badge', commande.reglee ? 'status-badge-regle' : 'status-badge-attente']">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <ul v-else class="commandes-list" aria-label="Commandes">
+        <li v-for="commande in visibleCommandes" :key="commande.id">
+          <button type="button" class="commande-open" :id="`commande-open-${commande.id}`" :aria-label="`Voir la commande #${commande.id} de ${commande.client?.prenom || commande.client_prenom || ''} ${commande.client?.nom || commande.client_nom || ''}`" :aria-pressed="isViewPanelOpen && detailCommandeId === commande.id" @click="viewCommande(commande)">
+            <span class="commande-summary"><span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span><span class="commande-list-status" :class="{ 'commande-list-reglee': commande.reglee }">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span></span>
+            <span class="commande-metadata"><span class="commande-reference">#{{ commande.id }} · {{ formatDate(commande.created_at) }}</span><span>{{ commande.type === 'kit' ? `Kit ${commande.format_type || ''}` : 'Hors kit' }}</span><span v-if="commande.type === 'kit' && commande.catalogue_titre">{{ commande.catalogue_titre }}</span><span class="commande-list-price">{{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}</span></span>
+            <svg class="commande-open-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
+          </button>
+        </li>
+      </ul>
       </section>
       <aside v-if="!isViewPanelOpen" class="commande-placeholder" aria-label="Détail de la commande">
-        <h2>Le détail de ta commande</h2><p>Sélectionne une ligne pour consulter sa composition, son prix et son règlement.</p>
+        <h2>Le détail de ta commande</h2><p>Sélectionne une fiche pour consulter sa composition, son prix et son règlement.</p>
       </aside>
 
       <!-- SlidePanel détail commande -->
@@ -621,28 +611,25 @@ onMounted(async () => {
 .header-actions, .empty-state-actions { display: flex; flex-wrap: wrap; gap: var(--spacing-3); }
 .commandes-workspace { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: var(--spacing-4); align-items: start; }
 .commandes-list-panel, .commande-placeholder { min-width: 0; background: var(--card); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-sm); }
+.commandes-list-panel { overflow: hidden; }
 .commandes-list-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 0 14px; border-bottom: 1px solid var(--border-light); }
 .commande-placeholder { display: grid; gap: var(--spacing-3); padding: 24px 18px; }
 .commande-placeholder h2 { color: var(--primary); font-size: var(--font-size-lg); }
 .commande-placeholder p { color: var(--text-secondary); line-height: 1.65; }
-.commandes-table-wrapper { min-width: 0; padding-bottom: var(--spacing-4); }
-.commandes-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: var(--font-size-sm); }
-.commandes-table thead th { padding: 12px; text-align: left; background: var(--atelier-header); color: var(--primary-foreground); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
-.commandes-table thead th:first-child { width: 40%; padding-left: 18px; }
-.commandes-table thead th:nth-child(2) { width: 16%; }
-.commandes-table thead th:nth-child(3) { width: 20%; }
-.commandes-table thead th:last-child { width: 24%; padding-right: 18px; }
-.commandes-table tbody th, .commandes-table td { height: 63px; padding: 9px 12px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
-.commandes-table tbody th { padding-left: 18px; font-weight: var(--font-weight-normal); }
-.commandes-table td:last-child { padding-right: 18px; }
-.commandes-table tbody tr { cursor: pointer; }
-.commandes-table tbody tr:hover, .commandes-table .commande-selected { background: var(--primary-light); }
-.commande-selected > th { box-shadow: inset 3px 0 var(--accent); }
-.commande-open { display: grid; align-content: center; min-height: 44px; gap: 3px; width: 100%; border: 0; border-radius: var(--border-radius-xs); background: transparent; color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; }
-.client-name { font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
-.commande-reference { font-size: var(--font-size-xs); color: var(--text-secondary); }
-.commandes-table .col-money { text-align: right; font-variant-numeric: tabular-nums; }
-.commande-type { color: var(--text-secondary); }
+.commandes-list { list-style: none; margin: 0; padding: 0; }
+.commandes-list li + li { border-top: 1px solid var(--border-light); }
+.commande-open { position: relative; display: grid; align-content: center; min-height: 72px; gap: 6px; width: 100%; padding: 12px 44px 12px 20px; border: 0; border-radius: 0; background: var(--card); color: var(--text-primary); text-align: left; font: inherit; cursor: pointer; }
+.commande-open:hover { background: var(--surface-hover); }
+.commande-open[aria-pressed="true"] { background: var(--surface-selected); box-shadow: inset 3px 0 var(--primary); }
+.commande-open:focus-visible { outline-offset: -4px; }
+.commande-summary, .commande-metadata { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.client-name { font-size: var(--font-size-base); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.commande-list-status, .commande-metadata { color: var(--text-secondary); font-size: var(--font-size-xs); }
+.commande-list-reglee { color: var(--success-dark); }
+.commande-metadata > span { min-width: 0; overflow-wrap: anywhere; }
+.commande-metadata > span + span::before { content: '·'; margin-right: 12px; color: var(--text-secondary); font-weight: 400; }
+.commande-list-price { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.commande-open-chevron { position: absolute; top: calc(50% - 9px); right: 18px; width: 18px; height: 18px; color: var(--primary); }
 .form-error-global { margin: var(--spacing-4) 0; padding: var(--spacing-3); border-radius: var(--border-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
 .status-badge, .status-badge-lg, .type-badge { display: inline-flex; padding: 4px 8px; border-radius: var(--border-radius-sm); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
 .status-badge-regle { background: var(--success-light); color: var(--success-dark); }
@@ -682,12 +669,7 @@ onMounted(async () => {
   .commandes-filters { padding: 12px; }
   .header-actions { width: 100%; }
   .header-actions > :deep(button) { flex: 1 1 140px; }
-  .commandes-table thead th, .commandes-table tbody th, .commandes-table td { padding-inline: 7px; }
-  .commandes-table thead th:first-child, .commandes-table tbody th { padding-left: 12px; width: 36%; }
-  .commandes-table thead th:nth-child(2) { width: 16%; }
-  .commandes-table thead th:nth-child(3) { width: 23%; }
-  .commandes-table thead th:last-child { width: 25%; }
-  .commandes-table td:last-child, .commandes-table thead th:last-child { padding-right: 12px; }
+  .commande-open { padding-left: 16px; }
   .status-badge { padding: 3px 4px; }
   .detail-row { flex-wrap: wrap; }
 }

@@ -1,5 +1,9 @@
 # Jalon 2 — Commandes
 
+Cette recette conserve les captures historiques du tableau validé initialement.
+Sam a ensuite demandé des fiches inspirées de Catalogues : la
+[recette d’harmonisation](../recette-fiches/README.md) décrit le rendu actuel.
+
 État au 9 octobre 2026 : rendu Commandes validé par Sam avec « Ouis beaucoup
 mieux, je valide commande, commits et push, puis cadre la prochaine phase ».
 Cette validation couvre les onglets intégrés, les filtres repliables et la

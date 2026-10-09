@@ -37,7 +37,7 @@ Les valeurs exactes figurent dans les [tokens documentaires](tokens-reference.js
   par écran ni l’import des styles expérimentaux des prototypes.
 - Fournitures : cinq colonnes blanches, en-têtes prune, compteurs jaunes,
   cartes Liquid Glass lisibles, alertes et commandes de déplacement intactes.
-- Commandes : deux pages de tableaux kits/hors-kit et détail utilisant l’espace
+- Commandes : deux pages de fiches kits/hors-kit et détail utilisant l’espace
   latéral, avec les vraies informations et actions ; recherche par cliente et
   filtre catalogue pour les kits, autorisés par Sam le 9 octobre 2026.
 - Déclinaison cohérente sur Clientes, Catalogues et leur détail, Papiers,
@@ -128,6 +128,9 @@ pas dissimulées derrière une approximation de la maquette.
 La préparation documentaire initiale ne modifiait aucun fichier applicatif.
 Les deux premiers jalons transposent désormais le socle, Fournitures et
 Commandes dans les modules concernés. Le lot Clientes 3A est validé visuellement par Sam ;
-Catalogues, Papiers et l’harmonisation des formulaires restent à traiter.
+la composition Catalogues et Paramètres 3B.1 est validée par Sam :
+[recette](recette-jalon3b1/README.md). Les listes Clientes et Commandes sont
+harmonisées sur ses fiches allégées : [recette](recette-fiches/README.md). L’éditeur Catalogues, Papiers
+et l’harmonisation des formulaires restent à traiter.
 La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.

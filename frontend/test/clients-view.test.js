@@ -41,9 +41,11 @@ async function renderClients(overrides = {}) {
   return (await renderToString(app)).replace(/<!--[^]*?-->/g, '');
 }
 
-test('le tableau conserve les coordonnées complètes et une sélection native, avec filtres fermés', async () => {
+test('la liste de fiches conserve les coordonnées complètes et une sélection native, avec filtres fermés', async () => {
   const html = await renderClients();
-  for (const text of ['<table', 'scope="row"', 'client-open-1', 'cliente@example.test', '06 12 34 56 78', 'aria-selected="true"', 'aria-expanded="false"']) assert.ok(html.includes(text), text);
+  for (const text of ['class="clients-list"', 'class="client-summary"', 'client-open-1', 'cliente@example.test', '06 12 34 56 78', 'aria-selected="true"', 'aria-expanded="false"']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('<table'));
+  assert.ok(html.includes('aria-label="Retirer Éléonore Recette des favoris"'));
   assert.match(html, /id="clients-filter-fields"[^>]*style="display:none;"/);
 });
 

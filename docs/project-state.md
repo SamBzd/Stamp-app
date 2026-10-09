@@ -40,7 +40,13 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
   Le lot UI Clientes 3A est validé visuellement par Sam ; la recette Mac/Safari
   reste ouverte :
-  voir [le parcours Clientes](clients-ui.md).
+  voir [le parcours Clientes](clients-ui.md). La liste Catalogues et les
+  Paramètres 3B.1 sont réalisés localement ; Sam a validé la composition avec
+  fiches allégées et consultation à droite. À sa demande, les listes Clientes
+  et Commandes reprennent ce format sans en-tête prune ni colonnes fixes ;
+  Sam a validé ces listes et autorisé les commits/push sur la branche UI :
+  [recette d’harmonisation](ui/recette-fiches/README.md) ;
+  l’éditeur reste inchangé : [recette 3B.1](ui/recette-jalon3b1/README.md).
   Les stocks et leurs provenances historiques (#10) sont alignés sur les
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
   Le bilan (#11) utilise les prix appliqués historiques et expose ses montants

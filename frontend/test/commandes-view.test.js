@@ -53,9 +53,10 @@ async function renderCommande(commande, search = '') {
 }
 const historique = commande => commande.type === 'kit' ? historicalComposition(commande) : [];
 
-test('la liste continue expose les informations réelles et un bouton natif de sélection', async () => {
+test('la liste de fiches expose les informations réelles et un bouton natif de sélection', async () => {
   const html = await renderCommande(kit);
-  for (const text of ['<table', 'scope="col"', 'aria-pressed="true"', 'Nom très long sans troncature', '#12', 'Kit A', 'En attente']) assert.ok(html.includes(text), text);
+  for (const text of ['class="commandes-list"', 'class="commande-metadata"', 'aria-pressed="true"', 'Nom très long sans troncature', '#12', 'Kit A', 'En attente']) assert.ok(html.includes(text), text);
+  assert.ok(!html.includes('<table'));
   assert.ok(!html.includes('commande-open-13'));
   assert.ok(!html.includes('Restant'));
   assert.ok(html.includes('aria-expanded="false"'));

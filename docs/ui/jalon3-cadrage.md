@@ -5,7 +5,12 @@ autorisation de commits/push par Sam. Ce document prépare la prochaine phase ;
 Sam a depuis validé visuellement le lot 3A Clientes et autorisé ses commits/push :
 voir la [recette 3A](recette-jalon3a/README.md). La prochaine phase est précisée
 dans le [cadrage Catalogues 3B](jalon3b-cadrage.md) ;
-les lots 3B à 3D ne sont pas engagés. Sam a demandé une révision de la fiche :
+la liste et les Paramètres 3B.1 sont réalisés localement après autorisation,
+leur composition est validée par Sam : [recette 3B.1](recette-jalon3b1/README.md).
+Sam a demandé d’appliquer les fiches Catalogues à Clientes/Commandes, sans
+en-tête prune ni colonnes fixes ; il a validé ces listes et autorisé leurs
+commits/push : [recette](recette-fiches/README.md).
+L’éditeur 3B.2 et les lots 3C/3D restent à traiter. Sam a demandé une révision de la fiche :
 en-tête simplifié, points modifiables inline et historique compact avec liens
 vers les commandes concernées.
 La [recette Safari/Mac](recette-jalon2/README.md) reste ouverte.

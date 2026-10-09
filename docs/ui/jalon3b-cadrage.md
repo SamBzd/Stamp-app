@@ -2,8 +2,11 @@
 
 Cadrage préparé le 9 octobre 2026 après validation visuelle du lot Clientes 3A
 par Sam et autorisation de commit/push. Il définit la prochaine phase proposée ;
-aucune interface Catalogues n’est modifiée par ce document. Les compositions
-restent à présenter avant généralisation. Voir le [plan du jalon 3](jalon3-cadrage.md).
+Sam a ensuite autorisé la réalisation avec « Au boulot ». La liste et les
+Paramètres 3B.1 sont réalisés localement ; leur composition a été validée
+visuellement par Sam :
+[recette 3B.1](recette-jalon3b1/README.md). L’éditeur 3B.2 reste à traiter après
+l’harmonisation des listes Clientes/Commandes, désormais validée par Sam. Voir le [plan du jalon 3](jalon3-cadrage.md).
 
 ## Objectif
 
@@ -17,9 +20,11 @@ Les routes actuelles et les fonctions métier restent les références :
 
 Première réalisation locale complète à présenter à Sam avant l’éditeur.
 
-- `/catalogues` : tableau compact avec nom/statut, composition et formats
-  disponibles, matériel et tarifs A/B/C. Conserver les informations des cartes
-  actuelles ; ouvrir la préparation depuis un lien clavier sur le catalogue.
+- `/catalogues` : après retour de Sam, fiches horizontales allégées à gauche
+  (nom/statut/formats), détail sélectionné à droite sur desktop, modal étroit,
+  harmonisé avec Clientes/Commandes. Composition, papiers, rubans, matériel et
+  tarifs A/B/C restent dans la consultation ; lien clavier vers la préparation.
+  Cette demande remplace la première proposition de tableau compact.
 - Placer les onglets **Catalogues / Paramètres** dans l’en-tête de la zone de
   travail, avec le soulignement déjà validé. Conserver les liens
   `/catalogues` et `/catalogues?onglet=parametres` et l’accès direct au rechargement.
@@ -33,7 +38,7 @@ Première réalisation locale complète à présenter à Sam avant l’éditeur.
   les nouveaux catalogues copient ces prix ; les catalogues existants gardent
   leurs tarifs. Préserver la validation actuelle 0–100 € et les centimes.
 
-Présenter la liste dense, les filtres dépliés et les Paramètres en desktop et
+Présenter la liste allégée, le détail ouvert, les filtres et les Paramètres en desktop et
 à largeur étroite. Cette validation ne vaut pas validation de l’éditeur.
 
 ## Étape 3B.2 — création et préparation

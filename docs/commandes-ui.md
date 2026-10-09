@@ -6,19 +6,23 @@ Ce parcours concerne la future version de Stamp App sur `main`, avec l’API du
 ## Liste et consultation
 
 Le jalon 2 de l’[identité atelier](ui/issue-ui-atelier.md) présente deux pages
-de tableaux continus, Kits (`/commandes/kits`, également `/`) et Hors kit
+Kits (`/commandes/kits`, également `/`) et Hors kit
 (`/commandes/hors-kit`), accessibles sous l’entrée Commandes du dock. Les
-deux onglets sobres sont intégrés à l’en-tête du tableau ; l’actif est souligné.
+deux onglets sobres sont intégrés à l’en-tête de la liste ; l’actif est souligné.
 Le bouton « Filtres » de cet en-tête déplie/replie recherche et catalogue dans
-la surface du tableau, sans popup. Les champs sont masqués initialement ; les
+la surface de la liste, sans popup. Les champs sont masqués initialement ; les
 critères restent appliqués lorsqu’ils sont repliés, avec leur nombre signalé
 sur le bouton. L’ouverture place le focus dans la recherche. Effacer depuis
 un état replié garde les champs masqués et rend le focus au bouton « Filtres ».
-Les colonnes conservent cliente et date/référence, type, montant appliqué et
-règlement binaire. Les noms complets restent lisibles, y compris au repli étroit.
-Le bouton de chaque ligne ouvre son détail au clavier ; la ligne entière est
-également cliquable. Aucun acompte, note ou regroupement multi-kits issu de la
-maquette n’est ajouté. Les formulaires de création/édition gardent leur
+À la demande de Sam le 9 octobre 2026, les tableaux sont remplacés par des
+fiches horizontales inspirées de Catalogues, sans ligne d’en-tête prune ni
+colonnes fixes. Cliente et règlement binaire forment le premier niveau ;
+référence/date, type/format, titre catalogue historique pour les kits et
+montant appliqué forment le second. Les noms complets restent lisibles et les
+informations reviennent à la ligne. Chaque fiche entière est un bouton
+natif de sélection, utilisable au clavier. Voir la
+[recette d’harmonisation](ui/recette-fiches/README.md). Aucun acompte, note ou
+regroupement multi-kits issu de la maquette n’est ajouté. Les formulaires de création/édition gardent leur
 structure et leurs règles ; ils héritent des styles communs.
 
 À la demande de Sam le 9 octobre 2026, chaque page propose une recherche
@@ -32,7 +36,7 @@ catalogues de même titre sont distingués par leur identifiant.
 
 Recherche et catalogue se combinent. Le compteur distingue résultats affichés
 et total du type. Les critères restent propres à chaque page pendant les
-changements de tableau ; un rechargement réinitialise les filtres. Un résultat
+changements d’onglet ; un rechargement réinitialise les filtres. Un résultat
 vide propose de les effacer, avec retour du focus à la recherche si elle est
 dépliée. Un filtre qui masque la commande ouverte ferme son détail en gardant
 le focus sur le contrôle.
@@ -94,7 +98,7 @@ origine, tarifs historiques, titre du catalogue, collections, papiers et leurs
 quantités, ruban, matériaux et suppléments. Aucune source courante n’est relue
 pour reconstruire cet historique. `/?commande=<id>` recharge le détail complet.
 Un échec de chargement est signalé et propose une nouvelle tentative. Le lien
-historique `/?commande=<id>` ouvre automatiquement le tableau correspondant au
+historique `/?commande=<id>` ouvre automatiquement le onglet correspondant au
 type chargé. Les créations et modifications affichent leur résultat dans la
 bonne page, en effaçant si nécessaire les critères qui le masqueraient.
 

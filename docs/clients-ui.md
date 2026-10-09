@@ -6,11 +6,15 @@ La recette réelle Mac/Safari reste ouverte. Voir la [recette 3A](ui/recette-jal
 
 ## Répertoire
 
-La liste est un tableau : nom/prénom et ville, email/téléphone, favori. Les noms
-et coordonnées longs reviennent à la ligne sans troncature. Chaque cliente
-s’ouvre par un bouton natif ; le bouton favori reste une action séparée.
+La liste utilise désormais des fiches horizontales allégées, à la demande de
+Sam le 9 octobre 2026 pour l’aligner sur Catalogues : nom/prénom et ville en
+premier niveau, email/téléphone en second niveau, favori à droite. L’en-tête
+prune de colonnes est supprimé ; les informations se replient naturellement
+sans colonnes fixes. Les noms et coordonnées longs restent complets. Chaque
+cliente s’ouvre par un bouton natif ; le bouton favori reste une action séparée.
+Voir la [recette d’harmonisation](ui/recette-fiches/README.md).
 
-Les onglets Actives/Archivées sont dans l’en-tête du tableau avec leurs totaux.
+Les onglets Actives/Archivées sont dans l’en-tête de la liste avec leurs totaux.
 Ils sont utilisables au clavier avec les flèches, Début et Fin. La recherche et
 la case Favoris uniquement se déplient inline avec Filtres ; elles sont repliées
 au chargement. Leur badge et le libellé accessible signalent les critères actifs
@@ -23,7 +27,7 @@ Les états de chargement, erreur avec reprise et absence de résultat sont expli
 
 ## Fiche et actions
 
-À partir de 901 px CSS, la consultation reste à côté du tableau sans bloquer la
+À partir de 901 px CSS, la consultation reste à droite de la liste sans bloquer la
 liste ni le défilement de la page. En dessous, le même contenu utilise le panneau
 modal existant. Le contenu long de la fiche défile dans le panneau ; les actions
 restent dans son pied. Email/téléphone, adresse, date de naissance, dernière
@@ -61,7 +65,7 @@ modifie pas le comportement des formulaires Commandes à l’arrivée.
 Les formulaires création/édition gardent leurs champs et leur organisation.
 Seuls les verrous de soumission et l’affichage d’erreur serveur dans le formulaire
 ont été renforcés. Les saisies restent présentes après un refus serveur.
-La fermeture renvoie le focus à une cible visible : ligne, en-tête du tableau
+La fermeture renvoie le focus à une cible visible : ligne, en-tête de la liste
 si la ligne a disparu, ou bouton d’ajout pour une création.
 
 Réutilisation de la route de points existante ; aucun changement backend,
