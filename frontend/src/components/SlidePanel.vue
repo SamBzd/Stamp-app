@@ -5,7 +5,7 @@
         <div ref="dialog" class="slide-panel" :style="{ maxWidth: inline ? 'none' : maxWidth }" :role="inline ? 'region' : 'dialog'" :aria-modal="inline ? undefined : true" :aria-label="title || 'Détails'" tabindex="-1">
           <!-- Header -->
           <div class="slide-panel-header">
-            <h2 v-if="title" class="slide-panel-title">{{ title }}</h2>
+            <slot name="header"><h2 v-if="title" class="slide-panel-title">{{ title }}</h2></slot>
             <button class="slide-panel-close" @click="$emit('close')" title="Fermer (Échap)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -73,7 +73,7 @@ watch([() => props.isOpen, () => props.inline], async ([open, inline], previous 
     if (!wasOpen) previousFocus = document.activeElement;
     if (!inline) releaseScrollLock = lockBodyScroll();
     await nextTick();
-    dialog.value?.querySelector('button')?.focus();
+    dialog.value?.querySelector('.slide-panel-close')?.focus();
   } else if (wasOpen) {
     await nextTick();
     // Une mutation peut avoir recréé la ligne qui avait ouvert le détail.
