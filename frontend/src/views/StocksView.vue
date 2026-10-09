@@ -1,21 +1,17 @@
 <template>
-  <Layout class="stocks-layout">
+  <Layout class="stocks-layout" title="Fournitures" subtitle="Suivez chaque fourniture, de la commande jusqu’au traitement.">
     <div class="stocks-view">
-      <header class="page-header">
-        <div>
-          <h1 class="page-title">Fournitures</h1>
-          <p class="page-subtitle">Suivez chaque fourniture, de la commande jusqu’au traitement.</p>
-        </div>
-      </header>
-
+      <div class="stocks-navigation">
       <div class="tabs" role="tablist" aria-label="Fournitures et bilan">
         <button id="fournitures-tab" class="tab-btn" :class="{ active: activeTab === 'fournitures' }" role="tab" :aria-selected="activeTab === 'fournitures'" aria-controls="fournitures-panel" @click="activeTab = 'fournitures'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Fournitures</button>
         <button id="bilan-tab" class="tab-btn" :class="{ active: activeTab === 'bilan' }" role="tab" :aria-selected="activeTab === 'bilan'" aria-controls="bilan-panel" @click="activeTab = 'bilan'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Bilan mensuel</button>
       </div>
+      <span class="atelier-tag">Mon atelier</span>
+      </div>
 
       <section v-if="activeTab === 'fournitures'" id="fournitures-panel" role="tabpanel" aria-labelledby="fournitures-tab">
         <div class="workflow-toolbar">
-          <p>Glissez une pile vers la colonne où tu veux la placer.</p>
+          <p>Glisse une pile vers une colonne, ou sélectionne-la pour la déplacer.</p>
           <Button variant="secondary" :loading="stocksStore.loadingWorkflow" :disabled="stocksStore.mutatingWorkflow" @click="refreshWorkflow">Actualiser</Button>
         </div>
 
@@ -53,7 +49,6 @@
             @drop.prevent="dropOn(column.etat)"
           >
             <header class="kanban-column-header">
-              <span class="column-step" aria-hidden="true">{{ column.index + 1 }}</span>
               <h2 :id="`column-${column.index}`">{{ column.etat }}</h2>
               <span class="column-count" :aria-label="`${column.groupes.length} piles`">{{ column.groupes.length }}</span>
             </header>
@@ -61,7 +56,7 @@
               <article
                 v-for="group in column.groupes"
                 :key="fournitureGroupKey(group)"
-                class="fourniture-card"
+                class="fourniture-card atelier-glass"
                 :class="{ 'fourniture-card-dragging': draggedGroup === group }"
                 :role="group.etat === 'Traité' ? undefined : 'button'"
                 :tabindex="group.etat === 'Traité' ? undefined : 0"
@@ -245,9 +240,11 @@ onMounted(refreshWorkflow);
 
 <style scoped>
 .stocks-layout :deep(.main-content) { min-width: 0; }
-.stocks-view { max-width: var(--content-max-width); }
+.stocks-view { width: 100%; min-width: 0; }
 .page-title { font-family: var(--font-heading); }
-.tabs { display: flex; gap: var(--spacing-2); margin-bottom: var(--spacing-6); border-bottom: 2px solid var(--border-light); }
+.stocks-navigation { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--spacing-3); margin-bottom: var(--spacing-4); }
+.atelier-tag { padding: 6px 17px 7px 12px; background: var(--accent); color: var(--text-primary); font-weight: var(--font-weight-semibold); clip-path: polygon(0 0, 97% 3%, 100% 30%, 96% 64%, 98% 100%, 0 96%, 2% 48%); }
+.tabs { display: flex; gap: var(--spacing-2); border-bottom: 1px solid var(--border-light); }
 .tab-btn { min-height: 44px; padding: var(--spacing-3) var(--spacing-5); margin-bottom: -2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
 .tab-btn:hover { background: var(--muted); color: var(--foreground); }
 .tab-btn.active { border-bottom-color: var(--primary); color: var(--primary); }
@@ -262,23 +259,21 @@ onMounted(refreshWorkflow);
 .workflow-alerts ul { display: grid; gap: var(--spacing-2); padding-left: var(--spacing-6); }
 .workflow-alerts li span { display: block; color: var(--text-secondary); }
 .workflow-error { margin-bottom: var(--spacing-4); }
-.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: var(--spacing-3); }
-.kanban-column { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--border-radius-xl); background: var(--bg-secondary); transition: border-color var(--transition-fast), background-color var(--transition-fast); }
-.kanban-column-drop { border-color: var(--primary); background: var(--primary-light); }
-.kanban-column-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 58px; padding: var(--spacing-3); border-bottom: 1px solid var(--border); background: var(--card); }
+.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; gap: var(--spacing-3); }
+.kanban-column { min-width: 0; border-radius: var(--border-radius-lg); background: var(--card); box-shadow: var(--shadow-sm); transition: background-color var(--transition-fast); }
+.kanban-column-drop { outline: 3px solid var(--primary); outline-offset: 2px; background: var(--primary-light); }
+.kanban-column-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 48px; padding: var(--spacing-3); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; background: var(--atelier-header); color: var(--primary-foreground); }
 .kanban-column-header h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--font-size-sm); line-height: var(--line-height-tight); }
-.column-step, .column-count { display: inline-grid; min-width: 26px; height: 26px; place-items: center; border-radius: var(--border-radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
-.column-step { background: var(--primary); color: var(--primary-foreground); }
-.column-count { background: var(--muted); color: var(--text-secondary); }
-.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 180px; padding: var(--spacing-3); }
-.fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 1px solid var(--border-light); border-radius: var(--border-radius); background: var(--card); box-shadow: var(--shadow-sm); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
-.fourniture-card:hover { border-color: var(--border); box-shadow: var(--shadow-card-hover); }
+.column-count { color: var(--atelier-counter); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 302px; padding: var(--spacing-3); }
+.fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 0; border-radius: var(--atelier-card-radius); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.fourniture-card:hover { box-shadow: 0 4px 12px rgb(108 75 96 / 13%), 0 1px 2px rgb(108 75 96 / 6%); }
 .fourniture-card:active { cursor: grabbing; }
 .fourniture-card-dragging { opacity: .45; }
 .fourniture-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-2); }
 .fourniture-type { color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); line-height: var(--line-height-normal); }
-.fourniture-quantity { flex: 0 0 auto; padding: 3px 8px; border-radius: var(--border-radius-full); background: var(--primary-light); color: var(--primary); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
-.fourniture-card h3 { overflow-wrap: anywhere; font-size: var(--font-size-md); line-height: var(--line-height-normal); }
+.fourniture-quantity { flex: 0 0 auto; padding: 3px 8px; border-radius: var(--border-radius-sm); border: 1px solid var(--atelier-glass-edge); color: var(--primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
+.fourniture-card h3 { overflow-wrap: anywhere; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); line-height: var(--line-height-normal); }
 .fourniture-actions { display: grid; gap: var(--spacing-2); }
 .fourniture-actions button { min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); cursor: pointer; }
 .fourniture-actions button:hover { border-color: var(--primary); color: var(--primary); }
@@ -318,7 +313,7 @@ onMounted(refreshWorkflow);
 .promo-list { display: grid; gap: var(--spacing-2); }
 .promo-item { display: flex; justify-content: space-between; gap: var(--spacing-4); padding: var(--spacing-3) var(--spacing-5); border: 1px solid var(--border-light); border-radius: var(--border-radius-xl); background: var(--card); }
 .promo-info { display: flex; min-width: 0; gap: var(--spacing-4); }.promo-texte { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); }.promo-price { color: var(--text-secondary); }.promo-count { color: var(--primary); font-weight: var(--font-weight-bold); }
-@media (max-width: 1100px) { .kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { .kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
   .workflow-toolbar, .bilan-toolbar { align-items: stretch; flex-direction: column; }
   .kanban { grid-template-columns: 1fr; }
