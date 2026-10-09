@@ -2,7 +2,12 @@
 
 Cadrage proposé le 9 octobre 2026, après validation du rendu Commandes et
 autorisation de commits/push par Sam. Ce document prépare la prochaine phase ;
-il ne vaut pas validation de nouvelles compositions ni réalisation des écrans.
+Sam a depuis validé visuellement le lot 3A Clientes et autorisé ses commits/push :
+voir la [recette 3A](recette-jalon3a/README.md). La prochaine phase est précisée
+dans le [cadrage Catalogues 3B](jalon3b-cadrage.md) ;
+les lots 3B à 3D ne sont pas engagés. Sam a demandé une révision de la fiche :
+en-tête simplifié, points modifiables inline et historique compact avec liens
+vers les commandes concernées.
 La [recette Safari/Mac](recette-jalon2/README.md) reste ouverte.
 
 ## Direction à conserver
@@ -23,14 +28,14 @@ cartes ou le panneau modal par défaut sans examiner le contenu réel.
 
 | Lot | Proposition de travail | Contrats à conserver | Validation avant le lot suivant |
 | --- | --- | --- | --- |
-| **3A — Clientes** | Titre dans le bandeau, proposition de liste dense et fiche de consultation latérale ; recherche/filtres intégrés à la liste. | Coordonnées, favoris existants, actifs/archivés, historique, fidélité affichée, création/édition, archivage/restauration et accès aux commandes. | Liste, fiche ouverte, filtres dépliés et écran étroit. |
+| **3A — Clientes** | Titre dans le bandeau, proposition de liste dense et fiche de consultation latérale ; recherche/filtres intégrés à la liste. | Coordonnées, favoris existants, actifs/archivés, historique, fidélité (édition directe demandée par Sam), création/édition, archivage/restauration et accès aux commandes. | Liste, fiche ouverte, filtres dépliés et écran étroit. |
 | **3B — Catalogues** | Liste, onglets Catalogues/Paramètres et éditeur alignés sur l’atelier ; hiérarchie claire entre préparation et publication. | Brouillon/publication/démotion, archivage, associations 4/5/2, tarifs locaux/par défaut, saisies non enregistrées et liens profonds. | Liste, éditeur dense, paramètres et contrôle de recherche/sélection ouvert. |
 | **3C — Papiers** | Bibliothèque compacte, recherche/filtres repliables et édition inline lisible. | Création, doublons, renommage, archivage protégé/restauration et historique dans les compositions. | Liste dense, édition, confirmation et refus serveur. |
 | **3D — Formulaires et composants communs** | Harmoniser création/édition kit et hors-kit, fiche cliente, champs, sélecteurs, dialogues et notifications. Traiter le bilan mensuel et son sélecteur existant. | Tous les champs, validations, prix historiques, conservation des saisies, confirmations d’abandon et verrous de soumission. | Kit, hors-kit, erreur, confirmation, recherche/sélecteur ouvert et mois/date ouverts. |
 
-Commencer par Clientes, sans modifier les autres écrans dans ce premier lot.
-La liste dense et la fiche latérale sont une recommandation de composition,
-pas une décision déjà approuvée. Les formulaires de Commandes n’ont pas encore
+Le lot Clientes est validé. Poursuivre avec Catalogues, d’abord liste et
+Paramètres, puis éditeur après validation de cette première étape. Les
+compositions des lots suivants restent des recommandations à faire valider. Les formulaires de Commandes n’ont pas encore
 reçu cette harmonisation : la validation de Commandes porte sur le tableau,
 les filtres et la consultation, pas sur leur refonte.
 

@@ -38,6 +38,9 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   catalogue, les paramètres tarifaires et l’archivage des clientes sont
   implémentés en issue #8 : voir [le parcours UI](catalogue-ui.md). L’interface
   commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
+  Le lot UI Clientes 3A est validé visuellement par Sam ; la recette Mac/Safari
+  reste ouverte :
+  voir [le parcours Clientes](clients-ui.md).
   Les stocks et leurs provenances historiques (#10) sont alignés sur les
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
   Le bilan (#11) utilise les prix appliqués historiques et expose ses montants

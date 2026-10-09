@@ -8,8 +8,10 @@ Sam a autorisé la progression après le jalon 1 (socle et Fournitures) le
 Safari/Mac reste ouverte. Le jalon 2 (Commandes) est validé visuellement par Sam
 le 9 octobre, avec autorisation de commits/push :
 [comparaison et recette](recette-jalon2/README.md). La suite est décrite dans le
-[cadrage proposé du jalon 3](jalon3-cadrage.md), sans nouvelle réalisation
-applicative à ce stade.
+[cadrage du jalon 3](jalon3-cadrage.md). Sam a autorisé le lot Clientes 3A :
+sa [réalisation](recette-jalon3a/README.md) est validée visuellement le 9 octobre,
+avec autorisation de commits/push. La prochaine phase est décrite dans le
+[cadrage Catalogues 3B](jalon3b-cadrage.md).
 EPIC de référence : [#24 — Refonte de l’expérience v2 avant livraison](https://github.com/SamBzd/Stamp-app/issues/24).
 L’EPIC ne doit pas être clos sur la seule validation des maquettes.
 
@@ -125,6 +127,7 @@ pas dissimulées derrière une approximation de la maquette.
 
 La préparation documentaire initiale ne modifiait aucun fichier applicatif.
 Les deux premiers jalons transposent désormais le socle, Fournitures et
-Commandes dans les modules concernés ; les autres écrans restent à traiter.
+Commandes dans les modules concernés. Le lot Clientes 3A est validé visuellement par Sam ;
+Catalogues, Papiers et l’harmonisation des formulaires restent à traiter.
 La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.
