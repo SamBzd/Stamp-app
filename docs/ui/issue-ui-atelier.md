@@ -3,8 +3,13 @@
 Statut : cadrage validé par Sam et publication autorisée le 9 octobre 2026.
 Issue créée : [#39 — Déployer l’identité atelier prune/citron sur desktop](https://github.com/SamBzd/Stamp-app/issues/39).
 Les références documentaires et maquettes sont versionnées avec la réalisation.
-Le jalon 1 (socle et Fournitures) est implémenté localement et attend la
-validation visuelle de Sam : [comparaison et recette](recette-jalon1/README.md).
+Sam a autorisé la progression après le jalon 1 (socle et Fournitures) le
+9 octobre : [comparaison et recette](recette-jalon1/README.md). La recette
+Safari/Mac reste ouverte. Le jalon 2 (Commandes) est validé visuellement par Sam
+le 9 octobre, avec autorisation de commits/push :
+[comparaison et recette](recette-jalon2/README.md). La suite est décrite dans le
+[cadrage proposé du jalon 3](jalon3-cadrage.md), sans nouvelle réalisation
+applicative à ce stade.
 EPIC de référence : [#24 — Refonte de l’expérience v2 avant livraison](https://github.com/SamBzd/Stamp-app/issues/24).
 L’EPIC ne doit pas être clos sur la seule validation des maquettes.
 
@@ -30,8 +35,9 @@ Les valeurs exactes figurent dans les [tokens documentaires](tokens-reference.js
   par écran ni l’import des styles expérimentaux des prototypes.
 - Fournitures : cinq colonnes blanches, en-têtes prune, compteurs jaunes,
   cartes Liquid Glass lisibles, alertes et commandes de déplacement intactes.
-- Commandes : liste dense et détail utilisant l’espace latéral, avec les
-  vraies informations et actions des commandes kits et hors-kit.
+- Commandes : deux pages de tableaux kits/hors-kit et détail utilisant l’espace
+  latéral, avec les vraies informations et actions ; recherche par cliente et
+  filtre catalogue pour les kits, autorisés par Sam le 9 octobre 2026.
 - Déclinaison cohérente sur Clientes, Catalogues et leur détail, Papiers,
   bilan mensuel, formulaires, dialogues et notifications existants.
 - Harmonisation des contrôles de date/mois existants, sans nouveau filtre
@@ -43,7 +49,8 @@ Les valeurs exactes figurent dans les [tokens documentaires](tokens-reference.js
 - Aucun import d’image, nouveau workflow, endpoint, schéma, migration ou
   changement de calcul, règlement, fidélité, stock ou prix historique.
 - Pas de paiement partiel, de commande multi-kits, de notes ou de filtres
-  nouveaux tirés des données fictives de la maquette Commandes.
+  tirés des données fictives de la maquette Commandes. La recherche cliente et
+  le filtre catalogue demandés explicitement le 9 octobre complètent ce périmètre.
 - Pas de renommage des états du Kanban : `À traiter`, `Commandé`,
   `Disponible`, `Expédié`, `Traité`. Les quantités restent des unités métier,
   sans conversion fictive en mètres, et les cartes restent anonymes.
@@ -51,8 +58,10 @@ Les valeurs exactes figurent dans les [tokens documentaires](tokens-reference.js
   Papiers et le bilan dans `/stocks`. Les URL profondes restent compatibles.
 - Pas de redesign métier global, de mode sombre, d’animation décorative ou
   de remplacement de stack. Pas de dépendance sans nécessité justifiée.
-- Pas de déploiement NAS, changement de branche, commit ou push dans le
-  cadre du présent travail de préparation documentaire.
+- Pas de déploiement NAS ni de modification de `main` ou `production`. La
+  préparation documentaire initiale n’autorisait pas de Git mutatif ; Sam a
+  depuis autorisé la branche et les commits du premier jalon, puis les commits
+  et le push du lot Commandes le 9 octobre.
 
 ## Réalisation par jalons
 
@@ -115,6 +124,7 @@ pas dissimulées derrière une approximation de la maquette.
   Clientes, Catalogues, Papiers et formulaires de commande.
 
 La préparation documentaire initiale ne modifiait aucun fichier applicatif.
-Le premier jalon transpose désormais le socle et Fournitures dans les modules
-concernés ; les autres écrans restent à traiter. La méthode optique et les
+Les deux premiers jalons transposent désormais le socle, Fournitures et
+Commandes dans les modules concernés ; les autres écrans restent à traiter.
+La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.

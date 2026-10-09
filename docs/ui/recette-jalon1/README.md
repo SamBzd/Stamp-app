@@ -1,8 +1,9 @@
 # Jalon 1 — socle et Fournitures
 
-État au 9 octobre 2026 : implémentation locale, validation visuelle de Sam
-sur le Mac 13" encore attendue. Ce dossier n’autorise pas la poursuite vers
-Commandes ni la clôture de l’issue #39.
+État au 9 octobre 2026 : Sam a autorisé la poursuite vers Commandes par
+« Oui, passe à Commandes », en connaissance de la recette Safari/Mac restant
+à compléter. Le jalon est accepté pour cette progression ; la validation sur
+le Mac 13" et la clôture de l’issue #39 restent ouvertes.
 
 ## Comparaison à 1 280 × 800 CSS, zoom 100 %
 
@@ -90,7 +91,7 @@ pas une correction automatique de ce premier lot.
 - Viewport réel du Mac 13", Safari, zoom navigateur 200 % et clavier.
 - Aspect du logo avec Snell Roundhand / Apple Chancery, étiquettes, palette,
   largeur et rendu du verre ; préférence de transparence réduite sur le Mac.
-- Acceptation explicite de ce jalon et de ses écarts avant Commandes.
+- Validation esthétique finale du jalon et de ses écarts sur le Mac.
 - État ouvert du sélecteur de mois avant toute généralisation d’un nouveau style.
 
 Le contrôle à 640 CSS px couvre un repli étroit ; il n’est pas une preuve de

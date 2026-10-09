@@ -3,9 +3,59 @@
 Ce parcours concerne la future version de Stamp App sur `main`, avec l’API du
 [lot #7](commandes-kit-api.md). Il ne décrit pas le NAS actuellement déployé.
 
+## Liste et consultation
+
+Le jalon 2 de l’[identité atelier](ui/issue-ui-atelier.md) présente deux pages
+de tableaux continus, Kits (`/commandes/kits`, également `/`) et Hors kit
+(`/commandes/hors-kit`), accessibles sous l’entrée Commandes du dock. Les
+deux onglets sobres sont intégrés à l’en-tête du tableau ; l’actif est souligné.
+Le bouton « Filtres » de cet en-tête déplie/replie recherche et catalogue dans
+la surface du tableau, sans popup. Les champs sont masqués initialement ; les
+critères restent appliqués lorsqu’ils sont repliés, avec leur nombre signalé
+sur le bouton. L’ouverture place le focus dans la recherche. Effacer depuis
+un état replié garde les champs masqués et rend le focus au bouton « Filtres ».
+Les colonnes conservent cliente et date/référence, type, montant appliqué et
+règlement binaire. Les noms complets restent lisibles, y compris au repli étroit.
+Le bouton de chaque ligne ouvre son détail au clavier ; la ligne entière est
+également cliquable. Aucun acompte, note ou regroupement multi-kits issu de la
+maquette n’est ajouté. Les formulaires de création/édition gardent leur
+structure et leurs règles ; ils héritent des styles communs.
+
+À la demande de Sam le 9 octobre 2026, chaque page propose une recherche
+immédiate par prénom/nom de cliente, insensible à la casse et aux accents,
+acceptant plusieurs mots dans les deux ordres. Kits propose en plus un filtre
+par catalogue. Les options viennent des commandes historiques, y compris pour
+les catalogues archivés ; le filtre porte sur l’identifiant, jamais seulement
+sur le titre. Un catalogue ayant changé de nom apparaît une fois, sous le titre
+de la première commande dans la liste (la plus récente à son chargement). Deux
+catalogues de même titre sont distingués par leur identifiant.
+
+Recherche et catalogue se combinent. Le compteur distingue résultats affichés
+et total du type. Les critères restent propres à chaque page pendant les
+changements de tableau ; un rechargement réinitialise les filtres. Un résultat
+vide propose de les effacer, avec retour du focus à la recherche si elle est
+dépliée. Un filtre qui masque la commande ouverte ferme son détail en gardant
+le focus sur le contrôle.
+Si la dernière commande d’un catalogue disparaît, le filtre devenu indisponible
+est effacé après chargement ; la recherche cliente reste conservée.
+
+Au-delà de 900 CSS px, le détail occupe la colonne de droite et ne bloque ni
+la liste ni le défilement de la page. Son contenu historique défile dans sa
+propre zone, avec les actions dans le pied du panneau. À 900 px et moins, le
+même contenu s’ouvre dans le panneau modal existant, avec focus contenu et
+défilement de fond verrouillé. Échap ferme le détail ; sur desktop, ce raccourci
+s’applique lorsque le focus est dans le panneau. La fermeture rend le focus à
+la commande ; après suppression, il revient à l’en-tête visible de la liste.
+
+La [recette visuelle et fonctionnelle](ui/recette-jalon2/README.md) détaille les
+écarts à la maquette et les vérifications locales. Le rendu de liste/consultation
+est validé par Sam le 9 octobre 2026. Safari reste à vérifier et les formulaires
+restent à harmoniser ; les nouvelles compositions des autres écrans auront
+leurs propres validations.
+
 ## Composition et prix
 
-Depuis `/`, « Nouveau kit » (ou l’action de la barre supérieure) ouvre le
+Depuis `/`, « Nouveau kit » dans la barre d’actions ouvre le
 formulaire : cliente active, catalogue publié actif, puis format disponible.
 Les tarifs affichés viennent exclusivement du catalogue choisi. Avec une seule
 collection, seul C est proposé ; A/B nécessitent deux collections distinctes.
@@ -43,7 +93,10 @@ Après enregistrement, le détail affiche la réponse du serveur : prix appliqu�
 origine, tarifs historiques, titre du catalogue, collections, papiers et leurs
 quantités, ruban, matériaux et suppléments. Aucune source courante n’est relue
 pour reconstruire cet historique. `/?commande=<id>` recharge le détail complet.
-Un échec de chargement est signalé et propose une nouvelle tentative.
+Un échec de chargement est signalé et propose une nouvelle tentative. Le lien
+historique `/?commande=<id>` ouvre automatiquement le tableau correspondant au
+type chargé. Les créations et modifications affichent leur résultat dans la
+bonne page, en effaçant si nécessaire les critères qui le masqueraient.
 
 « Modifier » sur une commande non réglée conserve sa cliente et son type.
 Pour un kit, les sources et tarifs actuels sont chargés, et l’ancien prix manuel

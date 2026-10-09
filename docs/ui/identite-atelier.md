@@ -7,8 +7,10 @@ elle ne décrit ni une réalisation terminée ni la production du NAS.
 Les valeurs ci-dessous sont relevées dans les maquettes validées. Leurs noms
 de tokens sont une proposition de formalisation, pas une nouvelle direction
 artistique. L’[issue #39](issue-ui-atelier.md) encadre la réalisation par jalons.
-Le [socle et Fournitures](recette-jalon1/README.md) sont implémentés localement ;
-leur validation visuelle sur le Mac reste attendue.
+Le [socle et Fournitures](recette-jalon1/README.md) sont implémentés localement
+et Sam a autorisé la progression vers Commandes le 9 octobre. La recette sur
+le Mac reste ouverte. [Commandes](recette-jalon2/README.md) est validé par Sam
+le 9 octobre ; la suite est proposée dans le [cadrage du jalon 3](jalon3-cadrage.md).
 
 ## Références et priorité
 
@@ -149,8 +151,9 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
   Le bilan reste dans l’onglet de `/stocks`, pas dans une nouvelle route.
   « Stocks » et « Bilan » du dock illustratif ne suppriment pas Papiers.
 - Les sélecteurs de mois illustratifs n’imposent pas de filtre mensuel au
-  Kanban ou aux Commandes. Restyler les contrôles existants ; ne pas inventer
-  de filtrage et ne pas confondre mois et date complète.
+  Kanban ou aux Commandes. La recherche cliente sur les deux pages Kits/Hors kit
+  et le filtre catalogue sur Kits ont été demandés par Sam le 9 octobre 2026 ;
+  ils utilisent les données réelles. Ne pas confondre mois et date complète.
 - Les alertes, confirmations, états vides/erreurs/chargement et actions métier
   absents du prototype restent visibles dans l’interface réelle.
 
