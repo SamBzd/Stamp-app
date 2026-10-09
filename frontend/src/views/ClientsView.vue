@@ -1,182 +1,112 @@
 <template>
-  <Layout>
+  <Layout title="Clientes" subtitle="Les coordonnées, les préférences et l’histoire de chaque cliente.">
     <div class="clients-view">
-      <!-- Page Header -->
-      <header class="page-header">
-        <div>
-          <h1 class="page-title">Clients</h1>
-          <p class="page-subtitle">Gérez votre base de clients</p>
+      <div class="clients-toolbar"><Button id="clients-create" @click="openCreateModal"><template #icon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></template>Ajouter une cliente</Button></div>
+      <p v-if="operationError && !isViewModalOpen" class="client-error" role="alert">{{ operationError }}</p>
+      <div class="clients-workspace">
+      <section class="clients-list-panel" aria-label="Répertoire des clientes">
+        <header id="clients-list-header" class="clients-list-heading" tabindex="-1">
+          <div class="clients-tabs" role="tablist" aria-label="Statut des clientes">
+            <button id="clients-tab-actifs" type="button" role="tab" :disabled="pointsSaving" :aria-selected="archiveFilter === 'actifs'" aria-controls="clients-list-content" :tabindex="archiveFilter === 'actifs' ? 0 : -1" @click="selectArchiveTab('actifs')" @keydown="onTabKeydown">Actives <span>{{ activeCount }}</span></button>
+            <button id="clients-tab-archives" type="button" role="tab" :disabled="pointsSaving" :aria-selected="archiveFilter === 'archives'" aria-controls="clients-list-content" :tabindex="archiveFilter === 'archives' ? 0 : -1" @click="selectArchiveTab('archives')" @keydown="onTabKeydown">Archivées <span>{{ archivedCount }}</span></button>
+          </div>
+          <div class="clients-list-tools">
+            <p role="status">{{ filteredClients.length }} / {{ archiveFilter === 'actifs' ? activeCount : archivedCount }}<span class="sr-only"> clientes affichées</span></p>
+            <button id="clients-filter-toggle" type="button" class="clients-filter-toggle" :aria-expanded="filtersExpanded" aria-controls="clients-filter-fields" :aria-label="filterSummary ? `Recherche et filtres, ${filterSummary}` : 'Recherche et filtres'" @click="toggleFilters"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>Filtres <span v-if="activeFilterCount" class="filter-count">{{ activeFilterCount }}</span><svg class="filter-chevron" :class="{ expanded: filtersExpanded }" aria-hidden="true" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg></button>
+          </div>
+        </header>
+        <div v-show="filtersExpanded" id="clients-filter-fields" class="clients-filters" role="region" aria-label="Recherche et filtres des clientes">
+          <div class="client-filter"><label for="clients-search">Rechercher une cliente</label><input id="clients-search" :disabled="pointsSaving" v-model="searchQuery" type="search" placeholder="Nom, email, ville ou téléphone…" autocomplete="off" /></div>
+          <label class="favorites-filter"><input :disabled="pointsSaving" v-model="showOnlyFavorites" type="checkbox" />Favoris uniquement</label>
+          <button v-if="activeFilterCount" type="button" class="client-filter-reset" @click="resetFilters">Effacer les filtres</button>
         </div>
-        <Button @click="openCreateModal">
-          <template #icon>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-          </template>
-          Ajouter un client
-        </Button>
-      </header>
-
-      <!-- Search & Filters -->
-      <div class="toolbar">
-        <div class="search-wrapper">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/>
-            <path d="m21 21-4.35-4.35"/>
-          </svg>
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Rechercher un client..."
-            class="search-input"
-            aria-label="Rechercher une cliente"
-          />
-        </div>
-        <div class="toolbar-actions">
-          <label class="archive-filter" for="clients-archive-filter">Afficher
-            <select id="clients-archive-filter" v-model="archiveFilter"><option value="actifs">Clients actifs</option><option value="archives">Clients archivés</option></select>
-          </label>
-          <button
-            type="button"
-            :class="['favorites-toggle', { 'favorites-toggle-active': showOnlyFavorites }]"
-            @click="showOnlyFavorites = !showOnlyFavorites"
-            :title="showOnlyFavorites ? 'Afficher tous les clients' : 'Afficher seulement les favoris'"
-            :aria-pressed="showOnlyFavorites"
-          >
-            <svg viewBox="0 0 24 24" :fill="showOnlyFavorites ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <span>{{ showOnlyFavorites ? 'Favoris' : 'Tous' }}</span>
-          </button>
-          <div class="toolbar-info">
-            <span class="count-badge">{{ filteredClients.length }}</span>
-            <span class="toolbar-label">client{{ filteredClients.length > 1 ? 's' : '' }}</span>
+        <div id="clients-list-content" role="tabpanel" :aria-labelledby="`clients-tab-${archiveFilter}`">
+          <div v-if="clientsStore.loading" class="loading-state" role="status"><div class="loading-spinner"></div><span class="loading-state-text">Chargement des clientes…</span></div>
+          <div v-else-if="clientsStore.error" class="error-state" role="alert"><p>{{ clientsStore.error }}</p><Button variant="secondary" @click="loadClients">Réessayer</Button></div>
+          <div v-else-if="filteredClients.length === 0" class="empty-state">
+            <h3 class="empty-state-title">{{ activeFilterCount ? 'Aucune cliente ne correspond' : archiveFilter === 'archives' ? 'Aucune cliente archivée' : 'Aucune cliente' }}</h3>
+            <p class="empty-state-description">{{ activeFilterCount ? 'Essaie une autre recherche ou efface les filtres.' : archiveFilter === 'archives' ? 'Les clientes archivées restent consultables et peuvent être restaurées.' : 'Commence par ajouter ta première cliente.' }}</p>
+            <button v-if="activeFilterCount" type="button" class="client-filter-reset" @click="resetFilters">Effacer les filtres</button>
+            <Button v-else-if="archiveFilter === 'actifs'" @click="openCreateModal">Ajouter une cliente</Button>
+          </div>
+          <div v-else class="clients-table-wrapper">
+            <table class="clients-table"><caption class="sr-only">Clientes {{ archiveFilter === 'actifs' ? 'actives' : 'archivées' }} : nom, coordonnées et favori</caption>
+              <thead><tr><th scope="col">Cliente</th><th scope="col">Coordonnées</th><th scope="col" class="favorite-column">Favori</th></tr></thead>
+              <tbody><tr v-for="client in filteredClients" :key="client.id" :class="{ 'client-selected': isViewModalOpen && selectedClient?.id === client.id }" @click="viewClient(client)">
+                <th scope="row"><button :id="`client-open-${client.id}`" type="button" class="client-open" :aria-label="`Voir la fiche de ${client.prenom} ${client.nom}`" :aria-pressed="isViewModalOpen && selectedClient?.id === client.id" :disabled="archiving || pointsSaving" @click.stop="viewClient(client)"><span class="client-name">{{ client.prenom }} {{ client.nom }}</span><span v-if="client.ville" class="client-city">{{ client.ville }}</span></button></th>
+                <td class="client-contact"><span v-if="client.email">{{ client.email }}</span><span v-if="client.telephone_raw">{{ client.telephone_raw }}</span><span v-if="!client.email && !client.telephone_raw" class="client-city">Non renseignées</span></td>
+                <td class="favorite-column"><button type="button" class="favorite-btn" :class="{ 'favorite-btn-active': client.contacter === 1 }" :disabled="favoriteBusy(client.id) || archiving || pointsSaving" :aria-label="client.contacter === 1 ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`" :aria-pressed="client.contacter === 1" @click.stop="toggleFavoriteFromList(client)"><svg aria-hidden="true" viewBox="0 0 24 24" :fill="client.contacter === 1 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button></td>
+              </tr></tbody>
+            </table>
           </div>
         </div>
-      </div>
-
-      <!-- Clients List -->
-      <div v-if="clientsStore.loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <span class="loading-state-text">Chargement des clients...</span>
-      </div>
-
-      <div v-else-if="clientsStore.error" class="error-state">
-        <p>{{ clientsStore.error }}</p>
-        <Button variant="secondary" @click="loadClients">Réessayer</Button>
-      </div>
-
-      <div v-else-if="filteredClients.length === 0" class="empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
-        <h3 class="empty-state-title">
-          {{ searchQuery ? 'Aucun résultat' : archiveFilter === 'archives' ? 'Aucun client archivé' : showOnlyFavorites ? 'Aucun client favori' : 'Aucun client' }}
-        </h3>
-        <p class="empty-state-description">
-          {{ searchQuery ? 'Essayez avec d\'autres termes de recherche' : archiveFilter === 'archives' ? 'Les clients archivés restent consultables et peuvent être restaurés.' : showOnlyFavorites ? 'Aucun client n\'est marqué comme favori pour le moment' : 'Commencez par ajouter votre premier client' }}
-        </p>
-        <Button v-if="!searchQuery && !showOnlyFavorites && archiveFilter === 'actifs'" @click="openCreateModal">Ajouter un client</Button>
-      </div>
-
-      <div v-else class="clients-grid">
-        <div
-          v-for="client in filteredClients"
-          :key="client.id"
-          class="client-card"
-          role="button"
-          tabindex="0"
-          @keydown.enter.self="viewClient(client)"
-          @keydown.space.self.prevent="viewClient(client)"
-          @click="viewClient(client)"
-        >
-          <div class="client-avatar">
-            {{ getInitials(client) }}
-          </div>
-          <div class="client-info">
-            <h3 class="client-name">{{ client.prenom }} {{ client.nom }}</h3>
-            <span v-if="client.archive" class="badge badge-neutral">Archivé</span>
-            <div v-if="client.email" class="client-detail">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-                <polyline points="22,6 12,13 2,6"/>
-              </svg>
-              <span>{{ client.email }}</span>
-            </div>
-            <div v-if="client.telephone_raw" class="client-detail">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-              </svg>
-              <span>{{ client.telephone_raw }}</span>
-            </div>
-          </div>
-          <button 
-            type="button"
-            :class="['favorite-btn', { 'favorite-btn-active': client.contacter }]"
-            @click.stop="toggleFavoriteFromCard(client)"
-            :title="client.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-            :aria-label="client.contacter ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`"
-            :aria-pressed="Boolean(client.contacter)"
-          >
-            <svg viewBox="0 0 24 24" :fill="client.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          </button>
-          <div class="arrow-indicator">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </div>
-        </div>
-      </div>
+      </section>
+      <aside v-if="!isViewModalOpen" class="client-placeholder"><h2>La fiche de ta cliente</h2><p>Sélectionne une ligne pour retrouver ses coordonnées, ses préférences et ses commandes.</p></aside>
 
       <!-- Panel consultation client -->
       <SlidePanel
         :is-open="isViewModalOpen"
-        :title="selectedClient ? `${selectedClient.prenom} ${selectedClient.nom}` : 'Client'"
+        :inline="desktopDetails"
+        :return-focus-id="filteredClients.some(client => client.id === detailClientId) ? `client-open-${detailClientId}` : 'clients-list-header'"
+        title="Fiche cliente"
         @close="closeViewModal"
         max-width="560px"
       >
+        <template #header>
+          <div v-if="selectedClient" class="client-heading">
+            <div class="profile-identity">
+              <h2 class="profile-name">{{ selectedClient.prenom }} {{ selectedClient.nom }}</h2>
+              <p v-if="selectedClient.created_at" class="profile-member-since">Cliente depuis {{ formatMemberSince(selectedClient.created_at) }}</p>
+            </div>
+            <button
+              type="button"
+              :class="['favorite-toggle', { 'favorite-toggle-active': selectedClient.contacter }]"
+              :disabled="favoriteBusy(selectedClient.id) || archiving || pointsSaving"
+              :aria-label="selectedClient.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
+              :aria-pressed="Boolean(selectedClient.contacter)"
+              @click="toggleFavorite"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" :fill="selectedClient.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </button>
+          </div>
+        </template>
         <div v-if="selectedClient" class="client-profile">
+          <p v-if="operationError" class="client-error" role="alert">{{ operationError }}</p>
           <p v-if="selectedClient.archive" class="archive-notice">Client archivé : les coordonnées et commandes restent consultables. Restaurez-le avant une nouvelle commande.</p>
           <p v-if="archiveError" class="archive-error" role="alert">{{ archiveError }}</p>
           <p v-if="archiveNotice" class="archive-notice" role="status">{{ archiveNotice }}</p>
-          <!-- Header avec avatar et infos principales -->
-          <div class="profile-header">
-            <div class="profile-avatar">
-              {{ getInitials(selectedClient) }}
-            </div>
-            <div class="profile-identity">
-              <h2 class="profile-name">{{ selectedClient.prenom }} {{ selectedClient.nom }}</h2>
-              <div class="profile-badges">
-                <button 
-                  type="button"
-                  :class="['favorite-toggle', { 'favorite-toggle-active': selectedClient.contacter }]"
-                  @click="toggleFavorite"
-                  :title="selectedClient.contacter ? 'Retirer des favoris' : 'Ajouter aux favoris'"
-                  :aria-pressed="Boolean(selectedClient.contacter)"
-                >
-                  <svg viewBox="0 0 24 24" :fill="selectedClient.contacter ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                  {{ selectedClient.contacter ? 'Favori' : 'Ajouter aux favoris' }}
+          <section class="loyalty-section" aria-label="Points fidélité">
+            <div class="loyalty-heading">
+              <span class="loyalty-label">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 5h16v4a3 3 0 0 0 0 6v4H4v-4a3 3 0 0 0 0-6V5Z"/>
+                  <path d="M14 5v2m0 3v2m0 3v2m0 1v1"/>
+                </svg>
+                Points fidélité
+              </span>
+              <div v-if="!pointsEditing" class="loyalty-value">
+                <strong>{{ selectedClient.points_fidelite ?? 0 }}</strong>
+                <button id="client-points-edit" type="button" class="loyalty-action" :disabled="archiving || favoriteBusy(selectedClient.id)" aria-label="Modifier les points fidélité" @click="startPointsEdit">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15l-1 6 5-2"/></svg>
                 </button>
-                <span v-if="selectedClient.created_at" class="badge badge-neutral">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"/>
-                    <polyline points="12 6 12 12 16 14"/>
-                  </svg>
-                  Client depuis {{ formatMemberSince(selectedClient.created_at) }}
-                </span>
               </div>
             </div>
-          </div>
+            <form v-if="pointsEditing" class="loyalty-editor" novalidate @submit.prevent="savePoints" @keydown.esc.stop.prevent="cancelPointsEdit">
+              <label class="sr-only" for="client-points-input">Nouveau nombre de points fidélité</label>
+              <input id="client-points-input" v-model="pointsDraft" type="number" min="0" step="1" inputmode="numeric" :disabled="pointsSaving" :aria-invalid="Boolean(pointsError)" :aria-describedby="pointsError ? 'client-points-feedback' : undefined" />
+              <button type="submit" class="loyalty-action loyalty-save" :disabled="pointsSaving" :aria-label="pointsSaving ? 'Enregistrement des points fidélité' : 'Enregistrer les points fidélité'">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+              </button>
+              <button type="button" class="loyalty-action" :disabled="pointsSaving" aria-label="Annuler la modification des points" @click="cancelPointsEdit">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg>
+              </button>
+            </form>
+            <p v-if="pointsSaving" class="loyalty-feedback" role="status">Enregistrement…</p>
+            <p v-else-if="pointsError" id="client-points-feedback" class="loyalty-feedback loyalty-error" role="alert">{{ pointsError }}</p>
+            <p v-else-if="pointsNotice" class="loyalty-feedback" role="status">{{ pointsNotice }}</p>
+          </section>
 
           <!-- Grille d'informations -->
           <div class="profile-grid">
@@ -228,7 +158,7 @@
             </div>
 
             <!-- Section Informations personnelles -->
-            <div class="profile-section">
+            <div v-if="selectedClient.date_naissance || selectedClient.derniere_commande" class="profile-section">
               <h3 class="section-title">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -247,18 +177,6 @@
                 <div class="info-item" v-if="selectedClient.derniere_commande">
                   <span class="info-label">Dernière commande</span>
                   <span class="info-value">{{ formatDate(selectedClient.derniere_commande) }}</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Points fidélité</span>
-                  <span class="info-value fidelite-value">
-                    <svg viewBox="0 0 24 24" fill="currentColor" stroke="none" width="14" height="14">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                    {{ selectedClient.points_fidelite ?? 0 }}
-                  </span>
-                </div>
-                <div v-if="!selectedClient.date_naissance && !selectedClient.derniere_commande" class="info-empty">
-                  Aucune information
                 </div>
               </div>
             </div>
@@ -305,10 +223,11 @@
               <span class="count-badge">{{ clientCommandes.length }}</span>
             </div>
             
-            <div v-if="commandesLoading" class="commandes-loading">
+            <div v-if="commandesLoading" class="commandes-loading" role="status">
               <div class="loading-spinner loading-spinner-sm"></div>
               <span>Chargement...</span>
             </div>
+            <div v-else-if="commandesError" class="client-error" role="alert"><p>{{ commandesError }}</p><Button variant="secondary" @click="viewClient(selectedClient)">Recharger l’historique</Button></div>
             <div v-else-if="clientCommandes.length === 0" class="commandes-empty">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="9" cy="21" r="1"/>
@@ -317,45 +236,48 @@
               </svg>
               <span>Aucune commande pour le moment</span>
             </div>
-            <div v-else class="commandes-timeline">
-              <div
-                v-for="commande in clientCommandes"
-                :key="commande.id"
-                class="timeline-item"
-              >
-                <div class="timeline-dot" :class="commande.reglee ? 'dot-success' : 'dot-warning'"></div>
-                <div class="timeline-content">
+            <ol v-else class="commandes-timeline">
+              <li v-for="commande in clientCommandes" :key="commande.id" class="timeline-item">
+                <span class="timeline-dot" aria-hidden="true"></span>
+                <RouterLink
+                  :to="commandeHistoryLink(commande)"
+                  class="timeline-link"
+                  :aria-disabled="pointsSaving || undefined"
+                  @click.capture="pointsSaving && $event.preventDefault()"
+                >
                   <div class="timeline-header">
-                    <span class="timeline-title">Commande n°{{ commande.id }}</span>
-                    <span :class="['badge', commande.reglee ? 'badge-success' : 'badge-warning']">
-                      {{ commande.reglee ? 'Réglée' : 'En attente' }}
-                    </span>
+                    <strong class="timeline-title">Commande n°{{ commande.id }}</strong>
+                    <time :datetime="commandeHistoryDate(commande)">{{ formatHistoryDate(commande) }}</time>
                   </div>
                   <div class="timeline-meta">
-                    <span>{{ commandeTypeLabel(commande) }}</span>
-                    <span v-if="commande.methode_paiement">· {{ commande.methode_paiement }}</span>
+                    <span class="timeline-catalogue">{{ commandeHistoryCatalogue(commande) }}</span>
+                    <span class="timeline-status">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span>
                   </div>
-                </div>
-              </div>
-            </div>
+                </RouterLink>
+              </li>
+            </ol>
           </div>
         </div>
         <template #footer>
-          <Button variant="secondary" :disabled="archiving" @click="confirmArchiveFromView">{{ selectedClient?.archive ? 'Restaurer' : 'Archiver' }}</Button>
-          <Button variant="secondary" @click="editClientFromView">Modifier</Button>
-          <Button :disabled="Boolean(selectedClient?.archive)" @click="newOrderForClient">Nouvelle commande</Button>
+          <Button variant="secondary" :disabled="archiving || pointsSaving || favoriteBusy(selectedClient?.id)" @click="confirmArchiveFromView">{{ selectedClient?.archive ? 'Restaurer' : 'Archiver' }}</Button>
+          <Button variant="secondary" :disabled="archiving || pointsSaving || favoriteBusy(selectedClient?.id)" @click="editClientFromView">Modifier</Button>
+          <Button :disabled="Boolean(selectedClient?.archive) || archiving || pointsSaving || favoriteBusy(selectedClient?.id)" @click="newOrderForClient">Nouvelle commande</Button>
         </template>
       </SlidePanel>
+
+      </div>
 
       <!-- Panel création/édition client -->
       <SlidePanel
         :is-open="isModalOpen"
+        :return-focus-id="isEditing ? (filteredClients.some(client => client.id === editingClientId) ? `client-open-${editingClientId}` : 'clients-list-header') : 'clients-create'"
         :title="modalTitle"
         @close="closeModal"
         max-width="560px"
       >
         <form @submit.prevent="handleSubmit" class="client-form">
-          <fieldset class="form-section">
+          <p v-if="errors._global" class="client-error" role="alert">{{ errors._global }}</p>
+          <fieldset class="form-section" :disabled="saving">
             <legend class="form-section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -416,7 +338,7 @@
             </div>
           </fieldset>
 
-          <fieldset class="form-section">
+          <fieldset class="form-section" :disabled="saving">
             <legend class="form-section-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
@@ -454,7 +376,7 @@
           </fieldset>
         </form>
         <template #footer>
-          <Button variant="secondary" @click="closeModal">Annuler</Button>
+          <Button variant="secondary" :disabled="saving" @click="closeModal">Annuler</Button>
           <Button @click="handleSubmit" :loading="saving">
             {{ isEditing ? 'Enregistrer' : 'Créer' }}
           </Button>
@@ -476,7 +398,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
 import SlidePanel from '../components/SlidePanel.vue';
@@ -487,14 +409,25 @@ import EmailDomainInput from '../components/EmailDomainInput.vue';
 import PhoneInput from '../components/PhoneInput.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import { useClientsStore } from '../stores/clients';
-import { commandeTypeLabel } from '../utils/commande-kit';
+import { commandeHistoryLink, commandeHistoryDate, formatHistoryDate, commandeHistoryCatalogue } from '../utils/client-history.js';
 import { matchesClientSearch } from '../utils/client-input';
 
 const router = useRouter();
+const desktopMedia = window.matchMedia('(min-width: 901px)');
+const desktopDetails = ref(desktopMedia.matches);
+const updateDesktopDetails = event => { desktopDetails.value = event.matches; };
+onMounted(() => desktopMedia.addEventListener('change', updateDesktopDetails));
+onUnmounted(() => { desktopMedia.removeEventListener('change', updateDesktopDetails); ++historyGeneration; });
 
 const clientsStore = useClientsStore();
 
 const searchQuery = ref('');
+const filtersExpanded = ref(false);
+const operationError = ref('');
+const detailClientId = ref(null);
+const commandesError = ref('');
+const favoritePending = ref(new Set());
+let historyGeneration = 0;
 const showOnlyFavorites = ref(false);
 const archiveFilter = ref('actifs');
 const archiving = ref(false);
@@ -509,6 +442,11 @@ const selectedClient = ref(null);
 const clientCommandes = ref([]);
 const commandesLoading = ref(false);
 const saving = ref(false);
+const pointsEditing = ref(false);
+const pointsDraft = ref('');
+const pointsSaving = ref(false);
+const pointsError = ref('');
+const pointsNotice = ref('');
 
 const formData = ref({
   nom: '',
@@ -548,11 +486,40 @@ const filteredClients = computed(() => {
   return clients;
 });
 
-const getInitials = (client) => {
-  const first = client.prenom?.[0] || '';
-  const last = client.nom?.[0] || '';
-  return (first + last).toUpperCase();
+const activeCount = computed(() => clientsStore.clients.filter(client => !client.archive).length);
+const archivedCount = computed(() => clientsStore.clients.filter(client => client.archive).length);
+const activeFilterCount = computed(() => Number(Boolean(searchQuery.value.trim())) + Number(showOnlyFavorites.value));
+const filterSummary = computed(() => [searchQuery.value.trim(), showOnlyFavorites.value ? 'favoris uniquement' : ''].filter(Boolean).join(', '));
+const toggleFilters = async () => {
+  filtersExpanded.value = !filtersExpanded.value;
+  if (filtersExpanded.value) { await nextTick(); document.getElementById('clients-search')?.focus(); }
 };
+const resetFilters = async () => {
+  if (pointsSaving.value) return;
+  searchQuery.value = ''; showOnlyFavorites.value = false;
+  await nextTick();
+  document.getElementById(filtersExpanded.value ? 'clients-search' : 'clients-filter-toggle')?.focus();
+};
+const selectArchiveTab = (value, focus = false) => {
+  if (pointsSaving.value) return;
+  archiveFilter.value = value;
+  if (focus) document.getElementById(`clients-tab-${value}`)?.focus();
+};
+const onTabKeydown = event => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  event.preventDefault();
+  const value = event.key === 'Home' ? 'actifs' : event.key === 'End' ? 'archives' : archiveFilter.value === 'actifs' ? 'archives' : 'actifs';
+  selectArchiveTab(value, true);
+};
+watch([searchQuery, showOnlyFavorites, archiveFilter], async () => {
+  if (!isViewModalOpen.value || archiving.value || pointsSaving.value || isArchiveDialogOpen.value || filteredClients.value.some(client => client.id === selectedClient.value?.id)) return;
+  const focused = document.activeElement;
+  closeViewModal();
+  // Laisser le panneau terminer son propre retour de focus avant de préserver le filtre.
+  await nextTick();
+  await nextTick();
+  if (focused?.isConnected) focused.focus();
+});
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '';
@@ -591,72 +558,126 @@ const calculateAge = (dateStr) => {
 };
 
 const viewClient = async (client) => {
-  archiveError.value = ''; archiveNotice.value = '';
+  if (!client || archiving.value || pointsSaving.value) return;
+  const generation = ++historyGeneration;
+  archiveError.value = ''; archiveNotice.value = ''; commandesError.value = '';
+  resetPointsEditor();
+  detailClientId.value = client.id;
   selectedClient.value = client;
+  clientCommandes.value = [];
   commandesLoading.value = true;
   isViewModalOpen.value = true;
   try {
-    clientCommandes.value = await clientsStore.fetchClientCommandes(client.id);
+    const commandes = await clientsStore.fetchClientCommandes(client.id);
+    if (generation === historyGeneration && isViewModalOpen.value) clientCommandes.value = commandes;
   } catch (error) {
-    console.error('Erreur lors du chargement des commandes:', error);
-    clientCommandes.value = [];
+    if (clientsStore.error === error.message) clientsStore.error = null;
+    if (generation === historyGeneration && isViewModalOpen.value) commandesError.value = error.message || 'Impossible de charger cet historique.';
   } finally {
-    commandesLoading.value = false;
+    if (generation === historyGeneration) commandesLoading.value = false;
   }
 };
 
 const closeViewModal = () => {
+  if (archiving.value || pointsSaving.value) return;
+  resetPointsEditor();
+  ++historyGeneration;
   isViewModalOpen.value = false;
   selectedClient.value = null;
   clientCommandes.value = [];
+  commandesLoading.value = false;
+  commandesError.value = '';
 };
 
-const toggleFavorite = async () => {
-  if (!selectedClient.value) return;
-  try {
-    const newValue = selectedClient.value.contacter === 1 ? 0 : 1;
-    await clientsStore.updateClient(selectedClient.value.id, {
-      ...selectedClient.value,
-      contacter: newValue,
-    });
-    selectedClient.value = clientsStore.getClientById(selectedClient.value.id);
-  } catch (error) {
-    console.error('Erreur lors du changement de favori:', error);
+const resetPointsEditor = () => {
+  pointsEditing.value = false;
+  pointsDraft.value = '';
+  pointsError.value = '';
+  pointsNotice.value = '';
+};
+const startPointsEdit = async () => {
+  if (!selectedClient.value || archiving.value || pointsSaving.value || favoriteBusy(selectedClient.value.id)) return;
+  pointsDraft.value = String(selectedClient.value.points_fidelite ?? 0);
+  pointsError.value = ''; pointsNotice.value = '';
+  pointsEditing.value = true;
+  await nextTick();
+  document.getElementById('client-points-input')?.focus();
+};
+const cancelPointsEdit = async () => {
+  if (pointsSaving.value) return;
+  resetPointsEditor();
+  await nextTick();
+  document.getElementById('client-points-edit')?.focus();
+};
+const savePoints = async () => {
+  if (!pointsEditing.value || !selectedClient.value || pointsSaving.value || archiving.value || favoriteBusy(selectedClient.value.id)) return;
+  const points = Number(pointsDraft.value);
+  if (!String(pointsDraft.value).trim() || !Number.isSafeInteger(points) || points < 0) {
+    pointsError.value = 'Saisis un nombre entier de points supérieur ou égal à 0.';
+    return;
   }
-};
-
-const toggleFavoriteFromCard = async (client) => {
+  const clientId = selectedClient.value.id;
+  const generation = historyGeneration;
+  pointsSaving.value = true;
+  pointsError.value = '';
   try {
-    const newValue = client.contacter === 1 ? 0 : 1;
-    await clientsStore.updateClient(client.id, {
-      ...client,
-      contacter: newValue,
-    });
+    const updated = await clientsStore.setPointsFidelite(clientId, points);
+    if (generation !== historyGeneration || !isViewModalOpen.value || selectedClient.value?.id !== clientId) return;
+    selectedClient.value = updated;
+    pointsEditing.value = false;
+    pointsNotice.value = 'Points mis à jour.';
+    await nextTick();
+    document.getElementById('client-points-edit')?.focus();
   } catch (error) {
-    console.error('Erreur lors du changement de favori:', error);
-  }
+    if (generation === historyGeneration && isViewModalOpen.value && selectedClient.value?.id === clientId) pointsError.value = error.message || 'Impossible d’enregistrer les points.';
+  } finally { pointsSaving.value = false; }
 };
 
-const editClientFromView = () => {
+const favoriteBusy = id => favoritePending.value.has(id);
+const toggleFavoriteFromList = async client => {
+  if (!client || favoriteBusy(client.id) || archiving.value || pointsSaving.value) return;
+  const focused = document.activeElement;
+  const id = client.id;
+  favoritePending.value.add(id);
+  operationError.value = '';
+  try {
+    const updated = await clientsStore.updateClient(id, { ...client, contacter: client.contacter === 1 ? 0 : 1 });
+    if (isViewModalOpen.value && selectedClient.value?.id === id) selectedClient.value = updated;
+    await nextTick();
+    if (!focused?.isConnected && document.activeElement === document.body) document.getElementById('clients-list-header')?.focus();
+  } catch (error) {
+    if (clientsStore.error === error.message) clientsStore.error = null;
+    operationError.value = error.message || 'Impossible de modifier ce favori.';
+  } finally { favoritePending.value.delete(id); }
+};
+const toggleFavorite = () => toggleFavoriteFromList(selectedClient.value);
+
+const editClientFromView = async () => {
+  if (!selectedClient.value || archiving.value || pointsSaving.value || favoriteBusy(selectedClient.value.id)) return;
   const client = selectedClient.value;
   closeViewModal();
+  await nextTick();
   editClient(client);
 };
 
 const newOrderForClient = () => {
   const client = selectedClient.value;
-  if (!client || client.archive) return;
+  if (!client || client.archive || archiving.value || pointsSaving.value || favoriteBusy(client.id)) return;
   closeViewModal();
-  // Navigate to home (orders) with client pre-selected via query param
+  // Conserver l’accès Commandes et son paramètre cliente existant.
   router.push({ path: '/', query: { client: client.id } });
 };
 
 const confirmArchiveFromView = () => {
+  if (!selectedClient.value || archiving.value || pointsSaving.value || favoriteBusy(selectedClient.value.id)) return;
   archiveError.value = '';
   isArchiveDialogOpen.value = true;
 };
 
-const openCreateModal = () => {
+const openCreateModal = async () => {
+  if (archiving.value || saving.value || pointsSaving.value) return;
+  closeViewModal();
+  await nextTick();
   isEditing.value = false;
   editingClientId.value = null;
   formData.value = {
@@ -697,10 +718,12 @@ const editClient = (client) => {
 };
 
 const closeModal = () => {
+  if (saving.value) return;
   isModalOpen.value = false;
 };
 
 const handleSubmit = async () => {
+  if (saving.value) return;
   errors.value = {};
 
   if (!formData.value.nom) errors.value.nom = 'Le nom est requis';
@@ -722,16 +745,17 @@ const handleSubmit = async () => {
     } else {
       await clientsStore.createClient(clientData);
     }
-    closeModal();
+    isModalOpen.value = false;
   } catch (error) {
-    console.error('Erreur lors de la sauvegarde:', error);
+    if (clientsStore.error === error.message) clientsStore.error = null;
+    errors.value._global = error.message || 'Impossible d’enregistrer cette cliente.';
   } finally {
     saving.value = false;
   }
 };
 
 const archiveClient = async () => {
-  if (!selectedClient.value || archiving.value) return;
+  if (!selectedClient.value || archiving.value || pointsSaving.value || favoriteBusy(selectedClient.value.id)) return;
   archiving.value = true;
   archiveError.value = '';
   try {
@@ -754,230 +778,115 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.archive-filter { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-2); color: var(--text-secondary); }
-.archive-filter select { min-height: 40px; max-width: 100%; border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); padding: var(--spacing-2); }
-.archive-notice { padding: var(--spacing-4); border-radius: var(--border-radius); background: var(--muted); margin-bottom: var(--spacing-4); }
-.archive-error { color: var(--error-dark); }
-.toolbar-actions { flex-wrap: wrap; }
-.client-card:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.clients-view { max-width: var(--content-max-width); }
+.clients-view { width: 100%; min-width: 0; }
+.clients-toolbar { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+.clients-workspace { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(320px, 1fr); gap: 16px; align-items: start; }
+.clients-list-panel, .client-placeholder { min-width: 0; background: var(--card); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-sm); }
+.client-placeholder { padding: 24px 18px; }
+.client-placeholder h2 { color: var(--primary); font-size: var(--font-size-lg); margin-bottom: 12px; }
+.client-placeholder p { color: var(--text-secondary); line-height: 1.65; }
+.clients-list-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; padding: 0 14px; border-bottom: 1px solid var(--border-light); }
+.clients-tabs { display: flex; gap: 16px; }
+.clients-tabs button { display: inline-flex; align-items: center; gap: 6px; min-height: 56px; padding: 12px 6px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-sm); cursor: pointer; }
+.clients-tabs button:hover { color: var(--primary); border-bottom-color: var(--border); }
+.clients-tabs button[aria-selected="true"] { color: var(--primary); border-bottom-color: var(--primary); font-weight: var(--font-weight-semibold); }
+.clients-tabs span { font-size: var(--font-size-xs); font-variant-numeric: tabular-nums; }
+.clients-list-tools { display: flex; align-items: center; gap: 12px; }
+.clients-list-tools p { color: var(--text-secondary); font-size: var(--font-size-xs); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.clients-filter-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-xs); cursor: pointer; }
+.clients-filter-toggle:hover, .clients-filter-toggle[aria-expanded="true"] { background: var(--primary-light); color: var(--primary); }
+.clients-filter-toggle svg { width: 17px; height: 17px; }
+.clients-filter-toggle .filter-chevron { width: 12px; height: 12px; }
+.filter-chevron.expanded { transform: rotate(180deg); }
+.filter-count { min-width: 17px; padding: 1px 4px; border-radius: 4px; background: var(--primary); color: var(--primary-foreground); text-align: center; }
+.clients-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--border-light); }
+.client-filter { display: grid; gap: 6px; flex: 1 1 200px; min-width: 0; }
+.client-filter label { color: var(--text-secondary); font-size: var(--font-size-xs); }
+.client-filter input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); }
+.favorites-filter { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--text-secondary); font-size: var(--font-size-sm); cursor: pointer; }
+.favorites-filter input { accent-color: var(--primary); width: 17px; height: 17px; }
+.client-filter-reset { min-height: 44px; padding: 8px 0; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: var(--font-size-xs); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.clients-table-wrapper { padding-bottom: 16px; }
+.clients-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: var(--font-size-sm); }
+.clients-table thead th { padding: 12px; color: var(--primary-foreground); background: var(--atelier-header); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); text-align: left; }
+.clients-table thead th:first-child { width: 40%; padding-left: 18px; }
+.clients-table tbody th, .clients-table td { padding: 9px 12px; height: 63px; border-bottom: 1px solid var(--border-light); text-align: left; vertical-align: middle; overflow-wrap: anywhere; }
+.clients-table tbody th { padding-left: 18px; font-weight: var(--font-weight-normal); }
+.clients-table .favorite-column { width: 72px; text-align: center; }
+.clients-table tbody tr { cursor: pointer; }
+.clients-table tbody tr:hover, .clients-table .client-selected { background: var(--primary-light); }
+.client-selected > th { box-shadow: inset 3px 0 var(--accent); }
+.client-open { display: grid; gap: 3px; align-content: center; width: 100%; min-height: 44px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: var(--text-primary); font: inherit; text-align: left; cursor: pointer; }
+.client-name { font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+.client-city { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.client-contact > span { display: block; overflow-wrap: anywhere; }
+.favorite-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.favorite-btn svg { width: 18px; height: 18px; }
+.favorite-btn-active, .favorite-btn:hover { color: var(--primary); background: var(--primary-light); }
+.favorite-btn:disabled { opacity: .6; cursor: wait; }
+.client-error, .archive-error { padding: 12px; border-radius: 6px; background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
+.clients-view > .client-error { margin-bottom: 16px; }
+.archive-notice { padding: 12px; background: var(--primary-light); color: var(--text-secondary); border-radius: 6px; }
+.client-profile { display: grid; gap: 18px; min-width: 0; }
+.client-heading { display: flex; align-items: flex-start; gap: 8px; flex: 1; min-width: 0; }
+.profile-identity { min-width: 0; flex: 1; }
+.profile-name { font-size: 20px; color: var(--primary); font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; line-height: 1.3; margin: 0; }
+.profile-member-since { color: var(--text-secondary); font-size: var(--font-size-xs); margin: 5px 0 0; }
+.favorite-toggle { display: inline-grid; place-items: center; flex: 0 0 44px; min-height: 44px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--text-secondary); cursor: pointer; }
+.favorite-toggle-active, .favorite-toggle:hover { color: var(--primary); }
+.favorite-toggle svg { width: 18px; height: 18px; }
+.loyalty-section { padding: 12px 0; border-bottom: 1px solid var(--border-light); }
+.loyalty-heading, .loyalty-value { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.loyalty-label { display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.loyalty-label svg { width: 19px; height: 19px; flex-shrink: 0; color: var(--primary); }
+.loyalty-value strong { color: var(--primary); font-size: 20px; font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.loyalty-action { display: inline-grid; place-items: center; flex: 0 0 44px; min-height: 44px; width: 44px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--primary); cursor: pointer; }
+.loyalty-action svg { width: 18px; height: 18px; }
+.loyalty-action:hover { background: var(--primary-light); }
+.loyalty-action:disabled { cursor: wait; opacity: .6; }
+.loyalty-editor { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+.loyalty-editor input { width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); }
+.loyalty-editor input[aria-invalid="true"] { border-color: var(--error); }
+.loyalty-save { background: var(--primary-light); }
+.loyalty-feedback { color: var(--text-secondary); font-size: var(--font-size-xs); margin-top: 6px; overflow-wrap: anywhere; }
+.loyalty-error { color: var(--error-dark); }
+.profile-grid { display: grid; gap: 18px; }
+.profile-section { min-width: 0; }
+.section-title { display: flex; align-items: center; gap: 8px; color: var(--primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); margin-bottom: 10px; }
+.section-title > svg { width: 16px; height: 16px; flex-shrink: 0; }
+.info-list { display: grid; gap: 10px; }
+.info-item { display: grid; gap: 3px; padding-bottom: 8px; border-bottom: 1px solid var(--border-light); }
+.info-label, .info-extra, .info-empty { color: var(--text-secondary); font-size: var(--font-size-xs); }
+.info-value, .address-line { font-size: var(--font-size-sm); color: var(--text-primary); overflow-wrap: anywhere; }
+.info-link { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+.info-link:hover { color: var(--primary); }
+.info-extra { margin-left: 4px; }
+.address-line { margin: 0; }
+.address-block { display: grid; gap: 3px; }
+.relais-value { display: inline-flex; align-items: center; gap: 6px; color: var(--primary); }
+.relais-value { overflow-wrap: anywhere; }
+.relais-value svg { width: 16px; height: 16px; flex-shrink: 0; }
+.section-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.section-header .count-badge { background: var(--primary-light); color: var(--primary); box-shadow: none; }
+.commandes-loading, .commandes-empty { display: flex; align-items: center; gap: 8px; padding: 12px 0; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.commandes-empty svg { width: 20px; height: 20px; flex-shrink: 0; }
+.commandes-timeline { list-style: none; margin: 0; padding: 0 0 0 16px; }
+.timeline-item { position: relative; padding-left: 14px; }
+.timeline-item::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px; background: var(--primary); }
+.timeline-item:first-child::before { top: 20px; }
+.timeline-item:last-child::before { bottom: calc(100% - 20px); }
+.timeline-item:only-child::before { display: none; }
+.timeline-dot { position: absolute; top: 17px; left: -3px; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+.timeline-link { display: grid; gap: 4px; min-height: 44px; padding: 10px 0 12px; border-radius: 3px; color: var(--text-primary); text-decoration: none; }
+.timeline-link:hover { color: var(--primary); background: var(--primary-light); }
+.timeline-link[aria-disabled="true"] { opacity: .6; cursor: wait; }
+.timeline-header, .timeline-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 8px; }
+.timeline-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
+.timeline-header time { font-size: var(--font-size-xs); color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.timeline-meta { font-size: var(--font-size-xs); color: var(--text-secondary); }
+.timeline-catalogue { overflow-wrap: anywhere; flex: 1 1 120px; min-width: 0; }
+.timeline-status { white-space: nowrap; }
 
-/* === Page Title === */
-.page-title {
-  font-family: var(--font-heading);
-}
-
-/* === Toolbar === */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-4);
-}
-
-.toolbar-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-4);
-}
-
-.toolbar-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-}
-
-.toolbar-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-}
-
-.favorites-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-family);
-}
-
-.favorites-toggle svg {
-  width: 18px;
-  height: 18px;
-}
-
-.favorites-toggle:hover {
-  background: var(--warning-light);
-  border-color: var(--secondary);
-  color: var(--warning-dark);
-}
-
-.favorites-toggle-active {
-  background: var(--warning-light);
-  border-color: var(--secondary);
-  color: var(--warning-dark);
-}
-
-.favorites-toggle-active svg {
-  color: var(--secondary);
-}
-
-/* === Clients Grid === */
-.clients-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-  gap: var(--spacing-5);
-}
-
-.client-card {
-  background: var(--card);
-  border-radius: var(--border-radius-2xl);
-  padding: var(--spacing-5);
-  border: 1px solid var(--border-light);
-  box-shadow: none;
-  display: flex;
-  gap: var(--spacing-4);
-  transition: border-color var(--transition-fast), background-color var(--transition-fast);
-  cursor: pointer;
-}
-
-.client-card:hover {
-  border-color: var(--primary);
-  background: var(--bg-tertiary);
-}
-
-.client-card:hover .arrow-indicator {
-  opacity: 1;
-  transform: translateX(4px);
-  color: var(--primary);
-}
-
-.client-avatar {
-  width: 52px;
-  height: 52px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
-  border-radius: var(--border-radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-foreground);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-bold);
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(93, 112, 82, 0.25);
-}
-
-.client-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.client-name {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-md);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-  margin-bottom: var(--spacing-2);
-}
-
-.client-detail {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  font-size: var(--font-size-sm);
-  color: var(--text-secondary);
-  margin-top: var(--spacing-1);
-}
-
-.client-detail svg {
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  color: var(--text-tertiary);
-}
-
-.client-detail span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* === Favorite Button === */
-.favorite-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all var(--transition-fast);
-  flex-shrink: 0;
-}
-
-.favorite-btn svg {
-  width: 20px;
-  height: 20px;
-}
-
-.favorite-btn-active {
-  color: var(--secondary);
-}
-
-.favorite-btn:hover {
-  background: var(--secondary-light);
-  color: var(--secondary);
-  transform: scale(1.1);
-}
-
-.favorite-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-2) var(--spacing-4);
-  background: var(--muted);
-  border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-family);
-}
-
-.favorite-toggle svg {
-  width: 16px;
-  height: 16px;
-}
-
-.favorite-toggle:hover {
-  background: var(--secondary-light);
-  border-color: var(--secondary);
-  color: var(--warning-dark);
-}
-
-.favorite-toggle-active {
-  background: var(--warning-light);
-  border-color: var(--secondary);
-  color: var(--warning-dark);
-}
-
-.favorite-toggle-active svg {
-  color: var(--secondary);
-}
-
-/* === Form === */
 .client-form {
   display: grid;
   gap: var(--spacing-4);
@@ -1027,280 +936,7 @@ onMounted(async () => {
 .client-form :deep(.form-field-checkbox),
 .client-form :deep(.email-domain-field) { margin-bottom: 0; }
 
-/* === Client Profile Modal === */
-.client-profile {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-6);
-}
 
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-5);
-  padding-bottom: var(--spacing-5);
-  border-bottom: 1px solid var(--border-light);
-}
-
-.profile-avatar {
-  width: 72px;
-  height: 72px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--success-dark) 100%);
-  border-radius: var(--border-radius-xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--primary-foreground);
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  flex-shrink: 0;
-  box-shadow: 0 4px 16px rgba(93, 112, 82, 0.25);
-}
-
-.profile-identity {
-  flex: 1;
-  min-width: 0;
-}
-
-.profile-name {
-  font-family: var(--font-heading);
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--foreground);
-  margin: 0 0 var(--spacing-2) 0;
-}
-
-.profile-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-2);
-}
-
-/* === Profile Grid === */
-.profile-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-4);
-}
-
-.profile-section {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-4);
-}
-
-.info-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.info-label {
-  font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.info-value {
-  font-size: var(--font-size-sm);
-  color: var(--foreground);
-  font-weight: var(--font-weight-medium);
-}
-
-.info-link {
-  color: var(--primary);
-  text-decoration: none;
-  transition: color var(--transition-fast);
-}
-
-.info-link:hover {
-  color: var(--secondary);
-  text-decoration: underline;
-}
-
-.info-extra {
-  font-weight: var(--font-weight-normal);
-  color: var(--text-tertiary);
-  margin-left: var(--spacing-1);
-}
-
-.info-empty {
-  font-size: var(--font-size-sm);
-  color: var(--text-tertiary);
-  font-style: italic;
-}
-
-.address-block {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.address-line {
-  font-size: var(--font-size-sm);
-  color: var(--foreground);
-  margin: 0;
-}
-
-.fidelite-value {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--secondary);
-}
-
-.relais-value {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-2);
-  background: var(--card);
-  padding: var(--spacing-2) var(--spacing-3);
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-light);
-}
-
-.relais-value svg {
-  width: 16px;
-  height: 16px;
-  color: var(--primary);
-}
-
-/* === Profile Commandes === */
-.profile-commandes {
-  background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-5);
-}
-
-.commandes-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-6);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
-.commandes-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-2);
-  padding: var(--spacing-6);
-  color: var(--text-tertiary);
-  font-size: var(--font-size-sm);
-}
-
-.commandes-empty svg {
-  width: 32px;
-  height: 32px;
-  opacity: 0.5;
-}
-
-/* === Timeline === */
-.commandes-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-3);
-  position: relative;
-  padding-left: var(--spacing-5);
-}
-
-.commandes-timeline::before {
-  content: '';
-  position: absolute;
-  left: 5px;
-  top: 8px;
-  bottom: 8px;
-  width: 2px;
-  background: var(--border);
-  border-radius: 1px;
-}
-
-.timeline-item {
-  position: relative;
-  background: var(--card);
-  border-radius: var(--border-radius);
-  padding: var(--spacing-3) var(--spacing-4);
-  border: 1px solid var(--border-light);
-}
-
-.timeline-dot {
-  position: absolute;
-  left: calc(-1 * var(--spacing-5) - 1px);
-  top: 50%;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  border: 2px solid var(--card);
-}
-
-.dot-success {
-  background: var(--success);
-}
-
-.dot-warning {
-  background: var(--warning);
-}
-
-.timeline-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-1);
-}
-
-.timeline-title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--foreground);
-}
-
-.timeline-meta {
-  font-size: var(--font-size-xs);
-  color: var(--text-secondary);
-}
-
-/* === Responsive === */
-@media (max-width: 768px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--spacing-3);
-  }
-  
-  .toolbar-actions {
-    justify-content: space-between;
-  }
-  
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-  
-  .profile-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .profile-header {
-    flex-direction: column;
-    text-align: center;
-  }
-  
-  .profile-badges {
-    justify-content: center;
-  }
-  
-  .clients-grid {
-    grid-template-columns: 1fr;
-  }
-}
+@media (max-width: 900px) { .clients-workspace { grid-template-columns: 1fr; } .client-placeholder { display: none; } }
+@media (max-width: 480px) { .clients-list-heading { padding-inline: 10px; gap: 0 6px; } .clients-tabs { gap: 8px; } .clients-tabs button { padding-inline: 4px; } .clients-list-tools { gap: 6px; } .clients-filters { padding: 12px; } .clients-table thead th, .clients-table tbody th, .clients-table td { padding-inline: 7px; } .clients-table thead th:first-child, .clients-table tbody th { padding-left: 12px; } .clients-table .favorite-column { width: 58px; padding-inline: 5px; } .form-row { grid-template-columns: 1fr; } }
 </style>
