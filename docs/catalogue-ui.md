@@ -159,14 +159,15 @@ Le rechargement d’un éditeur ignore les réponses arrivées après son rempla
 Sur desktop, l’espace Catalogues est borné à la hauteur du viewport : bandeau
 Stamp App visible, liste et formulaire défilant indépendamment. Le titre et
 la croix de fermeture en haut à gauche restent hors du défilement du formulaire.
-Les panneaux vont jusqu’au bas du viewport, sous le dock fixé en surimpression,
+Les détails et formulaires vont jusqu’au bas du viewport, sous le dock fixé en surimpression,
 comme Sam l’a précisé. La marge nécessaire aux dernières actions est à
 l’intérieur des zones défilantes ; aucun espace extérieur ne raccourcit les
 panneaux.
 En consultation desktop, le détail défile jusqu’en bas sous le dock : le lien
 de préparation est à la fin du contenu, avec la marge de défilement nécessaire
 pour l’atteindre. Son ancien pied fixe ne réduit plus la hauteur du détail.
-Le titre reste visible et le panneau vide occupe la même hauteur. Le détail
+Le titre reste visible. Sans catalogue sélectionné, le panneau d’aide suit
+la hauteur de son texte ; l’ouverture du détail conserve le panneau défilant. Le détail
 modal sur écran étroit conserve son pied d’actions.
 
 À 900 px CSS et moins, le formulaire occupe la largeur disponible dans le flux,
@@ -179,3 +180,9 @@ corrections demandées ensuite par Sam. Sam a validé le résultat et autorisé
 les commits/push le 10 octobre 2026 ; Safari reste
 à vérifier. Aucun changement backend, API, schéma, données NAS ou déploiement.
 La recette réelle Mac/Safari et le zoom 200 % restent ouverts.
+
+Depuis la demande de Sam du 10 octobre 2026, la liste prend uniquement la
+hauteur du contenu affiché, y compris après filtrage. Une longue liste desktop
+s’arrête avant le dock et défile indépendamment ; les paramètres et les
+panneaux de droite conservent leurs actions accessibles. Les contrôles
+reprennent les tokens communs : [recette](ui/recette-composants-communs/README.md).

@@ -8,8 +8,10 @@
 .catalogue-workspace .page-title { font-family: var(--font-heading); overflow-wrap: anywhere; }
 .catalogue-workspace .page-header { flex-wrap: wrap; gap: var(--spacing-4); }
 .catalogue-workspace label { display: grid; gap: var(--spacing-2); font-weight: 600; min-width: 0; }
-.catalogue-workspace input, .catalogue-workspace select { min-height: 44px; width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); font: inherit; font-weight: 400; }
-.catalogue-workspace input[aria-invalid="true"] { border-color: var(--error); }
+.catalogue-workspace input, .catalogue-workspace select { min-height: var(--control-height); width: 100%; padding: var(--control-padding); border: 1.5px solid var(--border); border-radius: var(--control-radius); background: var(--card); color: var(--text-primary); font: inherit; font-weight: 400; font-size: var(--font-size-sm); line-height: 1.5; }
+.catalogue-workspace input:focus, .catalogue-workspace select:focus { border-color: var(--primary); box-shadow: var(--control-focus-ring); }
+.catalogue-workspace input[aria-invalid="true"]:focus, .catalogue-workspace select[aria-invalid="true"]:focus { box-shadow: var(--control-error-ring); }
+.catalogue-workspace :is(input, select)[aria-invalid="true"] { border-color: var(--error); }
 .catalogue-workspace input:disabled, .catalogue-workspace select:disabled { background: var(--muted); color: var(--text-secondary); }
 .catalogue-workspace fieldset { border: 0; display: grid; gap: var(--spacing-4); min-width: 0; }
 .catalogue-workspace button:not(.btn):where(:not(.slide-panel-close)) { min-height: 44px; padding: 8px 14px; background: var(--card); border: 1px solid var(--border); border-radius: var(--border-radius-sm); color: var(--text-primary); font: inherit; cursor: pointer; }
@@ -27,9 +29,10 @@
 .catalogue-hint { color: var(--text-secondary); font-size: 13px; font-weight: 400; }
 .catalogue-error { color: var(--error-dark); font-weight: 500; }
 .catalogue-success { color: var(--success-dark); }
-.catalogue-alert { padding: var(--spacing-4); margin-bottom: var(--spacing-5); border-radius: var(--border-radius); background: var(--muted); overflow-wrap: anywhere; }
+.catalogue-alert { padding: var(--feedback-padding); margin-bottom: var(--spacing-5); border-radius: var(--feedback-radius); background: var(--muted); overflow-wrap: anywhere; }
 .catalogue-alert.catalogue-error { background: var(--error-light); }
 .catalogue-status { display: inline-flex; border-radius: var(--border-radius-full); padding: 5px 12px; background: var(--muted); color: var(--text-secondary); font-size: 13px; font-weight: 600; }
+@media (max-width: 640px) { .catalogue-workspace input, .catalogue-workspace select { font-size: 16px; } }
 .catalogue-workspace .page-title:focus { outline: none; }
 .catalogue-workspace .page-header > .catalogue-status { align-self: flex-start; }
 .catalogue-status.published { background: var(--success-light); color: var(--success-dark); }
@@ -237,6 +240,15 @@
   --atelier-dock-radius: 23px;
   --atelier-glass-veil: rgba(255, 255, 255, 0.16);
   --atelier-glass-edge: rgba(108, 75, 96, 0.15);
+
+  /* Contrôles communs de l’atelier */
+  --control-radius: 6px;
+  --control-height: 44px;
+  --control-padding: 10px 12px;
+  --control-focus-ring: 0 0 0 3px rgba(108, 75, 96, .18);
+  --control-error-ring: 0 0 0 3px rgba(161, 63, 52, .16);
+  --feedback-radius: 6px;
+  --feedback-padding: 12px;
 
   /* === Dimensions === */
   --sidebar-width: 260px;

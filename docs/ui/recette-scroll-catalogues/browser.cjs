@@ -19,7 +19,7 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    return r.fulfill({json:[]});
   });
   const capture=async name=>{await p.mouse.move(0,0);await p.screenshot({path:`${out}/${name}.png`,animations:'disabled',fullPage:false});};
-  const rect=selector=>p.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right};});
+  const rect=selector=>p.locator(selector).evaluate(e=>{const r=e.getBoundingClientRect();return {top:r.top,bottom:r.bottom,left:r.left,right:r.right,height:r.height};});
   const top=selector=>p.locator(selector).evaluate(e=>e.scrollTop);
   const dockVisible=async()=>{
    const box=await p.locator('.dock-item').first().boundingBox();assert.ok(box);
@@ -33,7 +33,7 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    await p.locator('.catalogue-editor-body').evaluate(e=>e.scrollTop=0);await p.locator('.catalogue-list-content').evaluate(e=>e.scrollTop=0);
    const hero=await rect('.atelier-header'),title=await rect('.catalogue-editor-header'),list=await rect('.catalogue-list-panel'),dock=await rect('.dock-wrapper');
    assert.equal(await p.evaluate(()=>window.scrollY),0);assert.ok(await p.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+1));
-   assert.ok(Math.abs(list.bottom-height)<=1);assert.ok(Math.abs((await rect('.catalogue-editor')).bottom-height)<=1);assert.ok((await rect('#main-navigation')).top<list.bottom);
+   assert.ok(list.bottom <= (await rect('#main-navigation')).top);assert.ok(Math.abs((await rect('.catalogue-editor')).bottom-height)<=1);
    const formBox=await p.locator('.catalogue-editor-body').boundingBox();await p.mouse.move(formBox.x+80,formBox.y+100);await p.mouse.wheel(0,1300);await p.waitForFunction(()=>document.querySelector('.catalogue-editor-body').scrollTop>0);
    assert.equal(await top('.catalogue-list-content'),0);assert.deepEqual(await rect('.atelier-header'),hero);assert.deepEqual(await rect('.catalogue-editor-header'),title);assert.deepEqual(await rect('.catalogue-list-panel'),list);assert.deepEqual(await rect('.dock-wrapper'),dock);
    const formScroll=await top('.catalogue-editor-body');const listBox=await p.locator('.catalogue-list-content').boundingBox();await p.mouse.move(listBox.x+60,listBox.y+80);await p.mouse.wheel(0,600);await p.waitForFunction(()=>document.querySelector('.catalogue-list-content').scrollTop>0);assert.equal(await top('.catalogue-editor-body'),formScroll);assert.equal(await p.evaluate(()=>window.scrollY),0);
@@ -49,7 +49,7 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   for(const [width,height] of [[1280,800],[1024,768]]){
    await p.setViewportSize({width,height});await pause(300);
    assert.ok(Math.abs((await rect('.slide-panel-inline .slide-panel')).bottom-height)<=1);
-   assert.ok(Math.abs((await rect('.catalogue-list-panel')).bottom-height)<=1);
+   assert.ok((await rect('.catalogue-list-panel')).bottom <= (await rect('#main-navigation')).top);
    assert.ok(Math.abs((await rect('.slide-panel-inline .slide-panel-body')).bottom-height)<=1);
    assert.equal(await p.locator('.slide-panel-inline .slide-panel-footer').count(),0);
    await p.locator('.slide-panel-body').evaluate(e=>e.scrollTop=0);await p.locator('.catalogue-list-content').evaluate(e=>e.scrollTop=0);
@@ -61,7 +61,7 @@ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    const prepare=await p.getByRole('link',{name:'Ouvrir la préparation'}).boundingBox(),nav=await p.locator('#main-navigation').boundingBox();assert.ok(prepare.y+prepare.height<=nav.y);
    await dockVisible();await capture(`consultation-bas-${width}`);
   }
-  await p.locator('.slide-panel-close').click();await p.locator('.slide-panel').waitFor({state:'hidden'});await p.locator('.catalogue-detail-placeholder').waitFor();assert.ok(Math.abs((await rect('.catalogue-detail-placeholder')).bottom-768)<=1);
+  await p.locator('.slide-panel-close').click();await p.locator('.slide-panel').waitFor({state:'hidden'});await p.locator('.catalogue-detail-placeholder').waitFor();assert.ok((await rect('.catalogue-detail-placeholder')).height<220);assert.ok((await rect('.catalogue-detail-placeholder')).bottom<(await rect('.dock-wrapper')).top-100);
   await p.locator('#catalogue-open-8').click();await p.getByRole('link',{name:'Ouvrir la préparation'}).waitFor();assert.equal(await p.locator('.catalogue-detail-actions').count(),1);assert.equal(await p.locator('.slide-panel-footer').count(),0);
   await p.getByRole('button',{name:'Nouveau catalogue',exact:true}).click();await p.locator('#catalogue-title').waitFor();assert.equal(await p.locator('.catalogue-editor-close').getAttribute('aria-label'),'Fermer la création du catalogue');await p.locator('.catalogue-editor-close').focus();await p.keyboard.press('Enter');await p.locator('.catalogue-editor').waitFor({state:'hidden'});
   for(const [width,height] of [[375,800],[800,375]]){

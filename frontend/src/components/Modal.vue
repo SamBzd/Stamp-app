@@ -6,7 +6,7 @@
           <!-- Barre de titre -->
           <div class="modal-header">
             <h2 :id="titleId" class="modal-title">{{ title }}</h2>
-            <button class="modal-close" @click="handleClose" title="Fermer">
+            <button :disabled="closeDisabled" type="button" class="modal-close" aria-label="Fermer" @click="handleClose" title="Fermer">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
                 <line x1="6" y1="6" x2="18" y2="18"/>
@@ -34,6 +34,7 @@ import { ref, useId, nextTick, watch, onMounted, onUnmounted } from 'vue';
 import { lockBodyScroll } from '../composables/useBodyScrollLock';
 
 const props = defineProps({
+  closeDisabled: { type: Boolean, default: false },
   isOpen: {
     type: Boolean,
     default: false,
@@ -59,6 +60,7 @@ let previousFocus;
 let releaseScrollLock;
 
 const handleClose = () => {
+  if (props.closeDisabled) return;
   emit('close');
 };
 
@@ -109,9 +111,9 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(44, 44, 36, 0.35);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(48, 35, 45, .35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -121,23 +123,24 @@ onUnmounted(() => {
 
 .modal-container {
   background: var(--card);
-  border-radius: var(--border-radius-2xl);
+  border-radius: var(--border-radius-xl);
   box-shadow: 
-    0 25px 50px -12px rgba(93, 112, 82, 0.20),
+    0 25px 50px -12px rgba(108, 75, 96, .20),
     0 0 0 1px var(--border-light);
   width: 100%;
-  max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .modal-header {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-5) var(--spacing-6);
-  background: var(--bg-secondary);
+  background: var(--card);
   border-bottom: 1px solid var(--border-light);
   min-height: 56px;
   user-select: none;
@@ -148,13 +151,13 @@ onUnmounted(() => {
   font-family: var(--font-heading);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--text-primary);
+  color: var(--primary);
   margin: 0;
 }
 
 .modal-close {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
@@ -188,11 +191,13 @@ onUnmounted(() => {
 }
 
 .modal-footer {
+  flex-shrink: 0;
   display: flex;
   justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-6);
-  background: var(--muted);
+  background: var(--card);
   border-top: 1px solid var(--border-light);
 }
 
@@ -230,8 +235,11 @@ onUnmounted(() => {
   }
   
   .modal-container {
-    max-height: calc(100vh - 32px);
-    border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
+    max-height: calc(100dvh - 32px);
+    border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
   }
 }
+.modal-close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.modal-close:disabled { opacity: .5; cursor: wait; }
+@media (prefers-reduced-motion: reduce) { .modal-enter-active, .modal-leave-active, .modal-enter-active .modal-container, .modal-leave-active .modal-container { transition: none; } }
 </style>

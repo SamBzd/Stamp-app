@@ -405,10 +405,11 @@ onBeforeRouteUpdate((to, from) => {
 /* === Erreur globale === */
 .form-error-global {
   font-size: var(--font-size-sm);
-  color: var(--error, #c0392b);
-  padding: var(--spacing-3);
-  background: var(--error-light, #fde8e8);
-  border-radius: var(--border-radius);
+  color: var(--error-dark);
+  padding: var(--feedback-padding);
+  background: var(--error-light);
+  border-radius: var(--feedback-radius);
+  overflow-wrap: anywhere;
   margin: 0;
 }
 </style>

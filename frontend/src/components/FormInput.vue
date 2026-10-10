@@ -149,9 +149,9 @@ defineExpose({
 .input-wrapper {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.50);
+  background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
+  border-radius: var(--control-radius);
   transition: all var(--transition-fast);
   overflow: hidden;
 }
@@ -162,7 +162,7 @@ defineExpose({
 
 .input-focused:not(.input-error) {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(93, 112, 82, 0.12);
+  box-shadow: var(--control-focus-ring);
 }
 
 .input-error {
@@ -170,20 +170,21 @@ defineExpose({
 }
 
 .input-error.input-focused {
-  box-shadow: 0 0 0 3px rgba(168, 84, 72, 0.12);
+  box-shadow: var(--control-error-ring);
 }
 
 .form-input {
   flex: 1;
-  padding: var(--spacing-3) var(--spacing-5);
+  padding: var(--control-padding);
   border: none;
   background: transparent;
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
+  line-height: 1.5;
   color: var(--text-primary);
   min-width: 0;
   width: 100%;
-  min-height: 48px;
+  min-height: calc(var(--control-height) - 3px);
 }
 
 .form-input:focus {
@@ -225,13 +226,13 @@ defineExpose({
 .input-prefix {
   border-right: 1px solid var(--border-light);
   background: var(--muted);
-  border-radius: var(--border-radius-full) 0 0 var(--border-radius-full);
+  border-radius: var(--control-radius) 0 0 var(--control-radius);
 }
 
 .input-suffix {
   border-left: 1px solid var(--border-light);
   background: var(--muted);
-  border-radius: 0 var(--border-radius-full) var(--border-radius-full) 0;
+  border-radius: 0 var(--control-radius) var(--control-radius) 0;
 }
 
 .form-error {
@@ -241,13 +242,14 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: var(--spacing-1);
-  padding-left: var(--spacing-4);
+  padding-left: 0;
 }
 
 .form-hint {
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   margin: 0;
-  padding-left: var(--spacing-4);
+  padding-left: 0;
 }
+@media (max-width: 640px) { .form-input { font-size: 16px; } }
 </style>

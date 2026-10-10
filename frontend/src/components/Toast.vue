@@ -5,9 +5,10 @@
         v-for="toast in toasts"
         :key="toast.id"
         :class="['toast', `toast-${toast.type}`]"
-        @click="removeToast(toast.id)"
+        :role="toast.type === 'error' ? 'alert' : 'status'"
+        aria-atomic="true"
       >
-        <div class="toast-icon">
+        <div class="toast-icon" aria-hidden="true">
           <svg v-if="toast.type === 'success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
@@ -31,7 +32,7 @@
         <div class="toast-content">
           <p class="toast-message">{{ toast.message }}</p>
         </div>
-        <button class="toast-close" @click.stop="removeToast(toast.id)">
+        <button type="button" aria-label="Fermer la notification" class="toast-close" @click.stop="removeToast(toast.id)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
@@ -102,31 +103,30 @@ onUnmounted(() => {
 <style scoped>
 .toast-container {
   position: fixed;
-  bottom: var(--spacing-6);
+  top: var(--spacing-6);
   right: var(--spacing-6);
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-3);
-  max-width: 400px;
+  max-width: min(400px, calc(100vw - 48px));
+  max-height: calc(100dvh - var(--dock-clearance, 120px) - 24px);
+  overflow-y: auto;
 }
 
 .toast {
+  flex-shrink: 0;
   display: flex;
   align-items: flex-start;
   gap: var(--spacing-3);
   padding: var(--spacing-4) var(--spacing-5);
   background: var(--card);
   border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-float);
+  box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-light);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: opacity var(--transition-fast);
 }
 
-.toast:hover {
-  transform: translateX(-4px);
-}
 
 .toast-success {
   border-left: 4px solid var(--success);
@@ -141,7 +141,7 @@ onUnmounted(() => {
 }
 
 .toast-info {
-  border-left: 4px solid var(--info);
+  border-left: 4px solid var(--primary);
 }
 
 .toast-icon {
@@ -168,7 +168,7 @@ onUnmounted(() => {
 }
 
 .toast-info .toast-icon {
-  color: var(--info);
+  color: var(--primary);
 }
 
 .toast-content {
@@ -180,13 +180,14 @@ onUnmounted(() => {
   font-size: var(--font-size-sm);
   color: var(--text-primary);
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .toast-close {
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
@@ -236,8 +237,10 @@ onUnmounted(() => {
   .toast-container {
     left: var(--spacing-4);
     right: var(--spacing-4);
-    bottom: var(--spacing-4);
+    top: var(--spacing-4);
     max-width: none;
   }
 }
+.toast-close:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .toast-enter-active, .toast-leave-active, .toast-move { transition: none; } }
 </style>

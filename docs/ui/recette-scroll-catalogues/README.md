@@ -17,7 +17,8 @@ commits/push le 10 octobre 2026. La recette Mac/Safari reste ouverte.
 - En consultation desktop, le lien de préparation est à la fin du détail
   défilant. Le pied fixe avec sa grande marge vide a été supprimé : le corps
   du détail va lui aussi jusqu’au bas du viewport. Le titre reste visible,
-  et le panneau sans sélection garde la même hauteur. Le détail modal étroit
+  et, depuis la demande suivante de Sam, le panneau sans sélection suit son
+  contenu au lieu de remplir la hauteur. Le détail modal étroit
   conserve son pied d’actions.
 - Sur écran étroit, les deux zones restent empilées avec défilement propre ;
   le bandeau est sticky et la page permet d’atteindre la liste située en dessous.
@@ -35,8 +36,8 @@ avec 5 papiers chacune, 2 rubans, tarifs locaux.
 
 La [recette Chromium](browser.cjs) vérifie les deux défilements par roulette,
 les positions inchangées du bandeau/titre/liste/dock, l’absence de défilement de
-page desktop, les panneaux liste/formulaire et détail de consultation atteignant
-le bas du viewport sous le dock, le dock visible et réellement cliquable, les boutons tarifaires
+page desktop, le formulaire et détail de consultation atteignant
+le bas du viewport sous le dock, la liste plafonnée avant le dock, le dock visible et réellement cliquable, les boutons tarifaires
 au-dessus du dock, la croix et son activation clavier, création/consultation,
 repli étroit sans débordement, puis le dock fixe après défilement sur Commandes.
 Les API sont entièrement interceptées : aucune donnée locale ou NAS modifiée.
@@ -68,3 +69,8 @@ sont conservées ; les régressions écrivent dans `/tmp`.
 
 La recette réelle Mac/Safari et le zoom 200 % restent ouverts. Aucun changement
 backend, API, schéma ou règle métier dans ces corrections.
+
+La demande suivante de Sam du 10 octobre 2026 remplace la pleine hauteur de
+la liste par une hauteur liée au contenu : le script est adapté à ce contrat,
+les captures historiques ci-dessus restent celles de la correction précédente.
+Voir les [nouvelles preuves](../recette-composants-communs/README.md).

@@ -840,7 +840,7 @@ onMounted(async () => {
 .favorite-btn svg { width: 18px; height: 18px; }
 .favorite-btn-active, .favorite-btn:hover { color: var(--primary); background: var(--primary-light); }
 .favorite-btn:disabled { opacity: .6; cursor: wait; }
-.client-error, .archive-error { padding: 12px; border-radius: 6px; background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
+.client-error, .archive-error { padding: var(--feedback-padding); border-radius: var(--feedback-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
 .clients-view > .client-error { margin-bottom: 16px; }
 .archive-notice { padding: 12px; background: var(--primary-light); color: var(--text-secondary); border-radius: 6px; }
 .client-profile { display: grid; gap: 18px; min-width: 0; }

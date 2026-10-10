@@ -635,7 +635,7 @@ onMounted(async () => {
 .commande-metadata > span + span::before { content: '·'; margin-right: 12px; color: var(--text-secondary); font-weight: 400; }
 .commande-list-price { color: var(--text-primary); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .commande-open-chevron { position: absolute; top: calc(50% - 9px); right: 18px; width: 18px; height: 18px; color: var(--primary); }
-.form-error-global { margin: var(--spacing-4) 0; padding: var(--spacing-3); border-radius: var(--border-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
+.form-error-global { margin: var(--spacing-4) 0; padding: var(--feedback-padding); border-radius: var(--feedback-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
 .status-badge, .status-badge-lg, .type-badge { display: inline-flex; padding: 4px 8px; border-radius: var(--border-radius-sm); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); }
 .status-badge-regle { background: var(--success-light); color: var(--success-dark); }
 .status-badge-attente { background: var(--warning-light); color: var(--warning-dark); }

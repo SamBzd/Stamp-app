@@ -8,10 +8,12 @@
           type="checkbox"
           :checked="modelValue"
           :disabled="disabled"
+          :aria-invalid="Boolean(error)"
+          :aria-describedby="error ? `${checkboxId}-feedback` : undefined"
           class="checkbox-input"
           @change="handleChange"
         />
-        <div class="checkbox-custom" :class="{ 'checkbox-checked': modelValue }">
+        <div aria-hidden="true" class="checkbox-custom" :class="{ 'checkbox-checked': modelValue }">
           <svg v-if="modelValue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"/>
           </svg>
@@ -22,12 +24,12 @@
         <span v-if="description" class="checkbox-description">{{ description }}</span>
       </div>
     </label>
-    <p v-if="error" class="form-error">{{ error }}</p>
+    <p v-if="error" :id="`${checkboxId}-feedback`" class="form-error" role="alert">{{ error }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, useId } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -52,7 +54,7 @@ const props = defineProps({
   },
 });
 
-const checkboxId = computed(() => `checkbox-${Math.random().toString(36).substr(2, 9)}`);
+const checkboxId = useId();
 const checkboxRef = ref(null);
 
 const emit = defineEmits(['update:modelValue']);
@@ -74,7 +76,8 @@ defineExpose({
 
 .checkbox-label {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  min-height: 44px;
   gap: var(--spacing-3);
   cursor: pointer;
   user-select: none;
@@ -107,7 +110,7 @@ defineExpose({
   height: 22px;
   border: 2px solid var(--border);
   border-radius: var(--border-radius-xs);
-  background: rgba(255, 255, 255, 0.50);
+  background: var(--card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,7 +118,7 @@ defineExpose({
 }
 
 .checkbox-input:focus-visible + .checkbox-custom {
-  outline: 2px solid rgba(93, 112, 82, 0.40);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 

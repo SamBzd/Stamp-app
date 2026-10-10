@@ -53,7 +53,7 @@
       <div v-if="editorMode" class="catalogue-editor-slot">
         <CatalogueEditor :catalogue-id="editorId" @dirty="editorDirty = $event" @busy="editorBusy = $event" @created="onCreated" @close="exitEditor" />
       </div>
-      <div v-else v-show="tab === 'catalogues'" class="catalogue-detail-slot">
+      <div v-else v-show="tab === 'catalogues'" class="catalogue-detail-slot" :class="{ 'catalogue-detail-slot-empty': !detailOpen }">
         <SlidePanel :is-open="detailOpen" :inline="desktopDetails" :title="`Catalogue : ${selectedSummary?.titre || ''}`" :return-focus-id="visibleCatalogues.some(item => item.id === detailId) ? `catalogue-open-${detailId}` : 'catalogue-list-heading'" @close="closeConsultation">
           <template #header><div class="catalogue-detail-heading"><h2>{{ selectedSummary?.titre }}</h2><p>{{ catalogueStatus(detailCatalogue || selectedSummary) }}</p></div></template>
           <p v-if="detailLoading" class="catalogue-detail-state" role="status">Chargement du catalogue…</p>
@@ -267,16 +267,18 @@ onUnmounted(() => { desktopMedia.removeEventListener('change', updateDesktopDeta
 .catalogue-defaults-intro p { color: var(--text-secondary); font-size: var(--font-size-sm); }
 .catalogue-defaults :deep(.price-field label) { font-size: var(--font-size-sm); color: var(--primary); }
 .catalogue-defaults :deep(.catalogue-hint) { font-size: var(--font-size-xs); }
-.catalogue-list-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; flex: 1; }
+.catalogue-list-content { min-height: 0; overflow-y: auto; overscroll-behavior: contain; flex: 1; }
 .catalogue-defaults { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 @media (min-width: 901px) {
-  .catalogue-list-content { padding-bottom: var(--dock-clearance); scroll-padding-bottom: var(--dock-clearance); }
+  .catalogue-list-content { flex: 0 1 auto; scroll-padding-block: 12px; }
   .catalogue-defaults { padding-bottom: var(--dock-clearance); }
   .catalogue-detail-slot :deep(.slide-panel-inline .slide-panel-body) { padding-bottom: var(--dock-clearance); scroll-padding-bottom: var(--dock-clearance); overscroll-behavior: contain; scrollbar-gutter: stable; }
   .catalogue-list-workspace { display: flex; flex-direction: column; min-height: 0; flex: 1; }
   .catalogue-browse { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
-  .catalogue-list-panel, .catalogue-detail-slot { min-height: 0; height: 100%; }
-  .catalogue-detail-placeholder { height: 100%; }
+  .catalogue-list-panel { min-height: 0; height: auto; align-self: start; max-height: calc(100% - var(--dock-clearance)); }
+  .catalogue-list-heading { flex-shrink: 0; }
+  .catalogue-detail-slot { min-height: 0; height: 100%; }
+  .catalogue-detail-slot-empty { height: auto; align-self: start; }
   .catalogue-detail-slot :deep(.slide-panel-inline) { height: 100%; }
   .catalogue-detail-slot :deep(.slide-panel-inline .slide-panel) { height: 100%; min-height: 0; max-height: 100%; }
 }

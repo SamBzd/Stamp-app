@@ -223,9 +223,11 @@ h3, p { margin: 0; }
 h3 { font-family: var(--font-heading); font-size: var(--font-size-base); }
 .field { display: flex; flex-direction: column; gap: var(--spacing-2); min-width: 0; }
 label, legend { font-weight: var(--font-weight-medium); font-size: var(--font-size-sm); }
-input:not([type=radio]):not([type=checkbox]), select { width: 100%; min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1.5px solid var(--border); border-radius: var(--border-radius); background: var(--bg-primary); color: var(--text-primary); font: inherit; box-sizing: border-box; }
+input:not([type=radio]):not([type=checkbox]), select { width: 100%; min-height: var(--control-height); padding: var(--control-padding); border: 1.5px solid var(--border); border-radius: var(--control-radius); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); line-height: 1.5; box-sizing: border-box; }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 input[type=radio], input[type=checkbox] { accent-color: var(--primary); width: 18px; height: 18px; flex-shrink: 0; }
+input:not([type=radio]):not([type=checkbox]):focus, select:focus { border-color: var(--primary); box-shadow: var(--control-focus-ring); }
+input[aria-invalid="true"]:focus, select[aria-invalid="true"]:focus { border-color: var(--error); box-shadow: var(--control-error-ring); }
 input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowed; }
 .choices { display: flex; gap: var(--spacing-3); border: 0; padding: 0; margin: 0; }
 .choices legend { margin-bottom: var(--spacing-2); }
@@ -251,7 +253,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
 .price-line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-3); }
 .price-line strong { font-size: var(--font-size-xl); font-variant-numeric: tabular-nums; }
 .field-error, .error-box { color: var(--error); font-size: var(--font-size-sm); }
-.error-box { background: var(--error-light); padding: var(--spacing-4); border-radius: var(--border-radius); }
+.error-box { background: var(--error-light); padding: var(--feedback-padding); border-radius: var(--feedback-radius); color: var(--error-dark); overflow-wrap: anywhere; }
 .error-box a { color: inherit; }
 .error-box ul, .summary ul { margin: var(--spacing-2) 0; padding-left: var(--spacing-5); }
 .summary { overflow-wrap: anywhere; }
@@ -273,4 +275,5 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .contributions { flex-wrap: wrap; }
   .footer-status { flex-basis: 100%; }
 }
+@media (max-width: 640px) { input:not([type=radio]):not([type=checkbox]), select { font-size: 16px; } }
 </style>
