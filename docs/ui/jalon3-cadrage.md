@@ -14,6 +14,10 @@ L’éditeur 3B.2 est réalisé localement selon la demande d’espace intégré
 (liste 1/4 et formulaire 3/4, retour consultation 2/3–1/3) :
 [recette](recette-jalon3b2/README.md). Sam l’a validé et a autorisé les
 commits/push et le lot Papiers 3C le 10 octobre 2026 ; le lot 3D reste à traiter.
+Sam a autorisé les commits/push du lot Papiers 3C et la mise à jour de
+l’issue #39 le 10 octobre 2026 après présentation du rendu et des validations :
+[recette](recette-papiers/README.md). La recette Mac/Safari reste ouverte ;
+la réalisation du lot 3D reste à autoriser.
 Sam a demandé une révision de la fiche :
 en-tête simplifié, points modifiables inline et historique compact avec liens
 vers les commandes concernées.

@@ -133,6 +133,9 @@ la composition Catalogues et Paramètres 3B.1 est validée par Sam :
 harmonisées sur ses fiches allégées : [recette](recette-fiches/README.md). L’éditeur Catalogues est réalisé localement dans le même espace que la liste :
 [recette 3B.2](recette-jalon3b2/README.md), validée par Sam le 10 octobre 2026,
 avec autorisation de commits/push et du lot Papiers 3C.
+Sam a autorisé les commits/push de Papiers 3C et la mise à jour de cette issue
+le 10 octobre 2026 après présentation du rendu et des validations :
+[recette](recette-papiers/README.md). La recette Mac/Safari reste ouverte.
 L’harmonisation des formulaires reste à traiter.
 La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.

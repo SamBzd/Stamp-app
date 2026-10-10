@@ -23,6 +23,13 @@ avec le backend de l’issue #7.
 - `/papiers` expose la bibliothèque autonome depuis la navigation principale :
   création, recherche, renommage, archivage et restauration. Les doublons sont
   refusés sans distinction de casse ou d’espaces externes.
+  Le lot UI 3C autorisé le 10 octobre 2026 utilise une liste compacte continue,
+  création et filtres dépliables dans la page et renommage dans la ligne.
+  Les champs gardent leur saisie après refus serveur ; les mutations concurrentes
+  sont bloquées et les abandons de saisie confirmés. Le filtre actifs/archivés
+  reste signalé lorsqu’il est replié, avec retour du focus après les actions.
+  Voir la [recette Papiers](ui/recette-papiers/README.md) ; Sam a autorisé les
+  commits/push du lot le 10 octobre 2026. La recette sur le Mac reste ouverte.
 - Les maxima bloquent les ajouts : quatre collections, cinq papiers différents
   par collection et deux rubans. Une collection peut rester vide en brouillon.
 - Le panneau de publication explique les minimums manquants et la disponibilité

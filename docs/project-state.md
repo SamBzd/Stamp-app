@@ -64,7 +64,11 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   en centimes : voir [le contrat du bilan](bilan-commandes.md).
   La bibliothèque de papiers (#28) dispose d’une page dédiée, d’un archivage
   protégé et d’une sélection catalogue répétable : voir le
-  [parcours catalogue et bibliothèque](catalogue-ui.md). La migration v3 est
+  [parcours catalogue et bibliothèque](catalogue-ui.md). Le lot UI Papiers 3C
+  est livré sur la branche UI avec autorisation de commits/push de Sam le
+  10 octobre 2026 : liste compacte, recherche et filtres repliables,
+  création/renommage inline ; [recette](ui/recette-papiers/README.md).
+  La recette Mac/Safari reste ouverte. La migration v3 est
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
   [contrat API et de synchronisation](workflow-fournitures-api.md) et sa
