@@ -145,10 +145,13 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
   contenu net ; ne pas teinter chaque carte en prune ou en jaune.
 - Dock : verre presque incolore, bord lumineux fin, transparence visible,
   icônes et textes lisibles ; aucun gros bouton actif contrasté. Sam a demandé
-  son maintien fixe en bas de l’écran. Dans l’espace Catalogues desktop, les
-  panneaux vont jusqu’en bas sous ce dock ; la marge pour atteindre les dernières
-  actions est interne aux zones défilantes. Les autres vues réservent la hauteur
-  réelle du dock dans le contenu. Les confirmations gardent leur couche modale.
+  son maintien fixe en bas de l’écran. Les détails et formulaires desktop vont
+  jusqu’en bas sous ce dock ; leur marge finale est interne aux zones défilantes.
+  Les listes Clientes, Catalogues et Commandes demandées par Sam le 10 octobre
+  2026 suivent la hauteur de leur contenu : aucune grande surface vide sous
+  une liste courte. Une liste longue est plafonnée avant le dock et défile
+  indépendamment. Le filtrage recalcule cette hauteur. Les autres vues réservent
+  la hauteur réelle du dock dans le contenu. Les confirmations gardent leur couche modale.
 - La maquette simule une réfraction de bord, pas le matériau natif d’Apple.
   Son filtre SVG est limité à Chromium ; Safari utilise le repli CSS
   `blur(3px) saturate(120%)`. Ne pas transposer sa détection de navigateur ou
@@ -199,3 +202,23 @@ les cinq colonnes remplies, les erreurs et le clavier.
 Une case de recette technique réussie ne vaut pas validation esthétique.
 Toute adaptation qui change la palette, le logo, les étiquettes, la disposition
 principale ou la présence du verre demande une comparaison expliquée avec Sam.
+
+## Composants communs — 10 octobre 2026
+
+Sam a autorisé l’harmonisation des champs, sélecteurs, confirmations, erreurs
+et notifications. Les contrôles utilisent les tokens communs : fond blanc,
+rayon 6 px, hauteur minimale 44 px, bord neutre et focus prune. Les champs de formulaire
+sur écran étroit passent à 16 px de texte pour éviter le zoom automatique de saisie.
+Les erreurs gardent leur texte et leurs liens accessibles ; les sélecteurs
+et cases communes associent désormais leur erreur ou aide au contrôle.
+Les confirmations restent modales, sobres et verrouillées pendant une mutation.
+Les notifications sont en haut à droite (en haut sur écran étroit), avec
+annonce accessible, fermeture clavier et pile défilante dégagée du dock.
+La [recette dédiée](recette-composants-communs/README.md) conserve les preuves.
+
+Les dates utilisent un calendrier commun blanc et prune, en semaine commençant
+le lundi. Tout le contrôle déploie le calendrier dessous, dans le formulaire,
+en poussant la suite du contenu. Un second clic le replie. Il permet de choisir un jour,
+de changer directement de mois/année, de saisir JJ/MM/AAAA et d’effacer ou
+d’annuler. Le mois du bilan garde son sélecteur spécifique.
+Voir la [recette des calendriers](recette-calendriers/README.md).

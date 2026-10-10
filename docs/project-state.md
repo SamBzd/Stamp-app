@@ -75,7 +75,23 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   d’abandon ; [recette](ui/recette-formulaires/README.md).
   Sam a validé les formulaires et les corrections du dock le 10 octobre 2026,
   et autorisé leur commit/push sur la branche UI. La recette Mac/Safari reste
-  ouverte. La migration v3 est
+  ouverte. Sam a ensuite autorisé l’harmonisation des composants communs et
+  demandé que les listes Clientes, Catalogues et Commandes suivent leur contenu,
+  sans remplissage vide jusqu’en bas. Ce lot est livré sur la branche UI :
+  [recette](ui/recette-composants-communs/README.md). Sam a ensuite autorisé
+  l’harmonisation du bilan mensuel et de son sélecteur, livrée sur la branche UI :
+  [recette](ui/recette-bilan/README.md). La validation Mac/Safari reste ouverte.
+  Sam a demandé le remplacement des fenêtres de date système : naissance et
+  commandes partagent désormais un calendrier personnalisé déplié sous le
+  champ dans le formulaire, avec saisie directe et valeurs API inchangées ;
+  [recette](ui/recette-calendriers/README.md).
+  Les ajustements suivants sont aussi livrés sur la branche UI : champ date hors kit pleine
+  largeur, onglets Fournitures/Bilan contrastés, surlignage sans gouttière vide
+  et panneaux sans sélection à hauteur du contenu ;
+  [recette](ui/recette-ajustements-ui/README.md).
+  Sam a autorisé les commits cohérents et le push de ces lots le
+  10 octobre 2026 ; aucune modification du NAS ni déploiement.
+  La migration v3 est
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
   [contrat API et de synchronisation](workflow-fournitures-api.md) et sa

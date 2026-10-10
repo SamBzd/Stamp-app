@@ -13,11 +13,16 @@ commits/push : [recette](recette-fiches/README.md).
 L’éditeur 3B.2 est réalisé localement selon la demande d’espace intégré de Sam
 (liste 1/4 et formulaire 3/4, retour consultation 2/3–1/3) :
 [recette](recette-jalon3b2/README.md). Sam l’a validé et a autorisé les
-commits/push et le lot Papiers 3C le 10 octobre 2026 ; le lot 3D reste à traiter.
+commits/push et le lot Papiers 3C le 10 octobre 2026.
 Sam a autorisé les commits/push du lot Papiers 3C et la mise à jour de
 l’issue #39 le 10 octobre 2026 après présentation du rendu et des validations :
 [recette](recette-papiers/README.md). La recette Mac/Safari reste ouverte ;
-la réalisation du lot 3D reste à autoriser.
+les formulaires Clientes et Commandes ont depuis été réalisés, validés et
+committés/poussés à sa demande : [recette](recette-formulaires/README.md).
+Sam a ensuite autorisé les composants communs et la hauteur adaptative des
+listes : [recette](recette-composants-communs/README.md). Le bilan mensuel
+et son sélecteur ont également été autorisés :
+[recette](recette-bilan/README.md).
 Sam a demandé une révision de la fiche :
 en-tête simplifié, points modifiables inline et historique compact avec liens
 vers les commandes concernées.
@@ -44,13 +49,13 @@ cartes ou le panneau modal par défaut sans examiner le contenu réel.
 | **3A — Clientes** | Titre dans le bandeau, proposition de liste dense et fiche de consultation latérale ; recherche/filtres intégrés à la liste. | Coordonnées, favoris existants, actifs/archivés, historique, fidélité (édition directe demandée par Sam), création/édition, archivage/restauration et accès aux commandes. | Liste, fiche ouverte, filtres dépliés et écran étroit. |
 | **3B — Catalogues** | Liste, onglets Catalogues/Paramètres et éditeur alignés sur l’atelier ; hiérarchie claire entre préparation et publication. | Brouillon/publication/démotion, archivage, associations 4/5/2, tarifs locaux/par défaut, saisies non enregistrées et liens profonds. | Liste, éditeur dense, paramètres et contrôle de recherche/sélection ouvert. |
 | **3C — Papiers** | Bibliothèque compacte, recherche/filtres repliables et édition inline lisible. | Création, doublons, renommage, archivage protégé/restauration et historique dans les compositions. | Liste dense, édition, confirmation et refus serveur. |
-| **3D — Formulaires et composants communs** | Harmoniser création/édition kit et hors-kit, fiche cliente, champs, sélecteurs, dialogues et notifications. Traiter le bilan mensuel et son sélecteur existant. | Tous les champs, validations, prix historiques, conservation des saisies, confirmations d’abandon et verrous de soumission. | Kit, hors-kit, erreur, confirmation, recherche/sélecteur ouvert et mois/date ouverts. |
+| **3D — Formulaires et composants communs** | Harmoniser création/édition kit et hors-kit, fiche cliente, champs, sélecteurs, dialogues et notifications. Le bilan mensuel et son sélecteur ont ensuite été autorisés séparément. | Tous les champs, validations, prix historiques, conservation des saisies, confirmations d’abandon et verrous de soumission. | Kit, hors-kit, erreur, confirmation, recherche/sélecteur ouvert et mois/date ouverts. |
 
-Le lot Clientes est validé. Poursuivre avec Catalogues, d’abord liste et
-Paramètres, puis éditeur après validation de cette première étape. Les
-compositions des lots suivants restent des recommandations à faire valider. Les formulaires de Commandes n’ont pas encore
-reçu cette harmonisation : la validation de Commandes porte sur le tableau,
-les filtres et la consultation, pas sur leur refonte.
+Les lots Clientes, Catalogues, Papiers et formulaires sont réalisés et validés
+par Sam. L’harmonisation des composants communs et les listes adaptatives
+sont réalisées à sa demande. Sam a autorisé leurs commits cohérents et le push,
+ainsi que ceux du bilan et des calendriers, le 10 octobre 2026. La recette
+Mac/Safari reste ouverte ; les calculs restent ceux du contrat existant.
 
 ## Méthode et critères de sortie
 

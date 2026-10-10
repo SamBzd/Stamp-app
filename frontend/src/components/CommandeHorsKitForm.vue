@@ -37,10 +37,9 @@
       </div>
 
       <!-- Date commande -->
-      <FormInput
+      <DatePicker
         v-model="form.date_commande"
         label="Date de commande"
-        type="date"
         :error="errors.date_commande"
         :disabled="locked"
       />
@@ -136,6 +135,7 @@ import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import FormSelect from './FormSelect.vue';
 import FormInput from './FormInput.vue';
+import DatePicker from './DatePicker.vue';
 import { clientsAPI } from '../services/api';
 import { useCommandesStore } from '../stores/commandes';
 

@@ -160,3 +160,23 @@ dans une base temporaire, jamais les données du NAS ni `db/app.db`.
    vérifier le point fidélité historique uniquement à la création >70 €.
 8. Vérifier clavier, confirmation d’abandon, écran étroit et absence de
    débordement dans les formulaires/résumés.
+
+## Hauteur des listes et contrôles communs
+
+À la demande de Sam le 10 octobre 2026, les listes Kits/Hors kit prennent la
+hauteur de leurs fiches affichées, y compris après filtrage. Une longue liste
+desktop est plafonnée avant le dock et conserve son défilement indépendant.
+Les champs et sélecteurs, confirmations, erreurs et notifications utilisent
+un socle commun ; les validations et montants restent ceux du contrat métier :
+[recette](ui/recette-composants-communs/README.md).
+
+Les dates de commande Kit/Hors kit utilisent le même calendrier que les
+naissances : déploiement sous le champ dans le formulaire, choix du jour ou saisie JJ/MM/AAAA,
+effacement et annulation sans changement. Les payloads restent YYYY-MM-DD,
+et les contrôles sont verrouillés pendant l’enregistrement.
+Voir la [recette des calendriers](ui/recette-calendriers/README.md).
+
+Le champ date hors kit occupe toute la largeur disponible du formulaire,
+y compris dans sa disposition verticale. Sans commande sélectionnée, le
+panneau d’aide suit son texte. Les listes courtes n’ont plus de gouttière vide
+à droite du surlignage : [ajustements UI](ui/recette-ajustements-ui/README.md).

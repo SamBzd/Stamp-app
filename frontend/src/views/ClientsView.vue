@@ -344,11 +344,11 @@
               Informations complémentaires
             </legend>
             <div class="form-row">
-              <FormInput
+              <DatePicker
                 v-model="formData.date_naissance"
                 label="Date de naissance"
-                type="date"
                 autocomplete="bday"
+                :disabled="saving"
                 :error="errors.date_naissance"
               />
               <FormInput
@@ -406,6 +406,7 @@ import '../styles/form-workspace.css';
 import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
 import FormInput from '../components/FormInput.vue';
+import DatePicker from '../components/DatePicker.vue';
 import FormCheckbox from '../components/FormCheckbox.vue';
 import EmailDomainInput from '../components/EmailDomainInput.vue';
 import PhoneInput from '../components/PhoneInput.vue';

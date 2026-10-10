@@ -66,7 +66,7 @@ Les formulaires création/édition gardent leurs champs et leur organisation.
 Depuis la révision du 10 octobre 2026, ils partagent l’atelier avec la liste :
 2/3–1/3 en consultation, puis 1/4–3/4 en saisie, comme le catalogue.
 Le titre et la croix restent visibles, le contenu défile indépendamment et les
-actions suivent le contenu défilant sur desktop, avec un dégagement final pour le dock. Les panneaux gardent toute la hauteur du viewport. Sur écran étroit, le formulaire passe au-dessus
+actions suivent le contenu défilant sur desktop, avec un dégagement final pour le dock. Les détails et formulaires gardent toute la hauteur du viewport. Sur écran étroit, le formulaire passe au-dessus
 de la liste. Les saisies restent présentes après un refus serveur ; leur abandon
 est confirmé à la fermeture ou lors du changement de page. Les ouvertures de fiches,
 les favoris de la liste et le bouton d’ajout sont verrouillés pendant la saisie.
@@ -76,3 +76,21 @@ si la ligne a disparu, ou bouton d’ajout pour une création.
 
 Réutilisation de la route de points existante ; aucun changement backend,
 schéma, calcul de fidélité ou données NAS.
+
+## Hauteur des listes et contrôles communs
+
+À la demande de Sam le 10 octobre 2026, la liste suit le nombre de clientes
+affichées et se raccourcit après filtrage. Sur desktop, une longue liste est
+plafonnée avant le dock et garde son défilement indépendant. Les champs,
+confirmations et erreurs utilisent le socle commun prune :
+[recette](ui/recette-composants-communs/README.md).
+
+La date de naissance ouvre un calendrier commun depuis toute la surface du
+champ et se déploie directement dessous, dans le formulaire. Un second clic
+le replie. Mois et année se changent directement ; une saisie JJ/MM/AAAA permet
+de retrouver rapidement une naissance. La valeur API reste YYYY-MM-DD.
+Voir la [recette des calendriers](ui/recette-calendriers/README.md).
+
+Sans cliente sélectionnée, le panneau d’aide garde la hauteur de son contenu.
+Les listes courtes ne réservent plus une gouttière vide à droite : le surlignage
+atteint le bord de la liste. Voir les [ajustements UI](ui/recette-ajustements-ui/README.md).

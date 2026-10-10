@@ -1,5 +1,5 @@
 <template>
-  <section ref="panel" v-if="isOpen" class="form-panel" :aria-label="title" @keydown.esc.stop.prevent="requestClose">
+  <section ref="panel" v-if="isOpen" class="form-panel" :aria-label="title" @keydown.esc.stop.prevent="requestClose" @focusin="keepFocusedControlVisible">
     <header class="form-panel-header">
       <button type="button" class="form-panel-close" :disabled="busy" :aria-label="`Fermer : ${title}`" @click="requestClose"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
       <div><p class="form-panel-eyebrow">Atelier · {{ eyebrow }}</p><h2 ref="heading" tabindex="-1">{{ title }}</h2></div>
@@ -16,6 +16,18 @@ const emit = defineEmits(['close']);
 const heading = ref(null);
 const panel = ref(null);
 const desktop = ref(window.matchMedia('(min-width: 901px)').matches);
+async function keepFocusedControlVisible(event) {
+  if (!window.matchMedia('(max-width: 900px) and (max-height: 500px)').matches) return;
+  const target = event.target;
+  await nextTick();
+  if (document.activeElement !== target) return;
+  const layout = panel.value?.closest('.app-layout');
+  const top = (layout?.querySelector('.atelier-header')?.getBoundingClientRect().bottom || 0) + 8;
+  const bottom = (layout?.querySelector('.dock-wrapper')?.getBoundingClientRect().top || innerHeight) - 8;
+  const rect = target.getBoundingClientRect();
+  if (rect.bottom > bottom) window.scrollBy({ top: rect.bottom - bottom, behavior: 'instant' });
+  else if (rect.top < top) window.scrollBy({ top: rect.top - top, behavior: 'instant' });
+}
 async function positionMobileEditor() {
   desktop.value = window.matchMedia('(min-width: 901px)').matches;
   await nextTick();
@@ -54,4 +66,8 @@ watch(() => props.isOpen, async (open, wasOpen) => {
 @media (min-width: 901px) { .form-panel-body { padding-bottom: var(--dock-clearance); scroll-padding-bottom: var(--dock-clearance); } }
 @media (max-width: 900px) { .form-panel { height: min(70dvh, calc(100dvh - var(--atelier-header-height, 150px) - var(--dock-clearance) - 32px)); min-height: 180px; scroll-margin-top: calc(var(--atelier-header-height, 150px) + 16px); } }
 @media (max-width: 600px) { .form-panel-header, .form-panel-body, .form-panel-footer { padding: 12px; } .form-panel-header h2 { font-size: 21px; } }
+@media (max-width: 900px) and (max-height: 500px) {
+  .form-panel { height: auto; min-height: 0; overflow: visible; }
+  .form-panel-body { flex: none; overflow: visible; }
+}
 </style>

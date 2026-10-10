@@ -106,7 +106,7 @@
           <p class="price-line">Total calculé <strong>{{ formatMoney(pricing.automatic) }}</strong></p>
           <label class="check"><input :checked="form.prix_manuel" type="checkbox" @change="toggleManual($event.target.checked)" /> Corriger manuellement le total</label>
           <div v-if="form.prix_manuel" class="field"><label :for="id('prix_manuel_euros')">Total manuel (€) *</label><input :id="id('prix_manuel_euros')" v-model="form.prix_manuel_euros" inputmode="decimal" :aria-invalid="Boolean(errors.prix_manuel_euros)" /><p v-if="errors.prix_manuel_euros" class="field-error">{{ errors.prix_manuel_euros }}</p></div>
-          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><div class="field"><label :for="id('date_commande')">Date de commande</label><input :id="id('date_commande')" v-model="form.date_commande" type="date" /></div></div>
+          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><DatePicker :id="id('date_commande')" v-model="form.date_commande" label="Date de commande" :error="errors.date_commande" :disabled="loading || saving || Boolean(loadError) || Boolean(commande?.reglee)" /></div>
         </section>
         </div>
       </fieldset>
@@ -120,6 +120,7 @@
 import { ref, computed, watch, useId, nextTick } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
 import FormPanel from './FormPanel.vue';
+import DatePicker from './DatePicker.vue';
 import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { clientsAPI, cataloguesAPI } from '../services/api';

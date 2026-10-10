@@ -38,7 +38,7 @@ async function renderClients(overrides = {}) {
   app.component('Button', { template: '<button><slot /></button>' });
   app.component('FormPanel', { props: ['isOpen'], template: '<section v-if="isOpen"><slot /><footer><slot name="footer" /></footer></section>' });
   app.component('SlidePanel', { props: ['isOpen', 'inline'], template: '<aside v-if="isOpen" :role="inline ? \'region\' : \'dialog\'"><header><slot name="header" /></header><slot /><footer><slot name="footer" /></footer></aside>' });
-  for (const name of ['FormInput', 'FormCheckbox', 'EmailDomainInput', 'PhoneInput', 'ConfirmDialog']) app.component(name, { template: '<div></div>' });
+  for (const name of ['FormInput', 'DatePicker', 'FormCheckbox', 'EmailDomainInput', 'PhoneInput', 'ConfirmDialog']) app.component(name, { template: '<div></div>' });
   return (await renderToString(app)).replace(/<!--[^]*?-->/g, '');
 }
 
