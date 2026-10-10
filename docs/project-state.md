@@ -46,7 +46,18 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   et Commandes reprennent ce format sans en-tête prune ni colonnes fixes ;
   Sam a validé ces listes et autorisé les commits/push sur la branche UI :
   [recette d’harmonisation](ui/recette-fiches/README.md) ;
-  l’éditeur reste inchangé : [recette 3B.1](ui/recette-jalon3b1/README.md).
+  [recette 3B.1](ui/recette-jalon3b1/README.md). Sam a demandé que la création
+  et la préparation partagent cet espace avec la liste : ratios 1/4–3/4 en
+  préparation, 2/3–1/3 en consultation, transition et protection des saisies.
+  Ses corrections de défilement indépendant, en-tête persistant, fermeture
+  par croix et dock fixe sont réalisées localement :
+  [recette](ui/recette-scroll-catalogues/README.md).
+  Le pied fixe de consultation qui raccourcissait le détail a également été
+  corrigé : action dans le contenu défilant sous le dock, vérifications
+  Chromium et audit indépendant terminés le 10 octobre 2026.
+  Sam a validé le lot 3B.2 et les corrections de détail Commandes le
+  10 octobre 2026, autorisé leurs commits/push et le lot Papiers 3C :
+  [recette](ui/recette-jalon3b2/README.md).
   Les stocks et leurs provenances historiques (#10) sont alignés sur les
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
   Le bilan (#11) utilise les prix appliqués historiques et expose ses montants

@@ -1,5 +1,5 @@
 <template>
-  <div class="app-layout">
+  <div ref="layout" class="app-layout" :class="{ 'app-layout-contained': contained }">
     <a class="skip-link" href="#main-content">Aller au contenu</a>
     <header class="atelier-header">
       <div class="atelier-brand">
@@ -14,7 +14,7 @@
     </main>
 
     <footer class="dock-wrapper">
-      <nav id="main-navigation" class="atelier-dock atelier-glass" aria-label="Navigation principale">
+      <nav ref="dock" id="main-navigation" class="atelier-dock atelier-glass" aria-label="Navigation principale">
         <router-link v-for="item in navItems" :key="item.path" :to="item.path" class="dock-item" :aria-current="isActive(item.path) ? 'page' : undefined">
           <span class="dock-icon" aria-hidden="true" v-html="item.icon"></span>
           <span>{{ item.label }}</span>
@@ -25,10 +25,24 @@
 </template>
 
 <script setup>
+import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { useRoute } from 'vue-router';
 
-defineProps({ title: { type: String, default: '' }, subtitle: { type: String, default: '' } });
+defineProps({ contained: Boolean, title: { type: String, default: '' }, subtitle: { type: String, default: '' } });
 const route = useRoute();
+const layout = ref(null);
+const dock = ref(null);
+let dockObserver;
+onMounted(() => {
+  const measure = () => {
+    const footer = dock.value?.parentElement;
+    if (footer && layout.value) layout.value.style.setProperty('--dock-clearance', `${footer.getBoundingClientRect().height + 16}px`);
+  };
+  dockObserver = new ResizeObserver(measure);
+  dockObserver.observe(dock.value.parentElement);
+  measure();
+});
+onBeforeUnmount(() => dockObserver?.disconnect());
 const navItems = [
   { path: '/', label: 'Commandes', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>' },
   { path: '/clients', label: 'Clientes', icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>' },
@@ -40,8 +54,8 @@ const isActive = path => path === '/' ? route.path === '/' || route.path.startsW
 </script>
 
 <style scoped>
-.app-layout { min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg-app); }
-.skip-link { position: absolute; top: 8px; left: 8px; z-index: var(--z-sticky); padding: 12px; background: var(--card); color: var(--text-primary); transform: translateY(-150%); }
+.app-layout { --dock-clearance: 120px; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg-app); }
+.skip-link { position: absolute; top: 8px; left: 8px; z-index: calc(var(--z-sticky) + 1); padding: 12px; background: var(--card); color: var(--text-primary); transform: translateY(-150%); }
 .skip-link:focus { transform: none; }
 .atelier-header { display: flex; align-items: center; gap: 27px; min-height: var(--atelier-hero-height); padding: var(--atelier-gutter); background: var(--primary); color: var(--primary-foreground); }
 .atelier-brand { flex: 0 0 150px; display: grid; justify-items: start; gap: 13px; }
@@ -52,14 +66,20 @@ const isActive = path => path === '/' ? route.path === '/' || route.path.startsW
 .atelier-title::before { content: ''; position: absolute; inset: 0; z-index: -1; background: var(--card); clip-path: polygon(0 4%, 97% 0, 100% 24%, 97% 48%, 100% 72%, 96% 100%, 0 96%, 2% 50%); }
 .atelier-caption { max-width: 350px; font-size: var(--font-size-base); line-height: 1.65; }
 .main-content { flex: 1; min-width: 0; outline: none; }
-.content-wrapper { width: 100%; padding: 20px var(--atelier-gutter) 0; }
-.dock-wrapper { display: flex; justify-content: center; padding: 24px var(--atelier-gutter) max(20px, env(safe-area-inset-bottom)); }
-.atelier-dock { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; max-width: 100%; padding: 8px 17px; border-radius: var(--atelier-dock-radius); }
+.content-wrapper { width: 100%; padding: 20px var(--atelier-gutter) var(--dock-clearance); }
+.dock-wrapper { position: fixed; inset: auto 0 0; z-index: var(--z-sticky); pointer-events: none; display: flex; justify-content: center; padding: 0 var(--atelier-gutter) max(20px, env(safe-area-inset-bottom)); }
+.atelier-dock { pointer-events: auto; display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; max-width: 100%; padding: 8px 17px; border-radius: var(--atelier-dock-radius); }
 .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-width: 72px; min-height: 58px; padding: 7px 13px 10px; border-radius: 13px; color: var(--text-secondary); font-size: var(--font-size-xs); text-decoration: none; }
 .dock-item:hover { background: rgb(255 255 255 / 35%); color: var(--primary); }
 .dock-item[aria-current="page"] { color: var(--primary); font-weight: var(--font-weight-semibold); }
 .dock-item[aria-current="page"]::after { content: ''; position: absolute; bottom: 3px; width: 20px; height: 3px; border-radius: 3px; background: var(--atelier-active-mark); }
 .dock-icon, .dock-icon :deep(svg) { width: 20px; height: 20px; }
+.app-layout-contained .atelier-header { position: sticky; top: 0; z-index: var(--z-sticky); flex-shrink: 0; }
+@media (min-width: 901px) {
+  .app-layout-contained { height: 100dvh; overflow: hidden; }
+  .app-layout-contained .main-content { min-height: 0; overflow: hidden; }
+  .app-layout-contained .content-wrapper { display: flex; flex-direction: column; height: 100%; min-height: 0; padding-bottom: 0; }
+}
 @media (max-width: 760px) {
   .atelier-header { flex-wrap: wrap; gap: 18px 24px; }
   .atelier-caption { flex-basis: 100%; max-width: none; }

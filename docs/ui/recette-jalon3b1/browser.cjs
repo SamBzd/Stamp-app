@@ -1,5 +1,7 @@
 const { chromium } = require(process.env.STAMP_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const out = process.env.STAMP_CAPTURE_DIR || __dirname;
+require('node:fs').mkdirSync(out, {recursive: true});
 const previewUrl = process.env.STAMP_PREVIEW_URL || 'http://127.0.0.1:5174';
 const base = { archive: 0, statut: 'brouillon', collections: [], rubans: [], formats_disponibles: [], papier_spe: '', embellissement: '', prix_A_cents: 1800, prix_B_cents: 1400, prix_C_cents: 900 };
 const catalogues = [
@@ -59,7 +61,7 @@ const delay = ms => new Promise(resolve=>setTimeout(resolve,ms));
   const overflowing=await page.locator('.catalogue-open, .catalogue-defaults, .slide-panel, .slide-panel-body').evaluateAll(nodes=>nodes.filter(e=>e.getBoundingClientRect().width>0&&e.scrollWidth>e.clientWidth+1).map(e=>e.textContent));
   assert.deepEqual(overflowing,[]);
  };
- const capture=async name=>{await page.locator('.slide-panel-overlay').evaluateAll(async elements=>{await Promise.all(elements.flatMap(element=>element.getAnimations({subtree:true})).map(animation=>animation.finished.catch(()=>{})));});await noOverflow();await page.screenshot({path:`${__dirname}/${name}`,fullPage:!name.startsWith('detail')});};
+ const capture=async name=>{await page.locator('.slide-panel-overlay').evaluateAll(async elements=>{await Promise.all(elements.flatMap(element=>element.getAnimations({subtree:true})).map(animation=>animation.finished.catch(()=>{})));});await noOverflow();await page.screenshot({path:`${out}/${name}`,fullPage:!name.startsWith('detail')});};
  const tabs=page.locator('.catalogue-list-tabs');
  const filters=page.locator('#catalogue-filter-toggle');
  const search=page.locator('#catalogue-search');

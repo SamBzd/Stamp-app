@@ -5,8 +5,11 @@ par Sam et autorisation de commit/push. Il définit la prochaine phase proposée
 Sam a ensuite autorisé la réalisation avec « Au boulot ». La liste et les
 Paramètres 3B.1 sont réalisés localement ; leur composition a été validée
 visuellement par Sam :
-[recette 3B.1](recette-jalon3b1/README.md). L’éditeur 3B.2 reste à traiter après
-l’harmonisation des listes Clientes/Commandes, désormais validée par Sam. Voir le [plan du jalon 3](jalon3-cadrage.md).
+[recette 3B.1](recette-jalon3b1/README.md). L’harmonisation des listes Clientes/Commandes est désormais validée par Sam.
+Il a ensuite demandé la création/préparation intégrée 3B.2, réalisée localement :
+[recette](recette-jalon3b2/README.md). Sam a validé le résultat et autorisé
+commits/push puis Papiers 3C le 10 octobre 2026.
+Voir le [plan du jalon 3](jalon3-cadrage.md).
 
 ## Objectif
 
@@ -43,9 +46,19 @@ Présenter la liste allégée, le détail ouvert, les filtres et les Paramètres
 
 ## Étape 3B.2 — création et préparation
 
-Après validation visuelle de 3B.1, adapter `/catalogues/nouveau` et
-`/catalogues/:id`. Garder une vraie page de préparation accessible par lien
-profond, plutôt qu’imposer le panneau de consultation des Clientes à un éditeur.
+Sam a remplacé la proposition de page dédiée par un espace unique :
+consultation avec liste 2/3 et détail 1/3 ; création/préparation avec liste 1/4
+et formulaire 3/4, le formulaire remplaçant le détail. Animer doucement les
+proportions et l’entrée du formulaire, en respectant le mouvement réduit.
+Les liens `/catalogues/nouveau` et `/catalogues/:id` ouvrent ce même espace
+avec l’éditeur ; ils restent rechargeables. Cliquer sur un autre catalogue
+rétablit la consultation 2/3–1/3, après protection des saisies éventuelles.
+À 900 px CSS et moins, le formulaire est dans le flux au-dessus de la liste ;
+la consultation conserve son panneau modal existant. Sam a ensuite précisé :
+liste et formulaire défilent indépendamment ; le bandeau Stamp App et le titre
+du formulaire restent visibles, fermeture par croix en haut à gauche, dock
+fixe au bas de l’écran, avec les panneaux allant jusqu’en bas sous le dock
+en surimpression. Voir la [recette](recette-scroll-catalogues/README.md).
 
 - Bandeau Catalogues et en-tête de travail compact avec nom et statut réels ;
   retour à la liste facile à trouver. Les noms longs reviennent à la ligne.
@@ -101,7 +114,7 @@ de 3B.1 puis 3B.2 précède le lot Papiers 3C.
 
 ## Périmètre technique et exclusions
 
-Modules principaux : `CataloguesView.vue`, `CatalogueDetailView.vue`,
+Modules principaux : `CataloguesView.vue`, `CatalogueEditor.vue`,
 `CatalogueCollection.vue`, `CataloguePrices.vue` et leurs styles. Les stores,
 services, composables et composants partagés ne changent que si nécessaire au
 parcours autorisé, après lecture et contrôle de leurs autres consommateurs.

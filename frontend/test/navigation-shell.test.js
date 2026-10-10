@@ -18,12 +18,12 @@ test('la navigation expose toutes les routes métier et marque la route active',
 });
 
 test('le dock expose des liens permanents et un accès direct au contenu', () => {
-  assert.match(layout, /<nav id="main-navigation"/);
+  assert.match(layout, /<nav\b[^>]*\bid="main-navigation"/);
   assert.match(layout, /<router-link v-for="item in navItems"/);
   assert.doesNotMatch(layout, /v-if="menuOpen"|navigation-trigger/);
   assert.match(layout, /href="#main-content"/);
   assert.match(app, /document.getElementById\('main-content'\)\?\.focus\(\)/);
-  assert.doesNotMatch(layout, /onMounted|autofocus/);
+  assert.doesNotMatch(layout, /autofocus|\.focus\(/);
   assert.doesNotMatch(app, /immediate: true|onMounted/);
   assert.match(app, /if \(!previousMatches \|\| path === previousPath\) return/);
 });

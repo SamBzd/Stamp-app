@@ -71,6 +71,10 @@ Sam a ensuite validé la composition Catalogues et demandé d’aligner les list
 Clientes/Commandes : fiches horizontales compactes, sans en-tête de colonnes
 prune ni colonnes fixes. Les onglets restent dans l’en-tête blanc et le détail
 sélectionné à droite ; voir la [recette](recette-fiches/README.md).
+Pour Catalogues, Sam a ensuite demandé que création et préparation remplacent
+ce détail : liste 1/4, formulaire 3/4, retour à 2/3–1/3 lorsqu’une autre fiche
+est choisie, transition douce et mouvement réduit respecté. Voir la
+[recette 3B.2](recette-jalon3b2/README.md).
 
 Le jaune ne devient pas une couleur de texte sur blanc. Les couleurs
 d’erreur, de succès et d’avertissement restent sémantiques, associées à un
@@ -140,7 +144,11 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
 - Cartes Kanban : relief léger, bord optique, voile blanc de référence 16 %,
   contenu net ; ne pas teinter chaque carte en prune ou en jaune.
 - Dock : verre presque incolore, bord lumineux fin, transparence visible,
-  icônes et textes lisibles ; aucun gros bouton actif contrasté.
+  icônes et textes lisibles ; aucun gros bouton actif contrasté. Sam a demandé
+  son maintien fixe en bas de l’écran. Dans l’espace Catalogues desktop, les
+  panneaux vont jusqu’en bas sous ce dock ; la marge pour atteindre les dernières
+  actions est interne aux zones défilantes. Les autres vues réservent la hauteur
+  réelle du dock dans le contenu. Les confirmations gardent leur couche modale.
 - La maquette simule une réfraction de bord, pas le matériau natif d’Apple.
   Son filtre SVG est limité à Chromium ; Safari utilise le repli CSS
   `blur(3px) saturate(120%)`. Ne pas transposer sa détection de navigateur ou

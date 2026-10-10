@@ -130,7 +130,9 @@ Les deux premiers jalons transposent désormais le socle, Fournitures et
 Commandes dans les modules concernés. Le lot Clientes 3A est validé visuellement par Sam ;
 la composition Catalogues et Paramètres 3B.1 est validée par Sam :
 [recette](recette-jalon3b1/README.md). Les listes Clientes et Commandes sont
-harmonisées sur ses fiches allégées : [recette](recette-fiches/README.md). L’éditeur Catalogues, Papiers
-et l’harmonisation des formulaires restent à traiter.
+harmonisées sur ses fiches allégées : [recette](recette-fiches/README.md). L’éditeur Catalogues est réalisé localement dans le même espace que la liste :
+[recette 3B.2](recette-jalon3b2/README.md), validée par Sam le 10 octobre 2026,
+avec autorisation de commits/push et du lot Papiers 3C.
+L’harmonisation des formulaires reste à traiter.
 La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.

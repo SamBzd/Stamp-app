@@ -82,5 +82,6 @@ CataloguePrices partagé avec l’éditeur.
 
 Sam a ensuite demandé d’harmoniser les listes Clientes/Commandes sur ce
 format : [recette](../recette-fiches/README.md). Après cette harmonisation,
-3B.2 reste à traiter : création/préparation, sections compactes, sélection
-des papiers et publication, avec les protections métier existantes.
+Sam a ensuite demandé que création/préparation remplace le détail dans cet
+espace, avec liste 1/4 et formulaire 3/4. Le lot 3B.2 est réalisé localement,
+validé par Sam le 10 octobre 2026 : [recette](../recette-jalon3b2/README.md).

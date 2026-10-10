@@ -10,7 +10,11 @@ leur composition est validée par Sam : [recette 3B.1](recette-jalon3b1/README.m
 Sam a demandé d’appliquer les fiches Catalogues à Clientes/Commandes, sans
 en-tête prune ni colonnes fixes ; il a validé ces listes et autorisé leurs
 commits/push : [recette](recette-fiches/README.md).
-L’éditeur 3B.2 et les lots 3C/3D restent à traiter. Sam a demandé une révision de la fiche :
+L’éditeur 3B.2 est réalisé localement selon la demande d’espace intégré de Sam
+(liste 1/4 et formulaire 3/4, retour consultation 2/3–1/3) :
+[recette](recette-jalon3b2/README.md). Sam l’a validé et a autorisé les
+commits/push et le lot Papiers 3C le 10 octobre 2026 ; le lot 3D reste à traiter.
+Sam a demandé une révision de la fiche :
 en-tête simplifié, points modifiables inline et historique compact avec liens
 vers les commandes concernées.
 La [recette Safari/Mac](recette-jalon2/README.md) reste ouverte.

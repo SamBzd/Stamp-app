@@ -8,8 +8,9 @@ avec le backend de l’issue #7.
 ## Parcours
 
 - `/catalogues` liste les catalogues actifs ou archivés, avec recherche, statut,
-  composition et prix. Les détails sont accessibles par `/catalogues/:id`, y
-  compris après archivage ou rechargement direct de la page.
+  composition et prix dans le détail sélectionné. `/catalogues?catalogue=<id>`
+  ouvre la consultation ; `/catalogues/:id` ouvre la préparation dans la même
+  vue avec la liste, y compris après archivage ou rechargement direct.
 - `/catalogues/nouveau` crée un brouillon avec un nom libre et des matériaux
   facultatifs. Les trois tarifs par défaut sont copiés par le serveur à sa
   création ; aucun statut ni tarif n’est envoyé par ce formulaire.
@@ -127,6 +128,47 @@ navigation vers une autre page ou un rechargement quitte ce formulaire et peut
 perdre une saisie non enregistrée, comme précédemment. Cette conservation entre
 onglets ne remplace pas les protections de départ propres à l’éditeur.
 
-La création et l’éditeur de catalogue n’ont pas reçu la refonte atelier dans
-cette étape. Ils constituent 3B.2, après validation de la liste et des Paramètres.
+## Création et préparation intégrées — lot 3B.2
+
+Sam a demandé un espace unique, sans page dédiée : en consultation, liste 2/3
+et détail 1/3 ; Nouveau catalogue ou Ouvrir la préparation passe à liste 1/4
+et formulaire 3/4. Le clic sur un autre catalogue revient à la consultation.
+La transition des proportions dure 280 ms et l’entrée du formulaire 220 ms ;
+la préférence système de réduction du mouvement supprime le déplacement.
+
+Les chemins historiques `/catalogues/nouveau` et `/catalogues/:id` affichent
+le même espace complet, via `CataloguesView` et `CatalogueEditor`. Créer le
+brouillon ouvre sa préparation dans cet espace et actualise la liste. Le
+formulaire conserve les enregistrements par section, les règles de publication,
+les tarifs locaux, les limites de composition et l’archivage/restauration.
+L’ancienne page dédiée est retirée. Le choix des papiers reste dans la collection.
+
+Quitter l’éditeur, choisir un autre catalogue, changer d’onglet ou utiliser le
+retour navigateur confirme l’abandon des modifications non enregistrées.
+Pendant une mutation, ces navigations sont bloquées, y compris pendant la
+création d’un papier dans la bibliothèque. Un refus serveur conserve la saisie.
+Le rechargement d’un éditeur ignore les réponses arrivées après son remplacement.
+
+Sur desktop, l’espace Catalogues est borné à la hauteur du viewport : bandeau
+Stamp App visible, liste et formulaire défilant indépendamment. Le titre et
+la croix de fermeture en haut à gauche restent hors du défilement du formulaire.
+Les panneaux vont jusqu’au bas du viewport, sous le dock fixé en surimpression,
+comme Sam l’a précisé. La marge nécessaire aux dernières actions est à
+l’intérieur des zones défilantes ; aucun espace extérieur ne raccourcit les
+panneaux.
+En consultation desktop, le détail défile jusqu’en bas sous le dock : le lien
+de préparation est à la fin du contenu, avec la marge de défilement nécessaire
+pour l’atteindre. Son ancien pied fixe ne réduit plus la hauteur du détail.
+Le titre reste visible et le panneau vide occupe la même hauteur. Le détail
+modal sur écran étroit conserve son pied d’actions.
+
+À 900 px CSS et moins, le formulaire occupe la largeur disponible dans le flux,
+avec la liste en dessous ; chacun garde sa zone de défilement et le bandeau
+reste sticky. La page peut défiler pour rejoindre les deux zones. Le
+clic sur une autre fiche ouvre ensuite la consultation modale habituelle.
+La [recette 3B.2](ui/recette-jalon3b2/README.md) conserve les captures et contrôles.
+La [recette des défilements](ui/recette-scroll-catalogues/README.md) couvre les
+corrections demandées ensuite par Sam. Sam a validé le résultat et autorisé
+les commits/push le 10 octobre 2026 ; Safari reste
+à vérifier. Aucun changement backend, API, schéma, données NAS ou déploiement.
 La recette réelle Mac/Safari et le zoom 200 % restent ouverts.
