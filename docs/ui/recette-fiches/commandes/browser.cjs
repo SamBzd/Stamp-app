@@ -1,6 +1,8 @@
 const { chromium } = require(process.env.STAMP_PLAYWRIGHT_MODULE || 'playwright');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const out = process.env.STAMP_CAPTURE_DIR || __dirname;
+fs.mkdirSync(out, {recursive: true});
 const preview = process.env.STAMP_PREVIEW_URL || 'http://127.0.0.1:5174';
 const common = { created_at: '2026-10-09 12:30:00', reglee: 0, methode_paiement: 'Paypal', commande_collections: [], papiers_selectionnes: [], ruban: null };
 const commandes = [
@@ -25,6 +27,19 @@ const commandes = [
   });
   const capture = async name => { await p.mouse.move(0, 0); await p.evaluate(() => document.activeElement?.blur()); await p.screenshot({path: `${out}/${name}.png`, animations: 'disabled', fullPage: !name.startsWith('detail')}); };
   const noOverflow = async () => { await p.waitForFunction(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth); };
+  const checkDetailHeader = async (id, type, status) => {
+   const panel=p.locator('.slide-panel'),header=p.locator('.slide-panel-header'),body=p.locator('.slide-panel-body');
+   await p.locator('.slide-panel-overlay').evaluate(async e=>{e.getBoundingClientRect();await Promise.all(e.getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})))});
+   assert.equal(await panel.getByText(`Commande #${id}`, {exact:true}).count(),1);
+   await header.getByRole('heading',{name:`Commande #${id}`,exact:true}).waitFor();
+   assert.equal(await header.getByText(type,{exact:true}).count(),1);
+   assert.equal(await header.getByText(status,{exact:true}).count(),1);
+   const card=await p.locator('.detail-client').boundingBox(),box=await header.boundingBox();assert.ok(card.y>=box.y+box.height+16);
+   const headerBefore=await header.boundingBox();await body.evaluate(e=>e.scrollTop=e.scrollHeight);
+   assert.deepEqual(await header.boundingBox(),headerBefore);
+   assert.ok(await p.locator('.detail-date-row').evaluate(e=>{const r=e.getBoundingClientRect(),b=e.closest('.slide-panel-body').getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom+1}));
+   await body.evaluate(e=>e.scrollTop=0);
+  };
   await p.goto(`${preview}/commandes/kits`); await p.locator('#commande-open-101').waitFor();
   assert.equal(await p.locator('.commande-open').count(), 4);
   assert.equal(await p.locator('.commandes-list-panel table').count(), 0);
@@ -35,6 +50,7 @@ const commandes = [
   assert.equal(await p.locator('#commande-open-101').getAttribute('aria-pressed'), 'true');
   assert.equal(await p.evaluate(() => document.body.style.overflow), '');
   assert.ok(await p.getByRole('button', {name: 'Modifier', exact: true}).isVisible());
+  await checkDetailHeader(101,'Kit','En attente');
   await capture('detail-kit-1280');
   await p.locator('.slide-panel-close').focus(); await p.keyboard.press('Escape');
   await p.locator('#commande-open-101:focus').waitFor();
@@ -63,6 +79,7 @@ const commandes = [
   await p.locator('#commande-open-102').click(); await p.getByRole('region', {name: 'Commande #102', exact: true}).waitFor();
   assert.equal(await p.getByRole('button', {name: 'Modifier', exact: true}).count(), 0);
   assert.equal(await p.getByRole('button', {name: 'Supprimer', exact: true}).count(), 0);
+  await checkDetailHeader(102,'Kit','Réglée');
   await p.locator('.slide-panel-close').click(); await p.locator('#commandes-filter-toggle').click();
   for (const [width, height] of [[1024, 768], [375, 800], [800, 375]]) {
    await p.setViewportSize({width, height});
@@ -73,6 +90,7 @@ const commandes = [
     await p.locator(`#commande-open-${id}`).click();
     await p.getByRole(width > 900 ? 'region' : 'dialog', {name: `Commande #${id}`, exact: true}).waitFor();
     await noOverflow(); assert.ok(await p.locator('.slide-panel').evaluate(e => e.scrollWidth <= e.clientWidth));
+    await checkDetailHeader(id,path==='kits'?'Kit':'Hors kit',id===202?'Réglée':'En attente');
     await capture(`detail-${name}-${width}`);
     if (width <= 900) assert.equal(await p.evaluate(() => document.body.style.overflow), 'hidden');
     await p.locator('.slide-panel-close').focus(); await p.keyboard.press('Escape');
@@ -85,6 +103,7 @@ const commandes = [
   await p.getByRole('region', {name: 'Commande #201', exact: true}).waitFor();
   assert.equal(await p.locator('#commande-open-201').getAttribute('aria-pressed'), 'true');
   await p.getByText(/^Petite attention/).waitFor();
+  await checkDetailHeader(201,'Hors kit','En attente');
   await capture('detail-hors-kit-1280');
   assert.deepEqual(errors, []);
   console.log('OK : fiches Kits/Hors kit, sélection clavier et retour de focus, critères par onglet/repli/effacement, historique catalogue, états réglée, lien direct, détails desktop/mobile, noms longs et zéro, absence de débordement 1280/1024/375/800.');

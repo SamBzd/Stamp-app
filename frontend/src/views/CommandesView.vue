@@ -113,25 +113,21 @@
         @close="closeViewPanel"
         max-width="540px"
       >
+        <template #header>
+          <div class="commande-panel-heading">
+            <h2>{{ selectedCommande ? `Commande #${selectedCommande.id}` : 'Détail de la commande' }}</h2>
+            <div v-if="selectedCommande" class="commande-panel-badges">
+              <span :class="['type-badge', selectedCommande.type === 'kit' ? 'type-badge-kit' : 'type-badge-hors-kit']">{{ selectedCommande.type === 'kit' ? 'Kit' : 'Hors kit' }}</span>
+              <span :class="['status-badge-lg', selectedCommande.reglee ? 'status-badge-regle' : 'status-badge-attente']">{{ selectedCommande.reglee ? 'Réglée' : 'En attente' }}</span>
+            </div>
+          </div>
+        </template>
         <div v-if="detailError" class="form-error-global" role="alert"><p>{{ detailError }}</p><Button v-if="detailCommandeId" variant="secondary" @click="viewCommande({ id: detailCommandeId })">Recharger le détail</Button></div>
         <div v-else-if="loadingDetail" class="loading-state" role="status">
           <div class="loading-spinner"></div>
           <span class="loading-state-text">Chargement du détail…</span>
         </div>
         <div v-if="selectedCommande" class="commande-detail">
-          <!-- Header détail -->
-          <div class="detail-header">
-            <div class="detail-id-row">
-              <span class="detail-id">Commande #{{ selectedCommande.id }}</span>
-              <span :class="['type-badge', selectedCommande.type === 'kit' ? 'type-badge-kit' : 'type-badge-hors-kit']">
-                {{ selectedCommande.type === 'kit' ? 'Kit' : 'Hors kit' }}
-              </span>
-            </div>
-            <span :class="['status-badge-lg', selectedCommande.reglee ? 'status-badge-regle' : 'status-badge-attente']">
-              {{ selectedCommande.reglee ? 'Réglée' : 'En attente' }}
-            </span>
-          </div>
-
           <!-- Client -->
           <div class="detail-client atelier-glass">
             <div class="client-avatar-md">
@@ -636,9 +632,11 @@ onMounted(async () => {
 .status-badge-attente { background: var(--warning-light); color: var(--warning-dark); }
 .type-badge-kit, .type-badge-hors-kit { background: var(--primary-light); color: var(--primary); }
 .commande-detail { display: grid; gap: var(--spacing-4); min-width: 0; }
-.detail-header, .detail-id-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-2); }
-.detail-header { justify-content: space-between; }
-.detail-id { font-size: var(--font-size-sm); color: var(--text-secondary); }
+.commande-panel-heading { display: grid; gap: 6px; min-width: 0; }
+.commande-panel-heading h2 { color: var(--primary); font-size: var(--font-size-lg); font-weight: var(--font-weight-semibold); overflow-wrap: anywhere; }
+.commande-panel-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.commandes-workspace :deep(.slide-panel-header) { gap: 12px; }
+.commandes-workspace :deep(.slide-panel-inline .slide-panel-body) { padding-top: 18px; }
 .detail-client { display: flex; align-items: center; gap: var(--spacing-3); padding: 16px 14px; border-radius: var(--atelier-card-radius); }
 .client-avatar-md { display: grid; place-items: center; flex: 0 0 36px; height: 36px; border-radius: var(--border-radius-sm); color: var(--primary); background: var(--primary-light); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
 .detail-client-info { display: grid; gap: 4px; min-width: 0; }

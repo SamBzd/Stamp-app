@@ -51,6 +51,13 @@ défilement de fond verrouillé. Échap ferme le détail ; sur desktop, ce racco
 s’applique lorsque le focus est dans le panneau. La fermeture rend le focus à
 la commande ; après suppression, il revient à l’en-tête visible de la liste.
 
+La correction du 10 octobre 2026 regroupe le numéro, le type et le statut dans
+un seul en-tête fixe : ces informations ne sont plus répétées au début du
+contenu. Une marge sépare la fiche cliente de cet en-tête sur desktop ; le
+détail modal conserve sa marge habituelle. Les actions restent dans le pied
+et la fin de la composition reste accessible par défilement. Voir la
+[recette du détail](ui/recette-commandes-detail/README.md).
+
 La [recette visuelle et fonctionnelle](ui/recette-jalon2/README.md) détaille les
 écarts à la maquette et les vérifications locales. Le rendu de liste/consultation
 est validé par Sam le 9 octobre 2026. Safari reste à vérifier et les formulaires
