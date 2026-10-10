@@ -63,8 +63,14 @@ Commandes conserve le chemin `/` et le paramètre `client` existants ; ce lot ne
 modifie pas le comportement des formulaires Commandes à l’arrivée.
 
 Les formulaires création/édition gardent leurs champs et leur organisation.
-Seuls les verrous de soumission et l’affichage d’erreur serveur dans le formulaire
-ont été renforcés. Les saisies restent présentes après un refus serveur.
+Depuis la révision du 10 octobre 2026, ils partagent l’atelier avec la liste :
+2/3–1/3 en consultation, puis 1/4–3/4 en saisie, comme le catalogue.
+Le titre et la croix restent visibles, le contenu défile indépendamment et les
+actions suivent le contenu défilant sur desktop, avec un dégagement final pour le dock. Les panneaux gardent toute la hauteur du viewport. Sur écran étroit, le formulaire passe au-dessus
+de la liste. Les saisies restent présentes après un refus serveur ; leur abandon
+est confirmé à la fermeture ou lors du changement de page. Les ouvertures de fiches,
+les favoris de la liste et le bouton d’ajout sont verrouillés pendant la saisie.
+Voir la [recette des formulaires](ui/recette-formulaires/README.md).
 La fermeture renvoie le focus à une cible visible : ligne, en-tête de la liste
 si la ligne a disparu, ou bouton d’ajout pour une création.
 

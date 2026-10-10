@@ -1,5 +1,5 @@
 <template>
-  <Modal :is-open="isOpen && !confirmClose" :title="isEditing ? 'Modifier la commande hors kit' : 'Nouvelle commande hors kit'" max-width="520px" @close="requestClose">
+  <FormPanel :is-open="isOpen" :busy="saving" :return-focus-id="returnFocusId" eyebrow="Commandes" :title="isEditing ? 'Modifier la commande hors kit' : 'Nouvelle commande hors kit'" @close="requestClose">
     <form class="hors-kit-form" @submit.prevent="handleSubmit">
 
       <!-- Sélection cliente -->
@@ -116,7 +116,7 @@
       <Button variant="secondary" :disabled="saving || Boolean(props.commande?.reglee)" @click="requestClose">Annuler</Button>
       <Button :disabled="locked || Boolean(clientLoadError)" @click="handleSubmit" :loading="saving">{{ isEditing ? 'Enregistrer' : 'Créer' }}</Button>
     </template>
-  </Modal>
+  </FormPanel>
   <ConfirmDialog
     :is-open="confirmClose"
     title="Abandonner les modifications ?"
@@ -130,8 +130,8 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
-import Modal from './Modal.vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+import FormPanel from './FormPanel.vue';
 import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import FormSelect from './FormSelect.vue';
@@ -141,6 +141,7 @@ import { useCommandesStore } from '../stores/commandes';
 
 const props = defineProps({
   isOpen: { type: Boolean, default: false },
+  returnFocusId: { type: String, default: '' },
   commande: { type: Object, default: null },
 });
 
@@ -300,10 +301,15 @@ watch(() => props.isOpen, async (open) => {
   }
 });
 
-onBeforeRouteLeave(() => {
+function confirmNavigation() {
   if (!props.isOpen) return;
   if (saving.value) return false;
-  if (dirty.value) return window.confirm('Quitter et abandonner les saisies de cette commande ?');
+  if (dirty.value && !window.confirm('Quitter et abandonner les saisies de cette commande ?')) return false;
+  discard();
+}
+onBeforeRouteLeave(confirmNavigation);
+onBeforeRouteUpdate((to, from) => {
+  if (to.path !== from.path) return confirmNavigation();
 });
 </script>
 

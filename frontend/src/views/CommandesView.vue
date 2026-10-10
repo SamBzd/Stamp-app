@@ -1,9 +1,9 @@
 <template>
-  <Layout title="Commandes" subtitle="Des kits choisis aux commandes réglées, tout l’atelier en un regard.">
-    <div class="commandes-view">
+  <Layout contained title="Commandes" subtitle="Des kits choisis aux commandes réglées, tout l’atelier en un regard.">
+    <div class="commandes-view form-workspace-view">
       <div class="commandes-toolbar">
         <div class="header-actions">
-          <Button variant="secondary" @click="openKitForm">
+          <Button id="commandes-create-kit" variant="secondary" :disabled="isKitFormOpen || isHorsKitFormOpen" @click="openKitForm">
             <template #icon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -12,7 +12,7 @@
             </template>
             Nouveau kit
           </Button>
-          <Button @click="openHorsKitForm">
+          <Button id="commandes-create-hors-kit" :disabled="isKitFormOpen || isHorsKitFormOpen" @click="openHorsKitForm">
             <template #icon>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="12" y1="5" x2="12" y2="19"/>
@@ -26,7 +26,7 @@
 
       <p v-if="operationError" class="form-error-global" role="alert">{{ operationError }}</p>
 
-      <div class="commandes-workspace">
+      <div class="commandes-workspace form-workspace" :class="{ 'form-workspace-editing': isKitFormOpen || isHorsKitFormOpen }">
       <section class="commandes-list-panel" aria-labelledby="commandes-list-title">
         <header id="commandes-list-header" ref="listHeading" class="commandes-list-heading" tabindex="-1">
           <h2 id="commandes-list-title" class="sr-only">{{ activeType === 'kit' ? 'Commandes kits' : 'Commandes hors kit' }}</h2>
@@ -57,6 +57,7 @@
           </div>
           <button v-if="hasFilters" type="button" class="commande-filter-reset" @click="resetFilters">Effacer les filtres</button>
         </div>
+      <div id="commandes-list-content">
       <!-- States -->
       <div v-if="commandesStore.loading" class="loading-state" role="status">
         <div class="loading-spinner"></div>
@@ -79,8 +80,8 @@
         <h3 class="empty-state-title">{{ activeType === 'kit' ? 'Aucune commande kit' : 'Aucune commande hors kit' }}</h3>
         <p class="empty-state-description">Commencez par créer votre première commande</p>
         <div class="empty-state-actions">
-          <Button variant="secondary" @click="openKitForm">Nouveau kit</Button>
-          <Button @click="openHorsKitForm">Nouvelle hors kit</Button>
+          <Button variant="secondary" :disabled="isKitFormOpen || isHorsKitFormOpen" @click="openKitForm">Nouveau kit</Button>
+          <Button :disabled="isKitFormOpen || isHorsKitFormOpen" @click="openHorsKitForm">Nouvelle hors kit</Button>
         </div>
       </div>
 
@@ -92,22 +93,24 @@
 
       <ul v-else class="commandes-list" aria-label="Commandes">
         <li v-for="commande in visibleCommandes" :key="commande.id">
-          <button type="button" class="commande-open" :id="`commande-open-${commande.id}`" :aria-label="`Voir la commande #${commande.id} de ${commande.client?.prenom || commande.client_prenom || ''} ${commande.client?.nom || commande.client_nom || ''}`" :aria-pressed="isViewPanelOpen && detailCommandeId === commande.id" @click="viewCommande(commande)">
+          <button type="button" class="commande-open" :id="`commande-open-${commande.id}`" :aria-label="`Voir la commande #${commande.id} de ${commande.client?.prenom || commande.client_prenom || ''} ${commande.client?.nom || commande.client_nom || ''}`" :aria-pressed="isViewPanelOpen && detailCommandeId === commande.id" :disabled="isKitFormOpen || isHorsKitFormOpen" @click="viewCommande(commande)">
             <span class="commande-summary"><span class="client-name">{{ commande.client?.prenom || commande.client_prenom }} {{ commande.client?.nom || commande.client_nom }}</span><span class="commande-list-status" :class="{ 'commande-list-reglee': commande.reglee }">{{ commande.reglee ? 'Réglée' : 'En attente' }}</span></span>
             <span class="commande-metadata"><span class="commande-reference">#{{ commande.id }} · {{ formatDate(commande.created_at) }}</span><span>{{ commande.type === 'kit' ? `Kit ${commande.format_type || ''}` : 'Hors kit' }}</span><span v-if="commande.type === 'kit' && commande.catalogue_titre">{{ commande.catalogue_titre }}</span><span class="commande-list-price">{{ commande.type === 'kit' ? formatMoney(commande.prix_applique_cents) : formatEuro(commande.montant) }}</span></span>
             <svg class="commande-open-chevron" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m9 5 7 7-7 7"/></svg>
           </button>
         </li>
       </ul>
+      </div>
       </section>
-      <aside v-if="!isViewPanelOpen" class="commande-placeholder" aria-label="Détail de la commande">
+      <aside v-if="!isViewPanelOpen && !isKitFormOpen && !isHorsKitFormOpen" class="commande-placeholder" aria-label="Détail de la commande">
         <h2>Le détail de ta commande</h2><p>Sélectionne une fiche pour consulter sa composition, son prix et son règlement.</p>
       </aside>
 
       <!-- SlidePanel détail commande -->
       <SlidePanel
-        :is-open="isViewPanelOpen"
+        :is-open="isViewPanelOpen && !isKitFormOpen && !isHorsKitFormOpen"
         :inline="desktopDetails"
+        :scroll-footer="desktopDetails"
         :return-focus-id="visibleCommandes.some(commande => commande.id === detailCommandeId) ? `commande-open-${detailCommandeId}` : 'commandes-list-header'"
         :title="selectedCommande ? `Commande #${selectedCommande.id}` : 'Détail de la commande'"
         @close="closeViewPanel"
@@ -288,11 +291,11 @@
           </Button>
         </template>
       </SlidePanel>
-      </div>
 
-      <!-- Modal Kit -->
+      <div class="form-editor-slot" v-show="isKitFormOpen || isHorsKitFormOpen">
+      <!-- Formulaire Kit -->
       <CommandeKitForm
-        :is-open="isKitFormOpen"
+        :is-open="isKitFormOpen" :return-focus-id="editingCommande ? `commande-open-${editingCommande.id}` : 'commandes-create-kit'"
         :commande="editingCommande"
         @close="isKitFormOpen = false"
         @saved="onCommandeSaved"
@@ -300,11 +303,14 @@
 
       <!-- Modal Hors Kit -->
       <CommandeHorsKitForm
-        :is-open="isHorsKitFormOpen"
+        :is-open="isHorsKitFormOpen" :return-focus-id="editingCommande ? `commande-open-${editingCommande.id}` : 'commandes-create-hors-kit'"
         :commande="editingCommande"
         @close="isHorsKitFormOpen = false"
         @saved="onCommandeSaved"
       />
+
+      </div>
+      </div>
 
       <!-- Confirm Delete -->
       <ConfirmDialog
@@ -324,6 +330,7 @@
 <script setup>
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import '../styles/form-workspace.css';
 import Layout from '../components/Layout.vue';
 import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
@@ -426,10 +433,12 @@ const kitComposition = computed(() => selectedCommande.value?.type === 'kit'
   : []);
 
 const openKitForm = () => {
+  if (isKitFormOpen.value || isHorsKitFormOpen.value) return;
   editingCommande.value = null;
   isKitFormOpen.value = true;
 };
 const openHorsKitForm = () => {
+  if (isKitFormOpen.value || isHorsKitFormOpen.value) return;
   editingCommande.value = null;
   isHorsKitFormOpen.value = true;
 };

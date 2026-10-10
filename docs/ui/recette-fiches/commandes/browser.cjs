@@ -37,6 +37,11 @@ const commandes = [
    const card=await p.locator('.detail-client').boundingBox(),box=await header.boundingBox();assert.ok(card.y>=box.y+box.height+16);
    const headerBefore=await header.boundingBox();await body.evaluate(e=>e.scrollTop=e.scrollHeight);
    assert.deepEqual(await header.boundingBox(),headerBefore);
+   if(p.viewportSize().width>900){
+    const panelBox=await panel.boundingBox();assert.ok(Math.abs(panelBox.y+panelBox.height-p.viewportSize().height)<2);
+    assert.ok(await p.locator('.slide-panel-footer').evaluate(e=>e.parentElement.classList.contains('slide-panel-body')));
+    const footer=await p.locator('.slide-panel-footer').boundingBox(),dock=await p.locator('.dock-wrapper').boundingBox();assert.ok(footer.y+footer.height<=dock.y);
+   }
    assert.ok(await p.locator('.detail-date-row').evaluate(e=>{const r=e.getBoundingClientRect(),b=e.closest('.slide-panel-body').getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom+1}));
    await body.evaluate(e=>e.scrollTop=0);
   };

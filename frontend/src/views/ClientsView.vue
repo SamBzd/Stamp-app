@@ -1,9 +1,9 @@
 <template>
-  <Layout title="Clientes" subtitle="Les coordonnées, les préférences et l’histoire de chaque cliente.">
-    <div class="clients-view">
-      <div class="clients-toolbar"><Button id="clients-create" @click="openCreateModal"><template #icon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></template>Ajouter une cliente</Button></div>
+  <Layout contained title="Clientes" subtitle="Les coordonnées, les préférences et l’histoire de chaque cliente.">
+    <div class="clients-view form-workspace-view">
+      <div class="clients-toolbar"><Button id="clients-create" :disabled="isModalOpen" @click="openCreateModal"><template #icon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></template>Ajouter une cliente</Button></div>
       <p v-if="operationError && !isViewModalOpen" class="client-error" role="alert">{{ operationError }}</p>
-      <div class="clients-workspace">
+      <div class="clients-workspace form-workspace" :class="{ 'form-workspace-editing': isModalOpen }">
       <section class="clients-list-panel" aria-label="Répertoire des clientes">
         <header id="clients-list-header" class="clients-list-heading" tabindex="-1">
           <div class="clients-tabs" role="tablist" aria-label="Statut des clientes">
@@ -27,25 +27,26 @@
             <h3 class="empty-state-title">{{ activeFilterCount ? 'Aucune cliente ne correspond' : archiveFilter === 'archives' ? 'Aucune cliente archivée' : 'Aucune cliente' }}</h3>
             <p class="empty-state-description">{{ activeFilterCount ? 'Essaie une autre recherche ou efface les filtres.' : archiveFilter === 'archives' ? 'Les clientes archivées restent consultables et peuvent être restaurées.' : 'Commence par ajouter ta première cliente.' }}</p>
             <button v-if="activeFilterCount" type="button" class="client-filter-reset" @click="resetFilters">Effacer les filtres</button>
-            <Button v-else-if="archiveFilter === 'actifs'" @click="openCreateModal">Ajouter une cliente</Button>
+            <Button v-else-if="archiveFilter === 'actifs'" :disabled="isModalOpen" @click="openCreateModal">Ajouter une cliente</Button>
           </div>
           <ul v-else class="clients-list" aria-label="Clientes">
             <li v-for="client in filteredClients" :key="client.id" class="client-list-item" :class="{ 'client-selected': isViewModalOpen && selectedClient?.id === client.id }">
-              <button :id="`client-open-${client.id}`" type="button" class="client-open" :aria-label="`Voir la fiche de ${client.prenom} ${client.nom}`" :aria-pressed="isViewModalOpen && selectedClient?.id === client.id" :disabled="archiving || pointsSaving" @click="viewClient(client)">
+              <button :id="`client-open-${client.id}`" type="button" class="client-open" :aria-label="`Voir la fiche de ${client.prenom} ${client.nom}`" :aria-pressed="isViewModalOpen && selectedClient?.id === client.id" :disabled="isModalOpen || archiving || pointsSaving" @click="viewClient(client)">
                 <span class="client-summary"><span class="client-name">{{ client.prenom }} {{ client.nom }}</span><span v-if="client.ville" class="client-city">{{ client.ville }}</span></span>
                 <span class="client-contact"><span v-if="client.email">{{ client.email }}</span><span v-if="client.telephone_raw">{{ client.telephone_raw }}</span><span v-if="!client.email && !client.telephone_raw" class="client-city">Coordonnées non renseignées</span></span>
               </button>
-              <button type="button" class="favorite-btn" :class="{ 'favorite-btn-active': client.contacter === 1 }" :disabled="favoriteBusy(client.id) || archiving || pointsSaving" :aria-label="client.contacter === 1 ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`" :aria-pressed="client.contacter === 1" @click="toggleFavoriteFromList(client)"><svg aria-hidden="true" viewBox="0 0 24 24" :fill="client.contacter === 1 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+              <button type="button" class="favorite-btn" :class="{ 'favorite-btn-active': client.contacter === 1 }" :disabled="isModalOpen || favoriteBusy(client.id) || archiving || pointsSaving" :aria-label="client.contacter === 1 ? `Retirer ${client.prenom} ${client.nom} des favoris` : `Ajouter ${client.prenom} ${client.nom} aux favoris`" :aria-pressed="client.contacter === 1" @click="toggleFavoriteFromList(client)"><svg aria-hidden="true" viewBox="0 0 24 24" :fill="client.contacter === 1 ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.7"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
             </li>
           </ul>
         </div>
       </section>
-      <aside v-if="!isViewModalOpen" class="client-placeholder"><h2>La fiche de ta cliente</h2><p>Sélectionne une fiche pour retrouver ses coordonnées, ses préférences et ses commandes.</p></aside>
+      <aside v-if="!isViewModalOpen && !isModalOpen" class="client-placeholder"><h2>La fiche de ta cliente</h2><p>Sélectionne une fiche pour retrouver ses coordonnées, ses préférences et ses commandes.</p></aside>
 
       <!-- Panel consultation client -->
       <SlidePanel
-        :is-open="isViewModalOpen"
+        :is-open="isViewModalOpen && !isModalOpen"
         :inline="desktopDetails"
+        :scroll-footer="desktopDetails"
         :return-focus-id="filteredClients.some(client => client.id === detailClientId) ? `client-open-${detailClientId}` : 'clients-list-header'"
         title="Fiche cliente"
         @close="closeViewModal"
@@ -264,15 +265,13 @@
         </template>
       </SlidePanel>
 
-      </div>
 
       <!-- Panel création/édition client -->
-      <SlidePanel
-        :is-open="isModalOpen"
+      <div class="form-editor-slot" v-show="isModalOpen"><FormPanel
+        :is-open="isModalOpen" :busy="saving" eyebrow="Clientes"
         :return-focus-id="isEditing ? (filteredClients.some(client => client.id === editingClientId) ? `client-open-${editingClientId}` : 'clients-list-header') : 'clients-create'"
         :title="modalTitle"
         @close="closeModal"
-        max-width="560px"
       >
         <form @submit.prevent="handleSubmit" class="client-form">
           <p v-if="errors._global" class="client-error" role="alert">{{ errors._global }}</p>
@@ -380,8 +379,10 @@
             {{ isEditing ? 'Enregistrer' : 'Créer' }}
           </Button>
         </template>
-      </SlidePanel>
+      </FormPanel></div>
+      </div>
 
+      <ConfirmDialog :is-open="confirmFormClose" title="Abandonner les modifications ?" message="Les saisies de cette cliente ne seront pas enregistrées." confirm-text="Abandonner" variant="danger" @confirm="discardClientForm" @cancel="confirmFormClose = false" />
       <!-- Archivage réversible -->
       <ConfirmDialog
         :is-open="isArchiveDialogOpen"
@@ -398,8 +399,10 @@
 
 <script setup>
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import Layout from '../components/Layout.vue';
+import FormPanel from '../components/FormPanel.vue';
+import '../styles/form-workspace.css';
 import SlidePanel from '../components/SlidePanel.vue';
 import Button from '../components/Button.vue';
 import FormInput from '../components/FormInput.vue';
@@ -634,6 +637,7 @@ const savePoints = async () => {
 
 const favoriteBusy = id => favoritePending.value.has(id);
 const toggleFavoriteFromList = async client => {
+  if (isModalOpen.value || saving.value) return;
   if (!client || favoriteBusy(client.id) || archiving.value || pointsSaving.value) return;
   const focused = document.activeElement;
   const id = client.id;
@@ -674,6 +678,7 @@ const confirmArchiveFromView = () => {
 };
 
 const openCreateModal = async () => {
+  if (isModalOpen.value) return;
   if (archiving.value || saving.value || pointsSaving.value) return;
   closeViewModal();
   await nextTick();
@@ -693,6 +698,7 @@ const openCreateModal = async () => {
     points_fidelite: 0,
   };
   errors.value = {};
+  formBaseline.value = JSON.stringify(formData.value);
   isModalOpen.value = true;
 };
 
@@ -713,13 +719,24 @@ const editClient = (client) => {
     points_fidelite: client.points_fidelite ?? 0,
   };
   errors.value = {};
+  formBaseline.value = JSON.stringify(formData.value);
   isModalOpen.value = true;
 };
 
+const formBaseline = ref('');
+const clientFormDirty = computed(() => isModalOpen.value && JSON.stringify(formData.value) !== formBaseline.value);
+const confirmFormClose = ref(false);
+const discardClientForm = () => { confirmFormClose.value = false; isModalOpen.value = false; };
 const closeModal = () => {
   if (saving.value) return;
-  isModalOpen.value = false;
+  if (clientFormDirty.value) confirmFormClose.value = true;
+  else isModalOpen.value = false;
 };
+onBeforeRouteLeave(() => {
+  if (!isModalOpen.value) return;
+  if (saving.value) return false;
+  if (clientFormDirty.value) return window.confirm('Quitter et abandonner les saisies de cette cliente ?');
+});
 
 const handleSubmit = async () => {
   if (saving.value) return;

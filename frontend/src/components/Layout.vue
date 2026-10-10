@@ -1,7 +1,7 @@
 <template>
   <div ref="layout" class="app-layout" :class="{ 'app-layout-contained': contained }">
     <a class="skip-link" href="#main-content">Aller au contenu</a>
-    <header class="atelier-header">
+    <header ref="header" class="atelier-header">
       <div class="atelier-brand">
         <span class="atelier-logo">Stamp App</span>
       </div>
@@ -32,14 +32,17 @@ defineProps({ contained: Boolean, title: { type: String, default: '' }, subtitle
 const route = useRoute();
 const layout = ref(null);
 const dock = ref(null);
+const header = ref(null);
 let dockObserver;
 onMounted(() => {
   const measure = () => {
     const footer = dock.value?.parentElement;
+    if (header.value && layout.value) layout.value.style.setProperty('--atelier-header-height', `${header.value.getBoundingClientRect().height}px`);
     if (footer && layout.value) layout.value.style.setProperty('--dock-clearance', `${footer.getBoundingClientRect().height + 16}px`);
   };
   dockObserver = new ResizeObserver(measure);
   dockObserver.observe(dock.value.parentElement);
+  dockObserver.observe(header.value);
   measure();
 });
 onBeforeUnmount(() => dockObserver?.disconnect());

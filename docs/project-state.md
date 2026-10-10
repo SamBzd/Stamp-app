@@ -68,7 +68,14 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   est livré sur la branche UI avec autorisation de commits/push de Sam le
   10 octobre 2026 : liste compacte, recherche et filtres repliables,
   création/renommage inline ; [recette](ui/recette-papiers/README.md).
-  La recette Mac/Safari reste ouverte. La migration v3 est
+  Les formulaires Clientes et Commandes sont harmonisés localement le
+  10 octobre 2026 : liste 2/3 en consultation puis 1/4 en saisie, formulaire
+  intégré à droite, panneaux desktop pleine hauteur sous le dock, actions dans
+  le contenu défilant avec dégagement final et confirmation
+  d’abandon ; [recette](ui/recette-formulaires/README.md).
+  Sam a validé les formulaires et les corrections du dock le 10 octobre 2026,
+  et autorisé leur commit/push sur la branche UI. La recette Mac/Safari reste
+  ouverte. La migration v3 est
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
   [contrat API et de synchronisation](workflow-fournitures-api.md) et sa

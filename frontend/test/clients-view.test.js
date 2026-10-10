@@ -24,7 +24,7 @@ async function renderClients(overrides = {}) {
     pointsEditing: false, pointsDraft: '', pointsSaving: false, pointsError: '', pointsNotice: '',
     startPointsEdit: noop, cancelPointsEdit: noop, savePoints: noop,
     archiveError: '', archiveNotice: '', archiving: false, isArchiveDialogOpen: false,
-    isModalOpen: false, isEditing: false, editingClientId: null, modalTitle: 'Nouveau client', formData: {}, errors: {}, saving: false,
+    confirmFormClose: false, discardClientForm: noop, isModalOpen: false, isEditing: false, editingClientId: null, modalTitle: 'Nouveau client', formData: {}, errors: {}, saving: false,
     hasAddress: true, getInitials: () => 'ER', formatMemberSince: () => '1 an', formatDate: () => '9 avril 1985', calculateAge: () => 41,
     commandeHistoryLink, commandeHistoryDate, formatHistoryDate, commandeHistoryCatalogue, favoriteBusy: () => false,
     openCreateModal: noop, selectArchiveTab: noop, onTabKeydown: noop, toggleFilters: noop, resetFilters: noop,
@@ -36,6 +36,7 @@ async function renderClients(overrides = {}) {
   app.component('Layout', { template: '<main><slot /></main>' });
   app.component('RouterLink', { props: ['to'], template: '<a :href="to.path + \'?commande=\' + to.query.commande"><slot /></a>' });
   app.component('Button', { template: '<button><slot /></button>' });
+  app.component('FormPanel', { props: ['isOpen'], template: '<section v-if="isOpen"><slot /><footer><slot name="footer" /></footer></section>' });
   app.component('SlidePanel', { props: ['isOpen', 'inline'], template: '<aside v-if="isOpen" :role="inline ? \'region\' : \'dialog\'"><header><slot name="header" /></header><slot /><footer><slot name="footer" /></footer></aside>' });
   for (const name of ['FormInput', 'FormCheckbox', 'EmailDomainInput', 'PhoneInput', 'ConfirmDialog']) app.component(name, { template: '<div></div>' });
   return (await renderToString(app)).replace(/<!--[^]*?-->/g, '');

@@ -1,5 +1,5 @@
 <template>
-  <Modal :is-open="isOpen && !confirmClose" :title="commande ? `Modifier le kit #${commande.id}` : 'Nouveau kit'" max-width="1080px" @close="requestClose">
+  <FormPanel :is-open="isOpen" :busy="saving" :return-focus-id="returnFocusId" eyebrow="Commandes" :title="commande ? `Modifier le kit #${commande.id}` : 'Nouveau kit'" @close="requestClose">
     <form :id="formId" class="kit-form" novalidate @submit.prevent="handleSubmit">
       <p v-if="loading" role="status">Chargement des clientes et catalogues…</p>
       <div v-if="loadError" class="error-box" role="alert"><p>{{ loadError }}</p><Button variant="secondary" @click="loadForm">Réessayer</Button></div>
@@ -112,20 +112,21 @@
       </fieldset>
     </form>
     <template #footer><span v-if="form.format_type" class="footer-status" role="status">{{ compositionStatus }}</span><Button variant="secondary" :disabled="saving" @click="requestClose">Annuler</Button><Button type="submit" :form="formId" :disabled="loading || Boolean(loadError) || !catalogueDetail || Boolean(commande?.reglee)" :loading="saving">{{ commande ? 'Enregistrer' : 'Créer le kit' }}</Button></template>
-  </Modal>
+  </FormPanel>
   <ConfirmDialog :is-open="confirmClose" title="Abandonner les modifications ?" message="Les saisies de cette commande ne seront pas enregistrées." confirm-text="Abandonner" variant="danger" @confirm="discard" @cancel="confirmClose = false" />
 </template>
 
 <script setup>
 import { ref, computed, watch, useId, nextTick } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
-import Modal from './Modal.vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+import FormPanel from './FormPanel.vue';
 import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { clientsAPI, cataloguesAPI } from '../services/api';
 import { useCommandesStore } from '../stores/commandes';
 import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
-const props = defineProps({ isOpen: { type: Boolean, default: false }, commande: { type: Object, default: null } });
+const props = defineProps({ isOpen: { type: Boolean, default: false },
+  returnFocusId: { type: String, default: '' }, commande: { type: Object, default: null } });
 const emit = defineEmits(['close', 'saved']);
 const store = useCommandesStore();
 const prefix = useId();
@@ -199,7 +200,16 @@ async function handleSubmit() {
 function requestClose() { if (saving.value) return; if (dirty.value) confirmClose.value = true; else emit('close'); }
 function discard() { confirmClose.value = false; baseline.value = ''; emit('close'); }
 watch(() => props.isOpen, open => { if (open) loadForm(); else { ++loadGeneration; confirmClose.value = false; } }, { immediate: true });
-onBeforeRouteLeave(() => { if (!props.isOpen) return; if (saving.value) return false; if (dirty.value) return window.confirm('Quitter et abandonner les saisies de cette commande ?'); });
+function confirmNavigation() {
+  if (!props.isOpen) return;
+  if (saving.value) return false;
+  if (dirty.value && !window.confirm('Quitter et abandonner les saisies de cette commande ?')) return false;
+  discard();
+}
+onBeforeRouteLeave(confirmNavigation);
+onBeforeRouteUpdate((to, from) => {
+  if (to.path !== from.path) return confirmNavigation();
+});
 </script>
 
 <style scoped>
@@ -255,7 +265,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .footer-status { display: block; }
 }
 @media (max-width: 640px) {
-  :deep(.modal-footer) { flex-wrap: wrap; }
+  :deep(.form-panel-footer) { flex-wrap: wrap; }
   .choices { flex-direction: column; }
   .extras-row { grid-template-columns: minmax(0, 1fr); }
   .paper-row { grid-template-columns: minmax(0, 1fr) auto; }

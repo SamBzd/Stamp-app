@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body" :disabled="inline">
     <Transition :name="inline ? 'inline-panel' : 'slide-panel'">
-      <div v-if="isOpen" class="slide-panel-overlay" :class="{ 'slide-panel-inline': inline }" @click.self="!inline && $emit('close')">
+      <div v-if="isOpen" class="slide-panel-overlay" :class="{ 'slide-panel-inline': inline, 'slide-panel-contained': inline && scrollFooter }" @click.self="!inline && $emit('close')">
         <div ref="dialog" class="slide-panel" :style="{ maxWidth: inline ? 'none' : maxWidth }" :role="inline ? 'region' : 'dialog'" :aria-modal="inline ? undefined : true" :aria-label="title || 'Détails'" tabindex="-1">
           <!-- Header -->
           <div class="slide-panel-header">
@@ -17,10 +17,11 @@
           <!-- Content -->
           <div class="slide-panel-body">
             <slot></slot>
+            <div v-if="$slots.footer && scrollFooter" class="slide-panel-footer slide-panel-footer-scrolling"><slot name="footer" /></div>
           </div>
 
           <!-- Footer -->
-          <div v-if="$slots.footer" class="slide-panel-footer">
+          <div v-if="$slots.footer && !scrollFooter" class="slide-panel-footer">
             <slot name="footer"></slot>
           </div>
         </div>
@@ -34,6 +35,7 @@ import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
 import { lockBodyScroll } from '../composables/useBodyScrollLock';
 
 const props = defineProps({
+  scrollFooter: { type: Boolean, default: false },
   returnFocusId: { type: String, default: '' },
   inline: { type: Boolean, default: false },
   isOpen: { type: Boolean, default: false },
@@ -182,9 +184,12 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 
+.slide-panel-footer-scrolling { margin-top: 20px; padding: 16px 0 0; background: transparent; }
+
 /* Mode latéral pour Commandes : même contenu et actions, sans overlay. */
 .slide-panel-inline { position: static; min-width: 0; z-index: auto; display: block; background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .slide-panel-inline .slide-panel { height: auto; min-height: 360px; max-height: calc(100dvh - 360px); border-radius: var(--border-radius-xl); box-shadow: var(--shadow-sm); }
+.slide-panel-inline.slide-panel-contained .slide-panel { height: 100%; min-height: 0; max-height: 100%; }
 .slide-panel-inline .slide-panel-header { padding: 14px 18px; }
 .slide-panel-inline .slide-panel-title { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--text-secondary); letter-spacing: normal; }
 .slide-panel-inline .slide-panel-body { padding: 0 18px 18px; min-height: 0; overflow-y: auto; }
@@ -217,6 +222,8 @@ onUnmounted(() => {
 .slide-panel-leave-to .slide-panel {
   transform: translateX(100%);
 }
+
+.slide-panel-inline.slide-panel-contained .slide-panel-body { padding-bottom: var(--dock-clearance, 120px); scroll-padding-bottom: var(--dock-clearance, 120px); }
 
 /* === Responsive === */
 @media (max-width: 640px) {

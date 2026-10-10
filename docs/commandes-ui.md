@@ -23,7 +23,13 @@ informations reviennent à la ligne. Chaque fiche entière est un bouton
 natif de sélection, utilisable au clavier. Voir la
 [recette d’harmonisation](ui/recette-fiches/README.md). Aucun acompte, note ou
 regroupement multi-kits issu de la maquette n’est ajouté. Les formulaires de création/édition gardent leur
-structure et leurs règles ; ils héritent des styles communs.
+structure et leurs règles. Depuis la révision du 10 octobre 2026, ils s’ouvrent
+dans l’atelier : la liste passe de 2/3 à 1/4 et le formulaire occupe 3/4,
+avec titre/croix persistants, contenu défilant jusqu’au bas du viewport sous le dock ; les actions suivent le contenu avec un dégagement final pour rester accessibles.
+Sur écran étroit, le formulaire précède la liste. Les boutons de création et
+l’ouverture des fiches sont verrouillés pendant la saisie. Changer de type ou
+de page demande confirmation si les saisies ont changé ; accepter l’abandon
+ferme le formulaire. Voir la [recette des formulaires](ui/recette-formulaires/README.md).
 
 À la demande de Sam le 9 octobre 2026, chaque page propose une recherche
 immédiate par prénom/nom de cliente, insensible à la casse et aux accents,
@@ -60,9 +66,8 @@ et la fin de la composition reste accessible par défilement. Voir la
 
 La [recette visuelle et fonctionnelle](ui/recette-jalon2/README.md) détaille les
 écarts à la maquette et les vérifications locales. Le rendu de liste/consultation
-est validé par Sam le 9 octobre 2026. Safari reste à vérifier et les formulaires
-restent à harmoniser ; les nouvelles compositions des autres écrans auront
-leurs propres validations.
+est validé par Sam le 9 octobre 2026. Safari reste à vérifier. Les formulaires
+sont harmonisés et validés visuellement par Sam le 10 octobre 2026, avec les corrections du dock.
 
 ## Composition et prix
 
