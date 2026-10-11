@@ -32,6 +32,8 @@ const normalize=s=>s.trim().normalize('NFC').toLocaleLowerCase('fr');
     }
     if(paper.id===2&&body.archive)return r.fulfill({status:409,json:{error:'Ce papier est utilisé par le catalogue publié « Automne »'}});
     if(!body.archive&&restoreFailure){restoreFailure=false;return r.fulfill({status:500,json:{error:'Restauration refusée'}})}
+    // A delayed successful restoration exposes a premature wait on an already-focused button.
+    if(!body.archive)await new Promise(resolve=>setTimeout(resolve,1000));
     paper.archive=Number(body.archive);return r.fulfill({json:paper});
    }
    return r.fulfill({json:[]});
@@ -65,7 +67,7 @@ const normalize=s=>s.trim().normalize('NFC').toLocaleLowerCase('fr');
   await p.locator('#paper-archive-2').click();await p.getByRole('dialog',{name:'Archiver ce papier ?'}).waitFor();await capture('confirmation-1280');await p.getByRole('button',{name:'Annuler',exact:true}).click();await p.locator('#paper-archive-2:focus').waitFor();
   await p.locator('#paper-archive-2').click();await p.getByRole('button',{name:'Archiver',exact:true}).click();await p.getByText('Ce papier est utilisé par le catalogue publié « Automne »',{exact:true}).waitFor();await p.locator('#paper-archive-2:focus').waitFor();assert.equal(papers[1].archive,0);await capture('archivage-refus-1280');
   await p.locator('#paper-archive-1').click();await p.getByRole('button',{name:'Archiver',exact:true}).click();await p.locator('#paper-archive-1:focus').waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'archives');assert.equal(await p.locator('.paper-row').count(),2);await capture('archives-1280');
-  await p.locator('#paper-archive-1').click();await p.getByText('Restauration refusée',{exact:true}).waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'archives');await p.locator('#paper-archive-1').click();await p.locator('#paper-archive-1:focus').waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'actifs');assert.equal(papers[0].archive,0);
+  await p.locator('#paper-archive-1').click();await p.getByText('Restauration refusée',{exact:true}).waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'archives');await p.locator('#paper-archive-1').click();await p.waitForFunction(()=>document.querySelector('#paper-filter')?.value==='actifs');await p.locator('#paper-archive-1:focus').waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'actifs');assert.equal(papers[0].archive,0);
   await p.locator('#paper-search').fill('introuvable');await p.getByRole('heading',{name:'Aucun papier trouvé',exact:true}).waitFor();await p.getByRole('button',{name:'Effacer les filtres',exact:true}).last().click();await p.locator('#paper-search:focus').waitFor();
   await p.locator('#paper-rename-1').click();await p.locator('#paper-1-name').fill('A abandonner');accept=true;await p.locator('#paper-1-name').press('Escape');await p.locator('#paper-rename-1:focus').waitFor();accept=false;
   await p.locator('#paper-create-toggle').click();await p.locator('#paper-name').fill('Brouillon à conserver');await p.getByRole('button',{name:'Annuler',exact:true}).click();assert.equal(await p.locator('#paper-name').inputValue(),'Brouillon à conserver');accept=true;await p.getByRole('button',{name:'Annuler',exact:true}).click();await p.locator('#paper-create-toggle:focus').waitFor();await checkCreationControls(false);accept=false;

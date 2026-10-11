@@ -78,3 +78,16 @@ Avec l’aperçu Vite sur 5174, lancer `node browser.cjs`. Variables facultative
 Le lot suivant proposé est 3D : formulaires et composants communs, puis bilan
 et recette consolidée. Sa réalisation reste à autoriser. Aucun déploiement
 dans ce lot.
+
+## Stabilisation de l’assertion de restauration — 11 octobre 2026
+
+L’audit de la recette de zoom a reproduit une lecture prématurée du filtre
+après restauration. Le bouton peut être déjà focalisé : son focus n’est pas
+une preuve de fin de mutation. À la demande de Sam, la recette attend le
+retour du filtre à `actifs` avant de vérifier séparément le focus et le papier.
+Une réponse synthétique de restauration retardée d’une seconde exerce ce
+parcours asynchrone. Trois passages complets de la version finale passent
+aux quatre formats ; les données réelles et le code produit ne sont pas modifiés.
+`npm run check` (93 backend, 72 frontend, build) et Docker passent.
+Pour le périmètre navigateur et le zoom, voir la
+[validation actuelle de #39](../validation-issue39.md).

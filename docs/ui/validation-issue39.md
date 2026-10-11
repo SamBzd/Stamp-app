@@ -57,20 +57,22 @@ d’un catalogue et de la création/du renommage d’un papier.
 Deux défauts ont été reproduits et corrigés : le focus initial dans Papiers et
 Catalogues pouvait rester sous le dock. La protection de FormPanel est partagée
 avec ces vues ; les boutons focalisés à la souris ne provoquent pas de défilement
-pendant le clic. La recette Papiers habituelle a réussi lors de ma validation
-aux quatre formats, dont 800 × 375. L’audit final a cependant reproduit deux
-échecs intermittents sur son assertion de filtre après restauration : l’attente
-du focus, déjà présent, peut terminer avant la réponse et la mise à jour Vue.
-Cette preuve reste instable ; aucun défaut produit n’est démontré par ce constat.
-L’audit ne trouve pas de défaut concret dans la correction de zoom.
+pendant le clic. L’audit final avait reproduit une assertion intermittente
+Papiers après restauration : l’attente du focus, déjà présent, pouvait terminer
+avant la réponse et la mise à jour Vue. Sam autorise sa correction : la recette
+attend désormais le retour du filtre sur `actifs`, puis vérifie séparément le
+focus et l’état du papier. Trois passages complets de la version finale passent
+aux quatre formats, dont 800 × 375, avec restauration synthétique retardée d’une
+seconde. Sam autorise le commit et le push de cette correction et de sa
+documentation sur la branche UI.
+Aucun défaut produit n’est démontré par ce constat ; l’audit ne trouve pas de
+défaut concret dans la correction de zoom.
 `npm run check` et `docker compose config --quiet` passent.
 La correction est committée dans `1011d24` ; les preuves accompagnent cette
 livraison sur la branche UI, dont Sam autorise les commits et le push.
 
 ## Restant avant clôture
 
-- Stabiliser l’assertion Papiers après restauration en attendant l’état final
-  du filtre plutôt que le focus déjà présent (constat du deuxième audit).
 - Consolidation de la recette : contrastes composés et repli/transparence réduite
   sur les navigateurs retenus ; preuve spécifique du zoom/clavier dans Zen.
   La validation générale Zen ne vaut pas confirmation de chacun de ces critères.
