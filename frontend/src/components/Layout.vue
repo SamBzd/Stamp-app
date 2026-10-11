@@ -60,7 +60,7 @@ const isActive = path => path === '/' ? route.path === '/' || route.path.startsW
 .app-layout { --dock-clearance: 120px; min-height: 100dvh; display: flex; flex-direction: column; background: var(--bg-app); }
 .skip-link { position: absolute; top: 8px; left: 8px; z-index: calc(var(--z-sticky) + 1); padding: 12px; background: var(--card); color: var(--text-primary); transform: translateY(-150%); }
 .skip-link:focus { transform: none; }
-.atelier-header { display: flex; align-items: center; gap: 27px; min-height: var(--atelier-hero-height); padding: var(--atelier-gutter); background: var(--primary); color: var(--primary-foreground); }
+.atelier-header { display: flex; align-items: center; gap: 27px; min-height: var(--atelier-hero-height); padding: 16px var(--atelier-gutter); background: var(--primary); color: var(--primary-foreground); }
 .atelier-brand { flex: 0 0 150px; display: grid; justify-items: start; gap: 13px; }
 .atelier-logo { position: relative; white-space: nowrap; font-family: var(--font-brand); font-size: 33px; font-style: italic; line-height: 1.15; }
 .atelier-logo::after { content: ''; position: absolute; bottom: -5px; left: 2px; right: 0; height: 3px; background: var(--accent); border-radius: 50%; transform: rotate(-3deg); }
@@ -84,11 +84,14 @@ const isActive = path => path === '/' ? route.path === '/' || route.path.startsW
   .app-layout-contained .content-wrapper { display: flex; flex-direction: column; height: 100%; min-height: 0; padding-bottom: 0; }
 }
 @media (max-width: 760px) {
-  .atelier-header { flex-wrap: wrap; gap: 18px 24px; }
-  .atelier-caption { flex-basis: 100%; max-width: none; }
+  .atelier-header { flex-wrap: wrap; gap: 12px 20px; }
+  .atelier-caption { flex-basis: 100%; max-width: none; line-height: 1.5; }
 }
 @media (max-width: 480px) {
-  .atelier-header { gap: 20px; }
+  .atelier-header { gap: 10px 16px; padding-block: 12px; }
+  .atelier-brand { flex-basis: 128px; }
+  .atelier-logo { font-size: 28px; }
+  .atelier-title { padding: 6px 20px 7px 14px; font-size: 23px; }
   .atelier-dock { gap: 2px; padding: 8px; }
   .dock-item { min-width: 80px; padding-inline: 8px; }
 }
