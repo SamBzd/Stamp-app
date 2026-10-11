@@ -126,6 +126,7 @@ defineExpose({ focus: () => trigger.value?.focus() });
 .calendar-grid { width: 100%; table-layout: fixed; border-collapse: collapse; }
 .calendar-grid th { padding: 8px 0; font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: var(--font-weight-medium); }
 .calendar-grid td { padding: 0; text-align: center; }
+.calendar-grid tbody tr:hover { background: transparent; }
 .calendar-grid button { width: 100%; min-height: 44px; padding: 4px; border: 2px solid transparent; border-radius: var(--control-radius); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); cursor: pointer; }
 .calendar-grid button:hover { background: var(--primary-light); }
 .calendar-grid button[aria-current="date"] { border-color: var(--primary); }

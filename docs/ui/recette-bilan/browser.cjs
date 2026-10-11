@@ -42,7 +42,10 @@ const long = { ...normal, chiffre_affaires_cents: Number.MAX_SAFE_INTEGER,
   const overflow = async () => assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   const trigger = () => p.locator('.month-input');
   const modal = () => p.getByRole('dialog',{name:'Choisir un mois'});
-  const open = async () => {await trigger().click();await modal().waitFor();};
+  const open = async () => {
+   await trigger().click();await modal().waitFor();
+   await p.locator('.modal-overlay').evaluate(e=>Promise.all(e.getAnimations({subtree:true}).map(animation=>animation.finished)));
+  };
   const choose = async (month,year=2023) => {
    await open();
    let shown=Number(await p.locator('.month-picker-year strong').innerText());
@@ -63,7 +66,14 @@ const long = { ...normal, chiffre_affaires_cents: Number.MAX_SAFE_INTEGER,
   for(const [width,height] of [[1280,800],[1024,768],[375,800],[800,375]]){
    await p.setViewportSize({width,height});await overflow();await p.evaluate(()=>scrollTo(0,0));await shot(`bilan-${width}`);await dock();
    await open();await overflow();const box=await modal().boundingBox();assert.ok(box.y>=0&&box.y+box.height<=height);assert.equal(await modal().getByRole('button',{name:'Juin',exact:true}).getAttribute('aria-pressed'),'true');
-   await modal().getByRole('button',{name:'Décembre',exact:true}).focus();const bottom=await modal().getByRole('button',{name:'Décembre',exact:true}).boundingBox(),body=await p.locator('.modal-content').boundingBox();assert.ok(bottom.y+bottom.height<=body.y+body.height+1);await p.locator('.modal-close').focus();await shot(`mois-${width}`);
+   const december=modal().getByRole('button',{name:'Décembre',exact:true});await december.focus();
+   // Une seule lecture navigateur : les deux rectangles partagent le même état de rendu.
+   const visibility=await december.evaluate(e=>{
+    const button=e.getBoundingClientRect(),body=e.closest('.modal-content').getBoundingClientRect();
+    return {top:button.top,bottom:button.bottom,bodyTop:body.top,bodyBottom:body.bottom,focused:e===document.activeElement};
+   });
+   assert.ok(visibility.focused&&visibility.top>=visibility.bodyTop-1&&visibility.bottom<=visibility.bodyBottom+1,JSON.stringify({width,height,...visibility}));
+   await p.locator('.modal-close').focus();await shot(`mois-${width}`);
    await modal().getByRole('button',{name:'Année précédente'}).click();await p.keyboard.press('Escape');await modal().waitFor({state:'hidden'});await open();assert.equal(await p.locator('.month-picker-year strong').innerText(),'2023');await p.keyboard.press('Escape');await modal().waitFor({state:'hidden'});
    await p.locator('.bilan-note').evaluate(e=>e.scrollIntoView({block:'start'}));await dock();const note=await p.locator('.bilan-note').boundingBox(),nav=await p.locator('.dock-wrapper').boundingBox();assert.ok(note.y+note.height<=nav.y);await shot(`bas-${width}`);
   }

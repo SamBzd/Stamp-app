@@ -39,16 +39,22 @@ const normalize=s=>s.trim().normalize('NFC').toLocaleLowerCase('fr');
   let accept=false,dialogs=0;p.on('dialog',async dialog=>{dialogs++;await (accept?dialog.accept():dialog.dismiss())});
   const capture=async name=>{await p.mouse.move(0,0);await p.screenshot({path:`${out}/${name}.png`,animations:'disabled',fullPage:false})};
   const row=id=>p.locator('.paper-row').filter({has:p.locator(`#paper-rename-${id}`)});
+  const checkCreationControls=async expanded=>{
+   assert.equal(await p.locator('#paper-create-toggle').getAttribute('aria-expanded'),String(expanded));
+   assert.equal(await p.locator('#paper-create-toggle').getAttribute('aria-controls'),expanded?'paper-create-form':null);
+   assert.equal(await p.locator('#paper-create-form').count(),expanded?1:0);
+  };
   await p.goto(`${preview}/papiers`);await p.getByText('Bibliothèque indisponible',{exact:true}).waitFor();
   await p.getByRole('button',{name:'Réessayer',exact:true}).click();await p.locator('#paper-rename-1').waitFor();
   assert.equal(await p.getByRole('heading',{level:1}).innerText(),'Papiers');assert.equal(await p.locator('.paper-row').count(),21);
   assert.equal(await p.locator('#paper-filter-fields').isVisible(),false);assert.equal(await p.locator('#paper-create-form').count(),0);
+  await checkCreationControls(false);
   await capture('liste-1280');
   await p.locator('#paper-filter-toggle').click();await p.locator('#paper-search:focus').waitFor();await p.locator('#paper-search').fill(' KRAFT ');assert.equal(await p.locator('.paper-row').count(),1);
   await p.locator('#paper-filter-toggle').click();assert.equal(await p.locator('#paper-filter-fields').isVisible(),false);assert.equal(await p.locator('.paper-filter-count').innerText(),'1');await capture('recherche-repliee-1280');
   await p.locator('#paper-filter-toggle').click();await p.getByRole('button',{name:'Effacer les filtres',exact:true}).click();await p.locator('#paper-search:focus').waitFor();
-  await p.locator('#paper-create-toggle').click();await p.locator('#paper-name:focus').waitFor();await p.locator('#paper-name').fill(' kraft naturel ');await p.getByRole('button',{name:'Créer le papier',exact:true}).click();await p.getByText('Un papier avec ce nom existe déjà',{exact:true}).waitFor();assert.equal(await p.locator('#paper-name').inputValue(),' kraft naturel ');assert.equal(await p.locator('#paper-name').getAttribute('aria-invalid'),'true');await capture('doublon-1280');
-  await p.locator('#paper-name').fill('Nouveau papier crème');await p.getByRole('button',{name:'Créer le papier',exact:true}).click();await p.locator('#paper-rename-50:focus').waitFor();assert.equal(await p.locator('#paper-create-form').count(),0);
+  await p.locator('#paper-create-toggle').click();await p.locator('#paper-name:focus').waitFor();await checkCreationControls(true);await p.locator('#paper-name').fill(' kraft naturel ');await p.getByRole('button',{name:'Créer le papier',exact:true}).click();await p.getByText('Un papier avec ce nom existe déjà',{exact:true}).waitFor();assert.equal(await p.locator('#paper-name').inputValue(),' kraft naturel ');assert.equal(await p.locator('#paper-name').getAttribute('aria-invalid'),'true');await capture('doublon-1280');
+  await p.locator('#paper-name').fill('Nouveau papier crème');await p.getByRole('button',{name:'Créer le papier',exact:true}).click();await p.locator('#paper-rename-50:focus').waitFor();await checkCreationControls(false);
   await p.locator('#paper-rename-1').click();await p.locator('#paper-1-name:focus').waitFor();await p.locator('#paper-1-name').fill('Kraft renommé');await p.getByRole('button',{name:'Enregistrer',exact:true}).click();await p.getByText('Renommage refusé',{exact:true}).waitFor();assert.equal(await p.locator('#paper-1-name').inputValue(),'Kraft renommé');await p.locator('#paper-1-name:focus').waitFor();await capture('renommage-erreur-1280');
   await p.locator('#paper-search').fill('Papier publié');assert.equal(await p.locator('#paper-search').inputValue(),'');assert.equal(await p.locator('#paper-1-name').inputValue(),'Kraft renommé');assert.ok(dialogs>0);
   await p.getByRole('link',{name:'Catalogues',exact:true}).click();assert.equal(new URL(p.url()).pathname,'/papiers');assert.equal(await p.locator('#paper-1-name').inputValue(),'Kraft renommé');
@@ -62,14 +68,14 @@ const normalize=s=>s.trim().normalize('NFC').toLocaleLowerCase('fr');
   await p.locator('#paper-archive-1').click();await p.getByText('Restauration refusée',{exact:true}).waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'archives');await p.locator('#paper-archive-1').click();await p.locator('#paper-archive-1:focus').waitFor();assert.equal(await p.locator('#paper-filter').inputValue(),'actifs');assert.equal(papers[0].archive,0);
   await p.locator('#paper-search').fill('introuvable');await p.getByRole('heading',{name:'Aucun papier trouvé',exact:true}).waitFor();await p.getByRole('button',{name:'Effacer les filtres',exact:true}).last().click();await p.locator('#paper-search:focus').waitFor();
   await p.locator('#paper-rename-1').click();await p.locator('#paper-1-name').fill('A abandonner');accept=true;await p.locator('#paper-1-name').press('Escape');await p.locator('#paper-rename-1:focus').waitFor();accept=false;
-  await p.locator('#paper-create-toggle').click();await p.locator('#paper-name').fill('Brouillon à conserver');await p.getByRole('button',{name:'Annuler',exact:true}).click();assert.equal(await p.locator('#paper-name').inputValue(),'Brouillon à conserver');accept=true;await p.getByRole('button',{name:'Annuler',exact:true}).click();await p.locator('#paper-create-toggle:focus').waitFor();accept=false;
+  await p.locator('#paper-create-toggle').click();await p.locator('#paper-name').fill('Brouillon à conserver');await p.getByRole('button',{name:'Annuler',exact:true}).click();assert.equal(await p.locator('#paper-name').inputValue(),'Brouillon à conserver');accept=true;await p.getByRole('button',{name:'Annuler',exact:true}).click();await p.locator('#paper-create-toggle:focus').waitFor();await checkCreationControls(false);accept=false;
   await p.locator('#paper-filter-toggle').click();
   for(const [width,height] of [[1024,768],[375,800],[800,375]]){
    await p.setViewportSize({width,height});await p.goto(`${preview}/papiers`);await p.locator('#paper-rename-10').waitFor();await p.waitForFunction(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
    await capture(`liste-${width}`);await p.locator('#paper-rename-10').click();await p.locator('#paper-10-name:focus').waitFor();assert.ok(await p.locator('.paper-row').filter({has:p.locator('#paper-10-name')}).evaluate(e=>e.scrollWidth<=e.clientWidth));await capture(`edition-${width}`);await p.locator('#paper-10-name').press('Escape');
    await p.locator('#paper-rename-27').focus();await p.locator('#paper-rename-27').evaluate(e=>e.scrollIntoView({block:'nearest'}));const control=await p.locator('#paper-rename-27').boundingBox(),dock=await p.locator('#main-navigation').boundingBox();assert.ok(control.y+control.height<=dock.y);await capture(`fin-liste-${width}`);
   }
-  await p.setViewportSize({width:1280,height:800});emptyLibrary=true;await p.goto(`${preview}/papiers`);await p.getByRole('heading',{name:'Ta bibliothèque commence ici',exact:true}).waitFor();await p.getByRole('button',{name:'Créer un papier',exact:true}).click();await p.locator('#paper-name:focus').waitFor();await capture('bibliotheque-vide-1280');
+  await p.setViewportSize({width:1280,height:800});emptyLibrary=true;await p.goto(`${preview}/papiers`);await p.getByRole('heading',{name:'Ta bibliothèque commence ici',exact:true}).waitFor();await p.getByRole('button',{name:'Créer un papier',exact:true}).click();await p.locator('#paper-name:focus').waitFor();await checkCreationControls(true);await capture('bibliotheque-vide-1280');
   assert.deepEqual(errors,[]);console.log('OK : liste dense, filtres repliables/recherche/reset, création/doublon/saisie, renommage inline/refus/reprise/focus, protections des saisies et mutations, archivage protégé/restauration, clavier, 1280/1024/375/800 sans débordement, dernières actions dégagées du dock.');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

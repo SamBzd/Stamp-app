@@ -2,7 +2,7 @@
   <Layout title="Papiers" subtitle="Ta bibliothèque, à réutiliser dans les collections de tes catalogues.">
     <div class="papers-view">
       <div class="papers-toolbar">
-        <Button id="paper-create-toggle" :aria-expanded="createExpanded" aria-controls="paper-create-form" :disabled="mutating" @click="toggleCreation">Nouveau papier</Button>
+        <Button id="paper-create-toggle" :aria-expanded="createExpanded" :aria-controls="createExpanded ? 'paper-create-form' : undefined" :disabled="mutating" @click="toggleCreation">Nouveau papier</Button>
       </div>
       <section class="papers-panel" aria-labelledby="papers-heading">
         <header id="papers-heading" class="papers-heading" tabindex="-1">

@@ -52,6 +52,13 @@ fs.mkdirSync(out, { recursive: true });
    assert.ok(geometry.height>300 && geometry.inside && !geometry.overflow,JSON.stringify(geometry));
    assert.ok(await p.locator('.date-field').evaluate((e,before)=>e.getBoundingClientRect().height>before+300,before));
    const day=calendar().getByRole('button',{name:'dimanche 28 avril 1985',exact:true});await day.focus();
+   const idleBackground=await day.evaluate(e=>getComputedStyle(e).backgroundColor);
+   // Laisser le navigateur appliquer et peindre le survol avant de lire sa couleur.
+   await day.hover();await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   const hover=await day.evaluate(e=>({day:getComputedStyle(e).backgroundColor,week:getComputedStyle(e.closest('tr')).backgroundColor,hovered:e.matches(':hover')}));
+   assert.ok(hover.hovered);assert.equal(hover.week,'rgba(0, 0, 0, 0)');assert.notEqual(hover.day,idleBackground,JSON.stringify({width,height,idleBackground,...hover}));
+   if(width===1280) await capture('survol-1280');
+   await p.mouse.move(0,0);
    const visible=await day.evaluate(e=>{const r=e.getBoundingClientRect(),b=e.closest('.form-panel-body').getBoundingClientRect(),dock=document.querySelector('.dock-wrapper').getBoundingClientRect();return {day:{top:r.top,bottom:r.bottom},body:{top:b.top,bottom:b.bottom},dock:dock.top,visible:r.top>=b.top-1 && r.bottom<=Math.min(b.bottom,dock.top)+1};});assert.ok(visible.visible,JSON.stringify({width,height,...visible}));
    await birth.focus();if(height>500) await p.locator('.date-field').evaluate(e=>e.scrollIntoView({block:'start'}));
    await capture(`calendrier-${width}`);
