@@ -1,5 +1,10 @@
 # Corrections Catalogues — défilements, en-tête et dock
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Corrections locales demandées par Sam le 9 octobre 2026 après la première
 préparation intégrée. Sam a validé les corrections et autorisé leurs
 commits/push le 10 octobre 2026. La recette Mac/Safari reste ouverte.

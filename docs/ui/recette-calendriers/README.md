@@ -1,5 +1,10 @@
 # Calendriers communs — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 À la demande de Sam, la totalité du champ date déploie un calendrier blanc et
 prune directement dans le formulaire, sous le champ. Il pousse le contenu
 suivant ; un second clic le replie. Il concerne les naissances Clientes et
@@ -57,10 +62,15 @@ Deux audits indépendants ont été réalisés en lecture seule. Le premier a
 reproduit un stub DatePicker manquant dans le test SSR Clientes, corrigé et
 revérifié. Le second n’a trouvé aucun défaut fonctionnel et a relevé un
 survol parasite de toute la semaine, hérité du CSS global des tableaux,
-classé 3/5. Ce défaut cosmétique a été confirmé dans Chromium. Un correctif
-scoped d’une ligne est préparé dans `/tmp/stamp-calendriers-survol.patch` et
-vérifié par injection temporaire dans le navigateur, sans application au
-dépôt : accord de Sam demandé conformément à son contrat Jarvis.
+classé 3/5. Ce défaut cosmétique a été confirmé dans Chromium.
+
+Sam a autorisé sa correction le 11 octobre 2026 : une règle scoped neutralise
+le fond de la ligne survolée uniquement dans la grille du calendrier. Le survol
+du jour et le jour sélectionné sont conservés. La recette vérifie désormais
+le fond transparent de la semaine et le changement de couleur du seul jour
+survolé après rendu, aux quatre dimensions ;
+`npm run check` (93 tests backend, 72 frontend, build), Docker et recette
+Chromium complète réussissent. Les captures de régression restent dans `/tmp`.
 
 Pour le passage au calendrier intégré, une revue distincte a confirmé la
 zone de 40 px du corps de formulaire à 800 × 375 (constat 4/5). Le défilement

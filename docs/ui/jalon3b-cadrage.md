@@ -1,5 +1,9 @@
 # Lot 3B — Catalogues
 
+> Les réserves Mac/Safari de ce cadrage daté sont remplacées par la
+> [validation actuelle de #39](validation-issue39.md) : Chrome pour la cliente,
+> Zen validé par Sam, Safari non testé et non bloquant.
+
 Cadrage préparé le 9 octobre 2026 après validation visuelle du lot Clientes 3A
 par Sam et autorisation de commit/push. Il définit la prochaine phase proposée ;
 Sam a ensuite autorisé la réalisation avec « Au boulot ». La liste et les

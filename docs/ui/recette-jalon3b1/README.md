@@ -1,5 +1,10 @@
 # Lot 3B.1 — liste Catalogues et Paramètres
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Réalisé localement le 9 octobre 2026 après le « Au boulot » de Sam, conformément
 au [cadrage 3B](../jalon3b-cadrage.md). **Composition validée visuellement par Sam.**
 Sam a demandé de remplacer le tableau par des fiches horizontales allégées et

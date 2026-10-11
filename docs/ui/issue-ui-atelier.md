@@ -3,9 +3,24 @@
 Statut : cadrage validé par Sam et publication autorisée le 9 octobre 2026.
 Issue créée : [#39 — Déployer l’identité atelier prune/citron sur desktop](https://github.com/SamBzd/Stamp-app/issues/39).
 Les références documentaires et maquettes sont versionnées avec la réalisation.
+
+## Avancement au 11 octobre 2026
+
+Les lots socle, Fournitures, Commandes, Clientes, Catalogues, Papiers,
+formulaires, composants communs, bilan et calendriers sont réalisés sur la
+branche UI. Les trois finitions sont corrigées et vérifiées sur la branche UI.
+Sam confirme Chrome pour la cliente, valide le fonctionnement sous Zen et
+retire Safari/Mac des conditions bloquantes. Le bandeau demandé plus compact
+passe à 96 px minimum desktop ; Sam valide son rendu le 11 octobre 2026.
+Voir la [validation actuelle et les contrôles restants](validation-issue39.md).
+Sam autorise les commits et le push des finitions, du bandeau et de la
+documentation le 11 octobre 2026. Aucune intégration ni déploiement.
+
+## Historique des jalons
+
 Sam a autorisé la progression après le jalon 1 (socle et Fournitures) le
 9 octobre : [comparaison et recette](recette-jalon1/README.md). La recette
-Safari/Mac reste ouverte. Le jalon 2 (Commandes) est validé visuellement par Sam
+consolidée reste ouverte ; voir la [validation actuelle](validation-issue39.md). Le jalon 2 (Commandes) est validé visuellement par Sam
 le 9 octobre, avec autorisation de commits/push :
 [comparaison et recette](recette-jalon2/README.md). La suite est décrite dans le
 [cadrage du jalon 3](jalon3-cadrage.md). Sam a autorisé le lot Clientes 3A :
@@ -69,12 +84,12 @@ Les valeurs exactes figurent dans les [tokens documentaires](tokens-reference.js
 
 1. **Socle et Fournitures** : tokens partagés, shell et premier écran réel.
    Comparer sa capture avec la maquette à dimensions/zoom identiques, fournir
-   les écarts expliqués et faire valider par Sam sur son Mac 13".
+   les écarts expliqués et faire valider par Sam.
 2. **Commandes** : adapter la disposition aux véritables données et actions,
    pas aux fixtures du prototype. Soumettre la comparaison avant poursuite.
 3. **Autres écrans** : décliner les composants validés. Faire approuver toute
    nouvelle composition ou tout état de contrôle non couvert par les maquettes.
-4. **Recette consolidée** : contrôles techniques, clavier, Safari et validation
+4. **Recette consolidée** : contrôles techniques, clavier, navigateurs retenus et validation
    esthétique finale avec Sam ; clôture de l’issue, puis de l’EPIC si ses
    autres critères sont également satisfaits.
 
@@ -88,10 +103,10 @@ pas dissimulées derrière une approximation de la maquette.
       beige/vert, pas de cartes pastel génériques.
 - [ ] Logo « Stamp App » complet, étiquettes et bandeau fidèles aux références ;
       pas de colonne logo/titre/sous-titre sur le viewport desktop cible.
-- [ ] Interface système San Francisco sur Mac ; police créative limitée au logo.
+- [ ] Police système du poste (San Francisco sur Mac) ; police créative limitée au logo.
 - [ ] Trois familles de signatures maximum ; tableaux, champs et contenu restent
       sobres, cadrés et lisibles.
-- [ ] Dock clair réellement perceptible comme du verre sur Safari du Mac cible ;
+- [ ] Dock clair réellement perceptible comme du verre dans Chrome et Zen ;
       destination active lisible sans bouton opaque fortement contrasté.
 - [ ] Texte des cartes et du dock jamais déformé/flouté ; repli sans filtre et
       transparence réduite utilisables. Pas d’effet qui gêne le glisser-déposer.
@@ -113,7 +128,7 @@ pas dissimulées derrière une approximation de la maquette.
 - [ ] `npm run check` et `docker compose config` réussissent ; tests de régression
       UI complétés selon les composants modifiés.
 - [ ] Documents des parcours mis à jour si leur présentation change ; aucun
-      critère technique ne remplace la validation visuelle sur le Mac.
+      critère technique ne remplace la validation visuelle de Sam.
 
 ## Points d’entrée techniques à examiner à l’implémentation
 
@@ -135,7 +150,10 @@ harmonisées sur ses fiches allégées : [recette](recette-fiches/README.md). L�
 avec autorisation de commits/push et du lot Papiers 3C.
 Sam a autorisé les commits/push de Papiers 3C et la mise à jour de cette issue
 le 10 octobre 2026 après présentation du rendu et des validations :
-[recette](recette-papiers/README.md). La recette Mac/Safari reste ouverte.
-L’harmonisation des formulaires reste à traiter.
+[recette](recette-papiers/README.md). Safari est non testé et non bloquant ; recette consolidée ouverte.
+Les formulaires, composants communs, bilan et calendriers sont livrés sur
+la branche UI. Les trois finitions sont corrigées localement ; Sam demande
+un bandeau compact le 11 octobre 2026. Chrome est utilisé par la cliente,
+Zen est validé par Sam ; voir la [validation actuelle](validation-issue39.md).
 La méthode optique et les
 fixtures des maquettes ne constituent pas une architecture de production.

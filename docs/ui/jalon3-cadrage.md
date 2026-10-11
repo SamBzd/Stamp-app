@@ -1,5 +1,9 @@
 # Jalon 3 — autres écrans et formulaires
 
+> Les réserves Mac/Safari de ce cadrage daté sont remplacées par la
+> [validation actuelle de #39](validation-issue39.md) : Chrome pour la cliente,
+> Zen validé par Sam, Safari non testé et non bloquant.
+
 Cadrage proposé le 9 octobre 2026, après validation du rendu Commandes et
 autorisation de commits/push par Sam. Ce document prépare la prochaine phase ;
 Sam a depuis validé visuellement le lot 3A Clientes et autorisé ses commits/push :

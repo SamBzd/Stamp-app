@@ -8,8 +8,8 @@ Les valeurs ci-dessous sont relevées dans les maquettes validées. Leurs noms
 de tokens sont une proposition de formalisation, pas une nouvelle direction
 artistique. L’[issue #39](issue-ui-atelier.md) encadre la réalisation par jalons.
 Le [socle et Fournitures](recette-jalon1/README.md) sont implémentés localement
-et Sam a autorisé la progression vers Commandes le 9 octobre. La recette sur
-le Mac reste ouverte. [Commandes](recette-jalon2/README.md) est validé par Sam
+et Sam a autorisé la progression vers Commandes le 9 octobre. La recette consolidée reste ouverte ; voir la
+[validation actuelle](validation-issue39.md). [Commandes](recette-jalon2/README.md) est validé par Sam
 le 9 octobre ; la suite est proposée dans le [cadrage du jalon 3](jalon3-cadrage.md).
 
 ## Références et priorité
@@ -157,8 +157,8 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
   `blur(3px) saturate(120%)`. Ne pas transposer sa détection de navigateur ou
   son moteur optique comme une obligation technique.
 - Le repli, l’absence de `backdrop-filter` et une préférence de transparence
-  réduite doivent conserver un fond lisible et l’identité. La qualité du rendu
-  Safari sur le vrai Mac reste à valider avec Sam.
+  réduite doivent conserver un fond lisible et l’identité. Safari reste non testé et n’est plus une condition de livraison ;
+  Chrome est utilisé par la cliente et Zen est validé par Sam.
 - Aucune dépendance supplémentaire n’est requise par cette fiche. Reprendre
   des composants Vue et des tokens propres, pas la cascade expérimentale des
   maquettes, leurs fixtures, le moteur de démonstration ou les outils du host.
@@ -192,11 +192,11 @@ nécessite un choix produit doit être soumise à Sam avant développement.
 
 Premier écran réel : Fournitures. Comparer aux références à largeur et zoom
 identiques, avec des fixtures locales, puis obtenir la validation visuelle de
-Sam sur son Mac 13" avant Commandes et les autres pages.
+Sam avant Commandes et les autres pages.
 
 Les vues 1 280 × 800, 1 440 × 900 et 1 024 × 768 CSS servent de repères de
-recette, pas d’affirmation sur le réglage d’affichage du Mac. Mesurer également
-son viewport réel, tester le zoom à 200 %, les noms longs, un tableau dense,
+recette, sans imposer une machine précise. Tester également le zoom navigateur
+à 200 %, les noms longs, un tableau dense,
 les cinq colonnes remplies, les erreurs et le clavier.
 
 Une case de recette technique réussie ne vaut pas validation esthétique.
@@ -222,3 +222,6 @@ en poussant la suite du contenu. Un second clic le replie. Il permet de choisir 
 de changer directement de mois/année, de saisir JJ/MM/AAAA et d’effacer ou
 d’annuler. Le mois du bilan garde son sélecteur spécifique.
 Voir la [recette des calendriers](recette-calendriers/README.md).
+
+Le [cadrage de validation du 11 octobre 2026](validation-issue39.md) précise
+les navigateurs retenus et remplace les anciennes conditions Mac/Safari.

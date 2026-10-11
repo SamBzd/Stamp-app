@@ -1,5 +1,10 @@
 # Jalon 1 — socle et Fournitures
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 État au 9 octobre 2026 : Sam a autorisé la poursuite vers Commandes par
 « Oui, passe à Commandes », en connaissance de la recette Safari/Mac restant
 à compléter. Le jalon est accepté pour cette progression ; la validation sur

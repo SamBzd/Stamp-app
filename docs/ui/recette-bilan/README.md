@@ -1,5 +1,10 @@
 # Bilan mensuel dans l’atelier — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Lot autorisé par Sam. Les composants communs et listes adaptatives sont
 conservés ; les commits cohérents et le push sur la branche UI ont été
 autorisés le 10 octobre 2026. Aucun déploiement ; Mac/Safari reste à vérifier.
@@ -50,9 +55,16 @@ signalé l’assertion obsolète, reproduite puis corrigée ; son lancement Chro
 a reproduit les tests et la recette, et a relevé une assertion de recette
 instable à 800 × 375 (pertinence 3/5) : deux rectangles sont mesurés à des
 instants différents pendant la stabilisation du dialogue. La sonde ciblée
-confirme le défilement correct après focus et Tab vers Décembre. La proposition
-de mesure atomique est préparée dans `/tmp/stamp-bilan-recette-stabilisation.patch`,
-sans application ; l’accord de Sam reste demandé selon son contrat Jarvis.
+confirme le défilement correct après focus et Tab vers Décembre.
+
+Sam a autorisé la correction le 11 octobre 2026 : la recette attend la fin
+des animations d’ouverture, puis mesure le bouton Décembre et le corps du
+dialogue dans une seule exécution navigateur. Elle vérifie aussi le focus et
+les deux bords du bouton, avec la tolérance existante de 1 px. Aucun changement
+produit. Cinq passages complets de la recette réussissent : un avec mouvement
+réduit et quatre avec animations activées, incluant chacun le format 800 × 375.
+`npm run check` (93 tests backend, 72 frontend et build),
+`docker compose config --quiet` et `git diff --check` réussissent également.
 
 Avec Vite démarré : `node docs/ui/recette-bilan/browser.cjs`.
 Variables facultatives : `STAMP_PLAYWRIGHT_MODULE`, `STAMP_CHROMIUM_EXECUTABLE`,

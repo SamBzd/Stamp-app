@@ -1,5 +1,10 @@
 # Composants communs et listes adaptatives — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Lot demandé par Sam après validation des formulaires intégrés. Sam a autorisé
 les commits cohérents et le push sur la branche UI le 10 octobre 2026.
 

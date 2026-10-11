@@ -1,5 +1,10 @@
 # Lot 3B.2 — création et préparation dans l’espace Catalogues
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Réalisé localement à la demande de Sam le 9 octobre 2026, après validation des
 listes. Il remplace la proposition initiale de page dédiée. **Validé par Sam
 le 10 octobre 2026, avec autorisation de commits/push.** Aucun changement backend, schéma, données

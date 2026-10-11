@@ -1,5 +1,10 @@
 # Recette Clientes — lot 3A
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Cette recette conserve les captures historiques du tableau validé initialement.
 Sam a ensuite demandé des fiches inspirées de Catalogues : la
 [recette d’harmonisation](../recette-fiches/README.md) décrit le rendu actuel.

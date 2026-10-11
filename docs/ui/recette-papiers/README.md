@@ -1,5 +1,10 @@
 # Lot 3C — bibliothèque des papiers
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Réalisation autorisée par Sam le 10 octobre 2026 après validation, commits et
 push des corrections Catalogues/Commandes. Après présentation du rendu et des
 validations, Sam a autorisé les commits/push de Papiers et la mise à jour de
@@ -53,11 +58,17 @@ backend a rencontré `listen EPERM` dans le sandbox ; la suite complète a
 été vérifiée séparément avec les permissions de ports locaux.
 
 Une note mineure d’accessibilité (pertinence 2/5) est confirmée dans le
-template : le bouton Nouveau papier garde `aria-controls="paper-create-form"`
+template : le bouton Nouveau papier gardait `aria-controls="paper-create-form"`
 alors que le formulaire fermé est retiré par `v-if`. À l’ouverture, la cible
 et le focus sont présents et vérifiés par la recette. Aucun échec de parcours
-n’a été reproduit. Correction proposée dans le lot 3D des composants,
-sous réserve de décision de Sam ; aucune correction ajoutée à ce stade.
+n’a été reproduit.
+
+Sam a autorisé la correction le 11 octobre 2026 : `aria-controls` est
+présent uniquement lorsque le formulaire existe ; `aria-expanded` conserve
+son état ouvert/fermé. La recette complète vérifie les attributs et la cible
+à l’état initial, à l’ouverture, après création, après annulation et depuis
+la bibliothèque vide. Elle passe aux quatre dimensions ; `npm run check`
+(93 tests backend, 72 frontend, build) et Docker passent également.
 La recette réelle Mac/Safari et le zoom 200 % restent ouverts.
 
 Avec l’aperçu Vite sur 5174, lancer `node browser.cjs`. Variables facultatives :

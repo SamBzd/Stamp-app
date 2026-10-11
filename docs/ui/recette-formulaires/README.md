@@ -1,5 +1,10 @@
 # Formulaires dans l’atelier — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Les créations et modifications Clientes, Kits et Hors kit partagent désormais
 l’espace avec la liste, comme la préparation Catalogue : ratio liste/détail
 2/3–1/3 en consultation puis liste/formulaire 1/4–3/4 en saisie. Le titre et la

@@ -1,5 +1,10 @@
 # Harmonisation des listes Clientes et Commandes
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Le 9 octobre 2026, Sam a validé les fiches Catalogues avec détail à droite,
 puis demandé le même principe pour Clientes et Commandes : moins de colonnes,
 suppression de la ligne d’en-tête prune. Sam a validé le rendu des deux

@@ -1,5 +1,10 @@
 # Correction du détail Commandes — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 La capture de Sam montrait le numéro répété dans le corps du détail et une
 ligne type/statut collée à la séparation sous le titre. La correction locale
 regroupe numéro, type et statut dans l’en-tête fixe du panneau, puis réserve

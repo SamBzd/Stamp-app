@@ -1,5 +1,10 @@
 # Ajustements de l’atelier — 10 octobre 2026
 
+> Cadrage de livraison actualisé le 11 octobre 2026 : Chrome est utilisé par
+> la cliente, Zen est validé par Sam et Safari est non testé, sans blocage.
+> Les réserves Mac/Safari datées ci-dessous sont historiques ; voir la
+> [validation actuelle de #39](../validation-issue39.md).
+
 Demande de Sam : utiliser toute la largeur du formulaire hors kit, rendre les
 onglets Fournitures/Bilan visibles, supprimer la bande blanche au bout du
 surlignage des listes et raccourcir les panneaux sans détail sélectionné.
