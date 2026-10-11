@@ -11,23 +11,12 @@
 
 <script setup>
 import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
+import { keepFocusedControlVisible } from '../utils/viewportFocus';
 const props = defineProps({ isOpen: Boolean, busy: Boolean, title: String, eyebrow: { type: String, default: 'Création et modification' }, returnFocusId: { type: String, default: '' } });
 const emit = defineEmits(['close']);
 const heading = ref(null);
 const panel = ref(null);
 const desktop = ref(window.matchMedia('(min-width: 901px)').matches);
-async function keepFocusedControlVisible(event) {
-  if (!window.matchMedia('(max-width: 900px) and (max-height: 500px)').matches) return;
-  const target = event.target;
-  await nextTick();
-  if (document.activeElement !== target) return;
-  const layout = panel.value?.closest('.app-layout');
-  const top = (layout?.querySelector('.atelier-header')?.getBoundingClientRect().bottom || 0) + 8;
-  const bottom = (layout?.querySelector('.dock-wrapper')?.getBoundingClientRect().top || innerHeight) - 8;
-  const rect = target.getBoundingClientRect();
-  if (rect.bottom > bottom) window.scrollBy({ top: rect.bottom - bottom, behavior: 'instant' });
-  else if (rect.top < top) window.scrollBy({ top: rect.top - top, behavior: 'instant' });
-}
 async function positionMobileEditor() {
   desktop.value = window.matchMedia('(min-width: 901px)').matches;
   await nextTick();

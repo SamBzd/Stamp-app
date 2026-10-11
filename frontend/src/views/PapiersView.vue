@@ -1,6 +1,6 @@
 <template>
   <Layout title="Papiers" subtitle="Ta bibliothèque, à réutiliser dans les collections de tes catalogues.">
-    <div class="papers-view">
+    <div class="papers-view" @focusin="keepFocusedControlVisible">
       <div class="papers-toolbar">
         <Button id="paper-create-toggle" :aria-expanded="createExpanded" :aria-controls="createExpanded ? 'paper-create-form' : undefined" :disabled="mutating" @click="toggleCreation">Nouveau papier</Button>
       </div>
@@ -64,6 +64,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { keepFocusedControlVisible } from '../utils/viewportFocus';
 import { onBeforeRouteLeave } from 'vue-router';
 import Layout from '../components/Layout.vue';
 import Button from '../components/Button.vue';

@@ -1,5 +1,5 @@
 <template>
-  <section class="catalogue-editor" aria-label="Préparation du catalogue">
+  <section class="catalogue-editor" @focusin="keepFocusedControlVisible" aria-label="Préparation du catalogue">
       <header class="catalogue-editor-header">
         <button type="button" class="catalogue-editor-close" :disabled="blocked" :aria-label="isNew ? 'Fermer la création du catalogue' : 'Fermer la préparation du catalogue'" @click="emit('close')"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
         <div class="catalogue-editor-title"><p class="catalogue-eyebrow">{{ isNew ? 'Commencer un brouillon' : 'Atelier catalogue' }}</p><h2 ref="heading" tabindex="-1" class="page-title">{{ isNew ? 'Nouveau catalogue' : catalogue?.titre || 'Préparation du catalogue' }}</h2></div>
@@ -79,6 +79,7 @@
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
+import { keepFocusedControlVisible } from '../utils/viewportFocus';
 import Button from '../components/Button.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import CatalogueCollection from '../components/CatalogueCollection.vue';
