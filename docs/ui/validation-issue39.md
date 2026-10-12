@@ -71,6 +71,19 @@ défaut concret dans la correction de zoom.
 La correction est committée dans `1011d24` ; les preuves accompagnent cette
 livraison sur la branche UI, dont Sam autorise les commits et le push.
 
+## Signalement Codex sur la navigation des commandes
+
+Le P1 de la review du commit `12adfb6` est vérifié sur six scénarios de création,
+depuis l’accueil et les deux listes, avec réponse immédiate puis avec sauvegarde
+retenue. La navigation est refusée pendant la requête ; après réponse, le détail
+et la commande sont accessibles sur la bonne liste, sans confirmation de sortie.
+Le signalement n’est pas reproduit et aucune correction produit n’est appliquée.
+La [recette et l’explication](recette-commandes-navigation/README.md) consignent
+également deux vérifications indépendantes par des agents Terra medium : ordre
+des gardes et parcours navigateur depuis l’autre liste. Les deux ne reproduisent
+pas le signalement (pertinence 1/5). Sam autorise la documentation de cette
+conclusion puis le merge de la PR #40 le 12 octobre 2026.
+
 ## Restant avant clôture
 
 - Consolidation de la recette : contrastes composés et repli/transparence réduite
