@@ -1,0 +1,22 @@
+/* The list and editor share the atelier, with independent desktop scrolling. */
+.form-workspace { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) !important; transition: grid-template-columns 280ms cubic-bezier(.2,.7,.2,1); }
+.form-workspace.form-workspace-editing { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) !important; }
+.form-editor-slot { grid-column: 2; grid-row: 1; min-width: 0; min-height: 0; }
+.form-workspace-editing .clients-tabs, .form-workspace-editing .commandes-pages { flex-wrap: wrap; gap: 4px; }
+.form-workspace-editing .clients-list-tools, .form-workspace-editing .commandes-list-tools { width: 100%; justify-content: space-between; }
+.form-workspace-editing .client-contact, .form-workspace-editing .commande-metadata { overflow-wrap: anywhere; }
+@media (min-width: 901px) {
+  .form-workspace-view { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+  .form-workspace { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch !important; }
+  .form-workspace > .clients-list-panel, .form-workspace > .commandes-list-panel { display: flex; flex-direction: column; min-height: 0; align-self: start; max-height: calc(100% - var(--dock-clearance)); }
+  .form-workspace #clients-list-content, .form-workspace #commandes-list-content { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scroll-padding-block: 12px; }
+  .form-workspace > :is(.client-placeholder, .commande-placeholder) { align-self: start; }
+  .form-workspace :is(.clients-list-heading, .clients-filters, .commandes-list-heading, .commandes-filters) { flex-shrink: 0; }
+  .form-workspace > .slide-panel-inline, .form-workspace > .slide-panel-inline > .slide-panel { min-height: 0; height: 100%; max-height: 100%; }
+}
+@media (max-width: 900px) {
+  .form-workspace, .form-workspace.form-workspace-editing { grid-template-columns: minmax(0, 1fr) !important; }
+  .form-editor-slot { grid-column: 1; grid-row: 1; }
+  .form-workspace-editing > .clients-list-panel, .form-workspace-editing > .commandes-list-panel { grid-row: 2; max-height: 50dvh; overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) { .form-workspace { transition: none; } }

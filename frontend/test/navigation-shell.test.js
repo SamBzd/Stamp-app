@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 
 const layout = await readFile(new URL('../src/components/Layout.vue', import.meta.url), 'utf8');
+const app = await readFile(new URL('../src/App.vue', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../src/style.css', import.meta.url), 'utf8');
 
 test('la navigation expose toutes les routes métier et marque la route active', () => {
@@ -12,20 +13,19 @@ test('la navigation expose toutes les routes métier et marque la route active',
   }
   assert.match(layout, /:aria-current="isActive\(item\.path\) \? 'page' : undefined"/);
   assert.match(layout, /route\.path\.startsWith\(path\)/);
-  assert.match(layout, /watch\(\(\) => route\.path,/);
-  assert.doesNotMatch(layout, /route\.fullPath/);
+  assert.match(app, /watch\(\[\(\) => route\.path, \(\) => route\.matched.length\]/);
+  assert.doesNotMatch(app, /route\.fullPath/);
 });
 
-test('le menu de navigation est actionnable, ferme avec Échap et rend le focus', () => {
-  assert.match(layout, /aria-label="Ouvrir la navigation"/);
-  assert.match(layout, /:aria-expanded="menuOpen"/);
-  assert.match(layout, /focusFirstNavigationItem/);
-  assert.match(layout, /event\.key === 'Escape'/);
-  assert.match(layout, /event\.key === 'Tab'/);
-  assert.match(layout, /last\.focus\(\)/);
-  assert.match(layout, /first\.focus\(\)/);
-  assert.match(layout, /restoreFocus: true/);
-  assert.match(layout, /document\.addEventListener\('pointerdown', onPointerdown\)/);
+test('le dock expose des liens permanents et un accès direct au contenu', () => {
+  assert.match(layout, /<nav\b[^>]*\bid="main-navigation"/);
+  assert.match(layout, /<router-link v-for="item in navItems"/);
+  assert.doesNotMatch(layout, /v-if="menuOpen"|navigation-trigger/);
+  assert.match(layout, /href="#main-content"/);
+  assert.match(app, /document.getElementById\('main-content'\)\?\.focus\(\)/);
+  assert.doesNotMatch(layout, /autofocus|\.focus\(/);
+  assert.doesNotMatch(app, /immediate: true|onMounted/);
+  assert.match(app, /if \(!previousMatches \|\| path === previousPath\) return/);
 });
 
 test('la barre ne conserve aucune action globale factice', () => {
@@ -45,8 +45,12 @@ test('les paires de texte principales restent à un contraste AA', () => {
     const base = background.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16));
     return `#${overlay.slice(0, 3).map((value, index) => Math.round(value * overlay[3] + base[index] * (1 - overlay[3])).toString(16).padStart(2, '0')).join('')}`;
   };
-  for (const [foreground, background] of [['--text-primary', '--bg-app'], ['--text-secondary', '--bg-app'], ['--primary', '--bg-primary'], ['--error-dark', '--bg-primary']]) {
+  for (const [foreground, background] of [['--text-primary', '--bg-app'], ['--text-secondary', '--bg-app'], ['--primary', '--bg-primary'], ['--error-dark', '--bg-primary'], ['--primary-foreground', '--primary'], ['--primary-foreground', '--atelier-header'], ['--atelier-counter', '--atelier-header']]) {
     assert.ok(ratio(readToken(foreground), readToken(background)) >= 4.5, `${foreground} sur ${background}`);
   }
+  assert.ok(ratio(readToken('--border'), readToken('--card')) >= 3, 'bordure de champ sur blanc');
+  const glassOnCitron = composite(readRgba('--atelier-glass-veil'), readToken('--bg-app'));
+  assert.ok(ratio(readToken('--text-secondary'), glassOnCitron) >= 4.5, 'texte du dock sur verre composé');
+  assert.ok(ratio(readToken('--atelier-active-mark'), glassOnCitron) >= 3, 'repère actif sur verre composé');
   assert.ok(ratio(readToken('--warning-dark'), composite(readRgba('--warning-light'), readToken('--card'))) >= 4.5, '--warning-dark sur --warning-light composé');
 });

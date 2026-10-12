@@ -1,12 +1,13 @@
 <template>
   <Modal
     :is-open="isOpen"
+    :close-disabled="loading"
     :title="title"
     max-width="420px"
     @close="handleCancel"
   >
     <div class="confirm-content">
-      <div v-if="icon" class="confirm-icon" :class="`confirm-icon-${variant}`">
+      <div v-if="icon" aria-hidden="true" class="confirm-icon" :class="`confirm-icon-${variant}`">
         <svg v-if="variant === 'danger'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/>
@@ -76,6 +77,7 @@ const confirmVariant = computed(() => {
 });
 
 const handleConfirm = () => {
+  if (props.loading) return;
   emit('confirm');
 };
 
@@ -87,23 +89,25 @@ const handleCancel = () => {
 
 <style scoped>
 .confirm-content {
-  text-align: center;
-  padding: var(--spacing-4) 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
 }
 
 .confirm-icon {
-  width: 60px;
-  height: 60px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--spacing-5);
+  margin: 0;
 }
 
 .confirm-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
 .confirm-icon-danger {
@@ -117,9 +121,10 @@ const handleCancel = () => {
 }
 
 .confirm-message {
-  font-size: var(--font-size-md);
+  font-size: var(--font-size-sm);
   color: var(--text-primary);
   line-height: 1.5;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 </style>

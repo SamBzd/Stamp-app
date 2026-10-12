@@ -6,6 +6,7 @@ import { parse } from '@vue/compiler-sfc';
 import { compile } from '@vue/compiler-dom';
 import { renderToString } from '@vue/server-renderer';
 import { formatMoney } from '../src/utils/commande-kit.js';
+import { formatBilanMonth as formatMonth } from '../src/utils/bilan.js';
 
 // Compile le véritable template : protège les noms de champs API et le rendu,
 // sans dépendre d'un navigateur ni charger les sources tarifaires.
@@ -15,19 +16,17 @@ const render = new Function('Vue', compile(descriptor.template.content, { mode: 
 const formatCurrency = new Function('formatMoney',
   `return (${source.match(/const formatCurrency = ([\s\S]*?\n\});/)[1]});`)(formatMoney);
 
-const formatMonth = (mois) => mois.slice(5) + '-' + mois.slice(0, 4);
-
-async function renderBilan(bilan) {
+async function renderBilan(bilan, selectedMois = bilan.mois) {
   const app = Vue.createSSRApp({
     render,
-    setup: () => ({ activeTab: 'bilan', selectedMois: bilan.mois,
+    setup: () => ({ activeTab: 'bilan', selectedMois,
       stocksStore: { bilan, loadingBilan: false, bilanError: null },
-      formatCurrency, formatMonth, monthPickerOpen: false, pickerYear: 2023, pickerMonths: [],
-      selectMonth() {}, handleLoadBilan() {}, moveDialog: null, archiveGroup: null,
+      formatCurrency, formatMonth, handleLoadBilan() {}, moveDialog: null, archiveGroup: null,
       archiveMessage: '', closeMove() {}, submitArchive() {} })
   });
   app.component('Layout', { template: '<main><slot /></main>' });
   app.component('Button', { template: '<button><slot /></button>' });
+  app.component('MonthPicker', { props: ['modelValue'], setup: props => () => Vue.h('button', formatMonth(props.modelValue)) });
   app.component('Modal', { template: '<div></div>' });
   app.component('ConfirmDialog', { template: '<div></div>' });
   return renderToString(app);
@@ -42,10 +41,10 @@ test('le bilan affiche centimes, paiements et détails historiques sans retotali
     assert.ok(html.includes(text), text);
   }
   assert.ok(!html.includes('Aucune donnée de paiement'));
-  assert.ok(html.includes('06-2023'));
+  assert.ok(html.includes('juin 2023'));
   assert.equal(formatCurrency(Number.MAX_SAFE_INTEGER), formatMoney(Number.MAX_SAFE_INTEGER));
   assert.equal(formatCurrency(-29), `-${formatMoney(29)}`);
-  assert.equal(formatMonth('2023-06'), '06-2023');
+  assert.equal(formatMonth('2023-06'), 'juin 2023');
 });
 
 test('un mois vide affiche zéro et les trois états vides', async () => {
@@ -54,4 +53,13 @@ test('un mois vide affiche zéro et les trois états vides', async () => {
   for (const text of ['0,00', 'Aucune donnée de paiement', 'Aucun produit promotionnel', 'Aucun autre article']) {
     assert.ok(html.includes(text), text);
   }
+});
+
+// Un mois choisi n’est pas encore chargé : le titre doit rester celui des données.
+test('le titre du bilan reste lié au mois chargé après une autre sélection', async () => {
+  const html = await renderBilan({ mois: '2023-06', chiffre_affaires_cents: 0,
+    par_methode_paiement: [], produits_promo: [], autres: [] }, '2023-07');
+  assert.ok(html.includes('Bilan de juin 2023'));
+  assert.ok(!html.includes('Bilan de juillet 2023'));
+  assert.ok(html.includes('juillet 2023'));
 });

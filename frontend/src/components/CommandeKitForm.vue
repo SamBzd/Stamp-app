@@ -1,5 +1,5 @@
 <template>
-  <Modal :is-open="isOpen && !confirmClose" :title="commande ? `Modifier le kit #${commande.id}` : 'Nouveau kit'" max-width="1080px" @close="requestClose">
+  <FormPanel :is-open="isOpen" :busy="saving" :return-focus-id="returnFocusId" eyebrow="Commandes" :title="commande ? `Modifier le kit #${commande.id}` : 'Nouveau kit'" @close="requestClose">
     <form :id="formId" class="kit-form" novalidate @submit.prevent="handleSubmit">
       <p v-if="loading" role="status">Chargement des clientes et catalogues…</p>
       <div v-if="loadError" class="error-box" role="alert"><p>{{ loadError }}</p><Button variant="secondary" @click="loadForm">Réessayer</Button></div>
@@ -106,26 +106,28 @@
           <p class="price-line">Total calculé <strong>{{ formatMoney(pricing.automatic) }}</strong></p>
           <label class="check"><input :checked="form.prix_manuel" type="checkbox" @change="toggleManual($event.target.checked)" /> Corriger manuellement le total</label>
           <div v-if="form.prix_manuel" class="field"><label :for="id('prix_manuel_euros')">Total manuel (€) *</label><input :id="id('prix_manuel_euros')" v-model="form.prix_manuel_euros" inputmode="decimal" :aria-invalid="Boolean(errors.prix_manuel_euros)" /><p v-if="errors.prix_manuel_euros" class="field-error">{{ errors.prix_manuel_euros }}</p></div>
-          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><div class="field"><label :for="id('date_commande')">Date de commande</label><input :id="id('date_commande')" v-model="form.date_commande" type="date" /></div></div>
+          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><DatePicker :id="id('date_commande')" v-model="form.date_commande" label="Date de commande" :error="errors.date_commande" :disabled="loading || saving || Boolean(loadError) || Boolean(commande?.reglee)" /></div>
         </section>
         </div>
       </fieldset>
     </form>
     <template #footer><span v-if="form.format_type" class="footer-status" role="status">{{ compositionStatus }}</span><Button variant="secondary" :disabled="saving" @click="requestClose">Annuler</Button><Button type="submit" :form="formId" :disabled="loading || Boolean(loadError) || !catalogueDetail || Boolean(commande?.reglee)" :loading="saving">{{ commande ? 'Enregistrer' : 'Créer le kit' }}</Button></template>
-  </Modal>
+  </FormPanel>
   <ConfirmDialog :is-open="confirmClose" title="Abandonner les modifications ?" message="Les saisies de cette commande ne seront pas enregistrées." confirm-text="Abandonner" variant="danger" @confirm="discard" @cancel="confirmClose = false" />
 </template>
 
 <script setup>
 import { ref, computed, watch, useId, nextTick } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
-import Modal from './Modal.vue';
+import { onBeforeRouteLeave, onBeforeRouteUpdate } from 'vue-router';
+import FormPanel from './FormPanel.vue';
+import DatePicker from './DatePicker.vue';
 import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { clientsAPI, cataloguesAPI } from '../services/api';
 import { useCommandesStore } from '../stores/commandes';
 import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
-const props = defineProps({ isOpen: { type: Boolean, default: false }, commande: { type: Object, default: null } });
+const props = defineProps({ isOpen: { type: Boolean, default: false },
+  returnFocusId: { type: String, default: '' }, commande: { type: Object, default: null } });
 const emit = defineEmits(['close', 'saved']);
 const store = useCommandesStore();
 const prefix = useId();
@@ -199,7 +201,16 @@ async function handleSubmit() {
 function requestClose() { if (saving.value) return; if (dirty.value) confirmClose.value = true; else emit('close'); }
 function discard() { confirmClose.value = false; baseline.value = ''; emit('close'); }
 watch(() => props.isOpen, open => { if (open) loadForm(); else { ++loadGeneration; confirmClose.value = false; } }, { immediate: true });
-onBeforeRouteLeave(() => { if (!props.isOpen) return; if (saving.value) return false; if (dirty.value) return window.confirm('Quitter et abandonner les saisies de cette commande ?'); });
+function confirmNavigation() {
+  if (!props.isOpen) return;
+  if (saving.value) return false;
+  if (dirty.value && !window.confirm('Quitter et abandonner les saisies de cette commande ?')) return false;
+  discard();
+}
+onBeforeRouteLeave(confirmNavigation);
+onBeforeRouteUpdate((to, from) => {
+  if (to.path !== from.path) return confirmNavigation();
+});
 </script>
 
 <style scoped>
@@ -213,9 +224,11 @@ h3, p { margin: 0; }
 h3 { font-family: var(--font-heading); font-size: var(--font-size-base); }
 .field { display: flex; flex-direction: column; gap: var(--spacing-2); min-width: 0; }
 label, legend { font-weight: var(--font-weight-medium); font-size: var(--font-size-sm); }
-input:not([type=radio]):not([type=checkbox]), select { width: 100%; min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1.5px solid var(--border); border-radius: var(--border-radius); background: var(--bg-primary); color: var(--text-primary); font: inherit; box-sizing: border-box; }
+input:not([type=radio]):not([type=checkbox]), select { width: 100%; min-height: var(--control-height); padding: var(--control-padding); border: 1.5px solid var(--border); border-radius: var(--control-radius); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); line-height: 1.5; box-sizing: border-box; }
 input:focus-visible, select:focus-visible, button:focus-visible, a:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 input[type=radio], input[type=checkbox] { accent-color: var(--primary); width: 18px; height: 18px; flex-shrink: 0; }
+input:not([type=radio]):not([type=checkbox]):focus, select:focus { border-color: var(--primary); box-shadow: var(--control-focus-ring); }
+input[aria-invalid="true"]:focus, select[aria-invalid="true"]:focus { border-color: var(--error); box-shadow: var(--control-error-ring); }
 input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowed; }
 .choices { display: flex; gap: var(--spacing-3); border: 0; padding: 0; margin: 0; }
 .choices legend { margin-bottom: var(--spacing-2); }
@@ -241,7 +254,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
 .price-line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-3); }
 .price-line strong { font-size: var(--font-size-xl); font-variant-numeric: tabular-nums; }
 .field-error, .error-box { color: var(--error); font-size: var(--font-size-sm); }
-.error-box { background: var(--error-light); padding: var(--spacing-4); border-radius: var(--border-radius); }
+.error-box { background: var(--error-light); padding: var(--feedback-padding); border-radius: var(--feedback-radius); color: var(--error-dark); overflow-wrap: anywhere; }
 .error-box a { color: inherit; }
 .error-box ul, .summary ul { margin: var(--spacing-2) 0; padding-left: var(--spacing-5); }
 .summary { overflow-wrap: anywhere; }
@@ -255,7 +268,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .footer-status { display: block; }
 }
 @media (max-width: 640px) {
-  :deep(.modal-footer) { flex-wrap: wrap; }
+  :deep(.form-panel-footer) { flex-wrap: wrap; }
   .choices { flex-direction: column; }
   .extras-row { grid-template-columns: minmax(0, 1fr); }
   .paper-row { grid-template-columns: minmax(0, 1fr) auto; }
@@ -263,4 +276,5 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .contributions { flex-wrap: wrap; }
   .footer-status { flex-basis: 100%; }
 }
+@media (max-width: 640px) { input:not([type=radio]):not([type=checkbox]), select { font-size: 16px; } }
 </style>

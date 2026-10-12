@@ -47,6 +47,7 @@ export const clientsAPI = {
   getById: (id) => apiCall(`/clients/${id}`),
   create: (data) => apiCall('/clients', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => apiCall(`/clients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  setPoints: (id, points_fidelite) => apiCall(`/clients/${id}/points`, { method: 'PATCH', body: JSON.stringify({ points_fidelite }) }),
   setArchive: (id, archive) => apiCall(`/clients/${id}/archivage`, { method: 'PATCH', body: JSON.stringify({ archive }) }),
   getCommandes: (id) => apiCall(`/clients/${id}/commandes`),
 };

@@ -2,7 +2,7 @@
 
 ## Situation confirmée
 
-- L'application est utilisée par une seule personne depuis un Mac.
+- L'application est utilisée par une seule personne depuis un Mac, dans Chrome.
 - Elle est accessible uniquement sur le réseau local.
 - Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
 - La branche `production` est le miroir du code actuellement présent sur le NAS.
@@ -38,13 +38,70 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   catalogue, les paramètres tarifaires et l’archivage des clientes sont
   implémentés en issue #8 : voir [le parcours UI](catalogue-ui.md). L’interface
   commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
+  Le lot UI Clientes 3A est validé visuellement par Sam :
+  voir [le parcours Clientes](clients-ui.md). La liste Catalogues et les
+  Paramètres 3B.1 sont réalisés localement ; Sam a validé la composition avec
+  fiches allégées et consultation à droite. À sa demande, les listes Clientes
+  et Commandes reprennent ce format sans en-tête prune ni colonnes fixes ;
+  Sam a validé ces listes et autorisé les commits/push sur la branche UI :
+  [recette d’harmonisation](ui/recette-fiches/README.md) ;
+  [recette 3B.1](ui/recette-jalon3b1/README.md). Sam a demandé que la création
+  et la préparation partagent cet espace avec la liste : ratios 1/4–3/4 en
+  préparation, 2/3–1/3 en consultation, transition et protection des saisies.
+  Ses corrections de défilement indépendant, en-tête persistant, fermeture
+  par croix et dock fixe sont réalisées localement :
+  [recette](ui/recette-scroll-catalogues/README.md).
+  Le pied fixe de consultation qui raccourcissait le détail a également été
+  corrigé : action dans le contenu défilant sous le dock, vérifications
+  Chromium et audit indépendant terminés le 10 octobre 2026.
+  Sam a validé le lot 3B.2 et les corrections de détail Commandes le
+  10 octobre 2026, autorisé leurs commits/push et le lot Papiers 3C :
+  [recette](ui/recette-jalon3b2/README.md).
   Les stocks et leurs provenances historiques (#10) sont alignés sur les
   compositions enregistrées : voir [le parcours Stocks](stocks.md).
   Le bilan (#11) utilise les prix appliqués historiques et expose ses montants
   en centimes : voir [le contrat du bilan](bilan-commandes.md).
   La bibliothèque de papiers (#28) dispose d’une page dédiée, d’un archivage
   protégé et d’une sélection catalogue répétable : voir le
-  [parcours catalogue et bibliothèque](catalogue-ui.md). La migration v3 est
+  [parcours catalogue et bibliothèque](catalogue-ui.md). Le lot UI Papiers 3C
+  est livré sur la branche UI avec autorisation de commits/push de Sam le
+  10 octobre 2026 : liste compacte, recherche et filtres repliables,
+  création/renommage inline ; [recette](ui/recette-papiers/README.md).
+  Les formulaires Clientes et Commandes sont harmonisés localement le
+  10 octobre 2026 : liste 2/3 en consultation puis 1/4 en saisie, formulaire
+  intégré à droite, panneaux desktop pleine hauteur sous le dock, actions dans
+  le contenu défilant avec dégagement final et confirmation
+  d’abandon ; [recette](ui/recette-formulaires/README.md).
+  Sam a validé les formulaires et les corrections du dock le 10 octobre 2026,
+  et autorisé leur commit/push sur la branche UI. Safari est non testé, sans
+  condition bloquante de livraison. Sam a ensuite autorisé l’harmonisation
+  des composants communs et
+  demandé que les listes Clientes, Catalogues et Commandes suivent leur contenu,
+  sans remplissage vide jusqu’en bas. Ce lot est livré sur la branche UI :
+  [recette](ui/recette-composants-communs/README.md). Sam a ensuite autorisé
+  l’harmonisation du bilan mensuel et de son sélecteur, livrée sur la branche UI :
+  [recette](ui/recette-bilan/README.md). La recette consolidée reste ouverte.
+  Sam a demandé le remplacement des fenêtres de date système : naissance et
+  commandes partagent désormais un calendrier personnalisé déplié sous le
+  champ dans le formulaire, avec saisie directe et valeurs API inchangées ;
+  [recette](ui/recette-calendriers/README.md).
+  Les ajustements suivants sont aussi livrés sur la branche UI : champ date hors kit pleine
+  largeur, onglets Fournitures/Bilan contrastés, surlignage sans gouttière vide
+  et panneaux sans sélection à hauteur du contenu ;
+  [recette](ui/recette-ajustements-ui/README.md).
+  Sam a autorisé les commits cohérents et le push de ces lots le
+  10 octobre 2026 ; aucune modification du NAS ni déploiement.
+  Sam a autorisé trois finitions de l’issue #39 le 11 octobre 2026,
+  corrigées sur la branche UI : survol de semaine du calendrier neutralisé, mesure
+  atomique après animation dans la recette du bilan, et `aria-controls`
+  conditionnel pour la création Papiers. Les trois recettes décrivent ces
+  corrections ; Sam autorise leur commit/push. Il confirme Chrome pour la
+  cliente et valide le fonctionnement sous Zen ; Safari n’est plus bloquant.
+  Il demande aussi un bandeau compact (96 px minimum desktop), réalisé
+  et validé visuellement avec autorisation de commit/push :
+  [validation actuelle de #39](ui/validation-issue39.md).
+  Zoom 200 % et consolidation de la recette restent ouverts.
+  La migration v3 est
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
   [contrat API et de synchronisation](workflow-fournitures-api.md) et sa

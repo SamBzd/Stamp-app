@@ -6,7 +6,15 @@ export default createRouter({
     { 
       path: '/', 
       name: 'commandes', 
+      alias: '/commandes/kits',
+      meta: { commandeType: 'kit' },
       component: () => import('../views/CommandesView.vue') 
+    },
+    {
+      path: '/commandes/hors-kit',
+      name: 'commandes-hors-kit',
+      meta: { commandeType: 'hors_kit' },
+      component: () => import('../views/CommandesView.vue')
     },
     { 
       path: '/clients', 
@@ -14,12 +22,7 @@ export default createRouter({
       component: () => import('../views/ClientsView.vue') 
     },
     {
-      path: '/catalogues/:id',
-      name: 'catalogue-detail',
-      component: () => import('../views/CatalogueDetailView.vue')
-    },
-    {
-      path: '/catalogues',
+      path: '/catalogues/:id?',
       name: 'catalogues',
       component: () => import('../views/CataloguesView.vue')
     },

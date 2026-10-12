@@ -69,6 +69,19 @@ alertes anonymes du workflow sont affichées au-dessus du tableau. Dans Traité,
 « Terminer » archive toute la pile après confirmation. Le bilan mensuel reste
 disponible dans un second onglet de la même route.
 
+### Présentation atelier — premier jalon UI #39
+
+Le socle local utilise le bandeau prune, le fond citron, les colonnes blanches
+à en-tête prune et compteurs jaunes. Les cinq colonnes restent côte à côte
+au-dessus de 900 px CSS ; le repli passe ensuite à deux colonnes, puis à une
+jusqu’à 640 px. Les noms longs restent complets. Les cartes et le dock utilisent
+une couche de verre derrière le texte, avec repli blanc sans filtre ou en
+transparence réduite. Le dock reste dans le flux après le contenu et conserve
+les routes métier. Les états, API et règles de déplacement ne changent pas.
+
+Cette réalisation attend la validation visuelle de Sam sur son Mac ; voir
+[les captures comparables, écarts et limites](ui/recette-jalon1/README.md).
+
 ## Synchronisation avec les commandes
 
 La synchronisation est interne aux transactions `POST`, `PUT` et `DELETE` des

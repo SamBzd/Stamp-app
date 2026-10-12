@@ -60,7 +60,7 @@ L’onglet Bilan affiche les centimes en euros uniquement en présentation, avec
 le même formateur exact que les commandes. Il consomme `par_methode_paiement`
 et `autres`, et distingue deux détails de même libellé mais de prix différents.
 Les textes expliquent le filtre temporel et la différence entre composants
-historiques et total manuel. Aucun changement de design n’est introduit.
+historiques et total manuel. Le contrat de calcul reste celui de l’issue #11.
 
 `backend/test/commandes-kit-api.test.js` couvre deux catalogues distincts,
 defaults copiés, mutations tarifaires sans réécriture, édition explicite,
@@ -69,3 +69,29 @@ non réglée exclue de toutes les catégories, archives, périodes et hors-kit.
 `frontend/test/bilan-view.test.js` compile le véritable template Vue et vérifie
 son rendu avec le contrat API, les homonymes tarifaires et un mois vide.
 Les contrôles de livraison sont `npm run check` et `docker compose config`.
+
+## Harmonisation de l’atelier — 10 octobre 2026
+
+Sam a autorisé la refonte visuelle du bilan mensuel et de son sélecteur. Le
+bilan reste un onglet de Fournitures (`/stocks`) et se charge explicitement
+avec « Charger ». Choisir une autre période ne change pas les données déjà
+affichées : leur titre utilise le mois retourné par l’API, jamais la sélection
+non chargée. Le sélecteur est désactivé pendant une requête ; un refus laisse
+la période sélectionnée disponible avec « Réessayer ».
+
+Les surfaces blanches, titres prune, lignes continues et deux sections de
+détails qui se replient sur écran étroit reprennent le socle commun. Les listes
+prennent la hauteur de leur contenu. Le total exact, les paiements sans méthode
+et les homonymes à prix différents restent visibles. Aucun graphique, nouveau
+calcul ou filtre de mois sur le Kanban n’est ajouté.
+
+Le sélecteur montre le mois en toutes lettres et ouvre un dialogue compact
+avec l’année et les douze mois. Il réutilise le composant Modal commun :
+fermeture par croix, Escape ou fond, boucle Tab et retour de focus au contrôle.
+Annuler la navigation d’année ne change pas le mois choisi ; une réouverture
+part de l’année de la sélection. Les cibles font au minimum 44 px. Le dialogue
+défile dans les viewports bas plutôt que de masquer ses dernières commandes.
+
+La [recette dédiée](ui/recette-bilan/README.md) conserve les captures et contrôles.
+Les tests de rendu couvrent également le mois chargé distinct du mois choisi.
+L’API, les calculs, le schéma et les données restent inchangés.

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { clientsAPI } from '../services/api';
+import { clientsAPI } from '../services/api.js';
 
 export const useClientsStore = defineStore('clients', {
   state: () => ({
@@ -73,6 +73,14 @@ export const useClientsStore = defineStore('clients', {
         this.error = error.message;
         throw error;
       }
+    },
+
+    async setPointsFidelite(id, points) {
+      // Une erreur de points appartient à l’éditeur de fiche, pas au répertoire.
+      const updated = await clientsAPI.setPoints(id, points);
+      const index = this.clients.findIndex(client => client.id === id);
+      if (index !== -1) this.clients[index] = updated;
+      return updated;
     },
 
     async setArchive(id, archive) {

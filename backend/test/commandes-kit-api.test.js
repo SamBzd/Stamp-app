@@ -681,3 +681,23 @@ test('IDs et commandes absentes donnent des erreurs explicites', async () => {
   for (const method of ['GET', 'PUT', 'DELETE']) await api('/commandes/999999', method, method === 'PUT' ? {} : undefined, 404);
   await api('/commandes/999999/reglement', 'PATCH', {}, 404);
 });
+
+
+test('l’édition manuelle des points utilise la route dédiée et préserve coordonnées et historique', async () => {
+  const client = await api('/clients', 'POST', {
+    nom: `Points ${++sequence}`, prenom: 'Recette', email: `points${sequence}@example.test`,
+    telephone_raw: '06 12 34 56 78', relais_prefere: 'Relais synthétique', contacter: 1, points_fidelite: 12,
+  }, 201);
+  await api('/commandes', 'POST', {client_id: client.id, type: 'hors_kit', montant: 10}, 201);
+  const before = await api(`/clients/${client.id}`);
+  const history = await api(`/clients/${client.id}/commandes`);
+  for (const points of [27, 0]) {
+    const updated = await api(`/clients/${client.id}/points`, 'PATCH', {points_fidelite: points});
+    assert.equal(updated.points_fidelite, points);
+    for (const key of Object.keys(before).filter(key => key !== 'points_fidelite')) assert.equal(updated[key], before[key], key);
+    assert.deepEqual(await api(`/clients/${client.id}/commandes`), history);
+  }
+  for (const points of [-1, 0.5, 'invalide', null]) await api(`/clients/${client.id}/points`, 'PATCH', {points_fidelite: points}, 400);
+  await api(`/clients/${client.id}/points`, 'PATCH', {}, 400);
+  assert.equal((await api(`/clients/${client.id}`)).points_fidelite, 0);
+});

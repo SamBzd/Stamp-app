@@ -1,21 +1,17 @@
 <template>
-  <Layout class="stocks-layout">
+  <Layout class="stocks-layout" title="Fournitures" subtitle="Suivez chaque fourniture, de la commande jusqu’au traitement.">
     <div class="stocks-view">
-      <header class="page-header">
-        <div>
-          <h1 class="page-title">Fournitures</h1>
-          <p class="page-subtitle">Suivez chaque fourniture, de la commande jusqu’au traitement.</p>
-        </div>
-      </header>
-
+      <div class="stocks-navigation">
       <div class="tabs" role="tablist" aria-label="Fournitures et bilan">
         <button id="fournitures-tab" class="tab-btn" :class="{ active: activeTab === 'fournitures' }" role="tab" :aria-selected="activeTab === 'fournitures'" aria-controls="fournitures-panel" @click="activeTab = 'fournitures'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Fournitures</button>
         <button id="bilan-tab" class="tab-btn" :class="{ active: activeTab === 'bilan' }" role="tab" :aria-selected="activeTab === 'bilan'" aria-controls="bilan-panel" @click="activeTab = 'bilan'" @keydown.left.prevent="moveTabFocus($event, -1)" @keydown.right.prevent="moveTabFocus($event, 1)">Bilan mensuel</button>
       </div>
+      <span class="atelier-tag">Mon atelier</span>
+      </div>
 
       <section v-if="activeTab === 'fournitures'" id="fournitures-panel" role="tabpanel" aria-labelledby="fournitures-tab">
         <div class="workflow-toolbar">
-          <p>Glissez une pile vers la colonne où tu veux la placer.</p>
+          <p>Glisse une pile vers une colonne, ou sélectionne-la pour la déplacer.</p>
           <Button variant="secondary" :loading="stocksStore.loadingWorkflow" :disabled="stocksStore.mutatingWorkflow" @click="refreshWorkflow">Actualiser</Button>
         </div>
 
@@ -53,7 +49,6 @@
             @drop.prevent="dropOn(column.etat)"
           >
             <header class="kanban-column-header">
-              <span class="column-step" aria-hidden="true">{{ column.index + 1 }}</span>
               <h2 :id="`column-${column.index}`">{{ column.etat }}</h2>
               <span class="column-count" :aria-label="`${column.groupes.length} piles`">{{ column.groupes.length }}</span>
             </header>
@@ -61,7 +56,7 @@
               <article
                 v-for="group in column.groupes"
                 :key="fournitureGroupKey(group)"
-                class="fourniture-card"
+                class="fourniture-card atelier-glass"
                 :class="{ 'fourniture-card-dragging': draggedGroup === group }"
                 :role="group.etat === 'Traité' ? undefined : 'button'"
                 :tabindex="group.etat === 'Traité' ? undefined : 0"
@@ -92,49 +87,41 @@
 
       <section v-if="activeTab === 'bilan'" id="bilan-panel" role="tabpanel" aria-labelledby="bilan-tab">
         <div class="bilan-toolbar">
-          <div class="month-picker">
-            <span id="month-label" class="month-label">Mois</span>
-            <button type="button" class="month-input" aria-labelledby="month-label month-value" :aria-expanded="monthPickerOpen" aria-controls="month-picker-panel" @click="monthPickerOpen = !monthPickerOpen">
-              <span id="month-value">{{ formatMonth(selectedMois) }}</span>
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-            </button>
-            <div v-if="monthPickerOpen" id="month-picker-panel" class="month-picker-panel" role="dialog" aria-label="Choisir un mois" @keydown.esc="monthPickerOpen = false">
-              <div class="month-picker-year">
-                <button type="button" aria-label="Année précédente" @click="pickerYear -= 1">‹</button>
-                <strong>{{ pickerYear }}</strong>
-                <button type="button" aria-label="Année suivante" @click="pickerYear += 1">›</button>
-              </div>
-              <div class="month-picker-months">
-                <button v-for="month in pickerMonths" :key="month.value" type="button" :class="{ active: selectedMois === pickerYear + '-' + month.value }" @click="selectMonth(month.value)">{{ month.label }}</button>
-              </div>
-            </div>
+          <div class="bilan-period">
+            <MonthPicker v-model="selectedMois" :disabled="stocksStore.loadingBilan" />
+            <Button :loading="stocksStore.loadingBilan" @click="handleLoadBilan">Charger</Button>
           </div>
-          <Button :loading="stocksStore.loadingBilan" @click="handleLoadBilan">Charger</Button>
+          <p>Commandes réglées, selon leur mois de création.</p>
         </div>
-        <div v-if="stocksStore.loadingBilan" class="loading-state" role="status"><div class="loading-spinner"></div><span class="loading-state-text">Chargement du bilan…</span></div>
-        <div v-else-if="stocksStore.bilanError" class="error-state" role="alert"><p>{{ stocksStore.bilanError }}</p></div>
+        <div v-if="stocksStore.loadingBilan" class="bilan-state loading-state" role="status"><div class="loading-spinner"></div><span class="loading-state-text">Chargement du bilan de {{ formatMonth(selectedMois) }}…</span></div>
+        <div v-else-if="stocksStore.bilanError" class="bilan-state bilan-error" role="alert"><p>{{ stocksStore.bilanError }}</p><Button variant="secondary" @click="handleLoadBilan">Réessayer</Button></div>
         <div v-else-if="stocksStore.bilan" class="bilan-content">
-          <div class="bilan-ca-card"><div class="bilan-ca-label">Chiffre d'affaires</div><div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires_cents) }}</div><p>Commandes réglées du mois de création, aux prix enregistrés.</p></div>
-          <section class="bilan-section">
-            <h2 class="section-title"><span class="section-dot section-dot-green"></span>Répartition par méthode de paiement</h2>
-            <div v-if="stocksStore.bilan.par_methode_paiement.length === 0" class="empty-section"><span>Aucune donnée de paiement</span></div>
-            <div v-else class="stock-table-wrapper"><table class="stock-table"><thead><tr><th>Méthode</th><th class="col-number">Nb commandes</th><th class="col-number">Montant</th></tr></thead><tbody><tr v-for="item in stocksStore.bilan.par_methode_paiement" :key="item.methode_paiement"><td class="cell-name">{{ item.methode_paiement || 'Non renseigné' }}</td><td class="cell-number"><span class="badge-count">{{ item.nb_commandes }}</span></td><td class="cell-number">{{ formatCurrency(item.total_cents) }}</td></tr></tbody></table></div>
+          <section class="bilan-ca-card" aria-labelledby="bilan-month-title">
+            <div><h2 id="bilan-month-title">Bilan de {{ formatMonth(stocksStore.bilan.mois) }}</h2><p>Aux prix enregistrés dans les commandes.</p></div>
+            <div><div class="bilan-ca-label">Chiffre d'affaires</div><div class="bilan-ca-value">{{ formatCurrency(stocksStore.bilan.chiffre_affaires_cents) }}</div></div>
           </section>
-          <section class="bilan-section">
-            <h2 class="section-title"><span class="section-dot section-dot-amber"></span>Produits promotionnels</h2>
-            <div v-if="!stocksStore.bilan.produits_promo?.length" class="empty-section"><span>Aucun produit promotionnel ce mois-ci</span></div>
-            <div v-else class="promo-list"><div v-for="item in stocksStore.bilan.produits_promo" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count">× {{ item.nb_fois }}</span></div></div>
+          <section class="bilan-section" aria-labelledby="bilan-payment-title">
+            <header class="bilan-section-heading"><h3 id="bilan-payment-title">Répartition par méthode de paiement</h3></header>
+            <p v-if="stocksStore.bilan.par_methode_paiement.length === 0" class="empty-section">Aucune donnée de paiement</p>
+            <div v-else class="stock-table-wrapper" tabindex="0" role="region" aria-labelledby="bilan-payment-title"><table class="stock-table"><thead><tr><th scope="col">Méthode</th><th scope="col" class="col-number">Commandes</th><th scope="col" class="col-number">Montant</th></tr></thead><tbody><tr v-for="item in stocksStore.bilan.par_methode_paiement" :key="item.methode_paiement"><th scope="row" class="cell-name">{{ item.methode_paiement || 'Non renseigné' }}</th><td class="cell-number">{{ item.nb_commandes }}</td><td class="cell-number">{{ formatCurrency(item.total_cents) }}</td></tr></tbody></table></div>
           </section>
-          <section class="bilan-section">
-            <h2 class="section-title"><span class="section-dot section-dot-blue"></span>Autres articles</h2>
-            <div v-if="stocksStore.bilan.autres.length === 0" class="empty-section"><span>Aucun autre article ce mois-ci</span></div>
-            <div v-else class="promo-list"><div v-for="item in stocksStore.bilan.autres" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count">× {{ item.nb_fois }}</span></div></div>
-          </section>
-          <p>Les suppléments ci-dessus détaillent les prix historiques. Ils sont déjà inclus dans le prix automatique ; après un prix manuel, leur somme ne reconstitue pas nécessairement le total payé.</p>
+          <div class="bilan-details">
+            <section class="bilan-section" aria-labelledby="bilan-promo-title">
+              <header class="bilan-section-heading"><h3 id="bilan-promo-title">Produits promotionnels</h3></header>
+              <p v-if="!stocksStore.bilan.produits_promo?.length" class="empty-section">Aucun produit promotionnel ce mois-ci</p>
+              <ul v-else class="promo-list"><li v-for="item in stocksStore.bilan.produits_promo" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count"><span class="sr-only">Quantité : </span>× {{ item.nb_fois }}</span></li></ul>
+            </section>
+            <section class="bilan-section" aria-labelledby="bilan-other-title">
+              <header class="bilan-section-heading"><h3 id="bilan-other-title">Autres articles</h3></header>
+              <p v-if="stocksStore.bilan.autres.length === 0" class="empty-section">Aucun autre article ce mois-ci</p>
+              <ul v-else class="promo-list"><li v-for="item in stocksStore.bilan.autres" :key="JSON.stringify([item.texte, item.prix_cents])" class="promo-item"><div class="promo-info"><span class="promo-texte">{{ item.texte }}</span><span class="promo-price">{{ formatCurrency(item.prix_cents) }}</span></div><span class="promo-count"><span class="sr-only">Quantité : </span>× {{ item.nb_fois }}</span></li></ul>
+            </section>
+          </div>
+          <p class="bilan-note">Les suppléments ci-dessus détaillent les prix historiques. Ils sont déjà inclus dans le prix automatique ; après un prix manuel, leur somme ne reconstitue pas nécessairement le total payé.</p>
         </div>
-        <div v-else class="empty-state">
+        <div v-else class="bilan-state empty-state">
           <div class="empty-state-icon"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-          <h3 class="empty-state-title">Aucun bilan chargé</h3><p class="empty-state-description">Sélectionnez un mois et cliquez sur « Charger ».</p>
+          <h3 class="empty-state-title">Aucun bilan chargé</h3><p class="empty-state-description">Sélectionne un mois et clique sur « Charger ».</p>
         </div>
       </section>
     </div>
@@ -162,6 +149,8 @@ import Button from '../components/Button.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import Layout from '../components/Layout.vue';
 import Modal from '../components/Modal.vue';
+import MonthPicker from '../components/MonthPicker.vue';
+import { formatBilanMonth } from '../utils/bilan';
 import { useStocksStore } from '../stores/stocks';
 import { formatMoney } from '../utils/commande-kit';
 import { FOURNITURE_STATES, fournitureGroupKey, fournitureTypeLabel, validMoveQuantity, workflowColumns } from '../utils/fournitures';
@@ -178,14 +167,6 @@ const selectedMois = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padS
 
 const columns = computed(() => workflowColumns(stocksStore.workflow?.groupes));
 const destinationStates = computed(() => FOURNITURE_STATES.filter(state => state !== moveDialog.value?.group.etat));
-const monthPickerOpen = ref(false);
-const pickerYear = ref(now.getFullYear());
-const pickerMonths = [
-  { value: '01', label: 'Jan.' }, { value: '02', label: 'Fév.' }, { value: '03', label: 'Mars' },
-  { value: '04', label: 'Avr.' }, { value: '05', label: 'Mai' }, { value: '06', label: 'Juin' },
-  { value: '07', label: 'Juil.' }, { value: '08', label: 'Août' }, { value: '09', label: 'Sept.' },
-  { value: '10', label: 'Oct.' }, { value: '11', label: 'Nov.' }, { value: '12', label: 'Déc.' },
-];
 const moveQuantityError = computed(() => moveDialog.value ? !validMoveQuantity(moveDialog.value.quantite, moveDialog.value.group.quantite) : false);
 const archiveMessage = computed(() => archiveGroup.value ? `Les ${archiveGroup.value.quantite} unité(s) de « ${archiveGroup.value.nom} » seront retirées durablement du tableau.` : '');
 
@@ -228,14 +209,7 @@ const moveTabFocus = (event, direction) => {
   tabs[(current + direction + tabs.length) % tabs.length]?.focus();
 };
 const handleLoadBilan = () => stocksStore.fetchBilan(selectedMois.value);
-const selectMonth = (month) => {
-  selectedMois.value = pickerYear.value + '-' + month;
-  monthPickerOpen.value = false;
-};
-const formatMonth = (mois) => {
-  const match = /^(\d{4})-(\d{2})$/.exec(mois || '');
-  return match ? match[2] + '-' + match[1] : '';
-};
+const formatMonth = formatBilanMonth;
 const formatCurrency = (value) => {
   return value < 0 ? `-${formatMoney(-value)}` : formatMoney(value);
 };
@@ -245,12 +219,14 @@ onMounted(refreshWorkflow);
 
 <style scoped>
 .stocks-layout :deep(.main-content) { min-width: 0; }
-.stocks-view { max-width: var(--content-max-width); }
+.stocks-view { width: 100%; min-width: 0; }
 .page-title { font-family: var(--font-heading); }
-.tabs { display: flex; gap: var(--spacing-2); margin-bottom: var(--spacing-6); border-bottom: 2px solid var(--border-light); }
-.tab-btn { min-height: 44px; padding: var(--spacing-3) var(--spacing-5); margin-bottom: -2px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--text-secondary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); cursor: pointer; }
-.tab-btn:hover { background: var(--muted); color: var(--foreground); }
-.tab-btn.active { border-bottom-color: var(--primary); color: var(--primary); }
+.stocks-navigation { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--spacing-3); margin-bottom: var(--spacing-4); }
+.atelier-tag { padding: 6px 17px 7px 12px; background: var(--accent); color: var(--text-primary); font-weight: var(--font-weight-semibold); clip-path: polygon(0 0, 97% 3%, 100% 30%, 96% 64%, 98% 100%, 0 96%, 2% 48%); }
+.tabs { display: flex; gap: 4px; padding: 4px; min-width: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }
+.tab-btn { min-height: 44px; padding: 10px 16px; border: 0; border-radius: 6px; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--font-size-base); font-weight: var(--font-weight-semibold); cursor: pointer; }
+.tab-btn:hover { background: var(--surface-hover); }
+.tab-btn.active { background: var(--primary); color: var(--primary-foreground); }
 .tab-btn:focus-visible, .fourniture-card:focus-visible, .fourniture-card button:focus-visible, .move-form :is(select, input):focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
 .workflow-toolbar { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-4); margin-bottom: var(--spacing-5); }
 .workflow-toolbar p { max-width: 70ch; color: var(--text-secondary); line-height: var(--line-height-relaxed); }
@@ -262,23 +238,21 @@ onMounted(refreshWorkflow);
 .workflow-alerts ul { display: grid; gap: var(--spacing-2); padding-left: var(--spacing-6); }
 .workflow-alerts li span { display: block; color: var(--text-secondary); }
 .workflow-error { margin-bottom: var(--spacing-4); }
-.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: var(--spacing-3); }
-.kanban-column { min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--border-radius-xl); background: var(--bg-secondary); transition: border-color var(--transition-fast), background-color var(--transition-fast); }
-.kanban-column-drop { border-color: var(--primary); background: var(--primary-light); }
-.kanban-column-header { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 58px; padding: var(--spacing-3); border-bottom: 1px solid var(--border); background: var(--card); }
+.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; gap: var(--spacing-3); }
+.kanban-column { min-width: 0; border-radius: var(--border-radius-lg); background: var(--card); box-shadow: var(--shadow-sm); transition: background-color var(--transition-fast); }
+.kanban-column-drop { outline: 3px solid var(--primary); outline-offset: 2px; background: var(--primary-light); }
+.kanban-column-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 48px; padding: var(--spacing-3); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; background: var(--atelier-header); color: var(--primary-foreground); }
 .kanban-column-header h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--font-size-sm); line-height: var(--line-height-tight); }
-.column-step, .column-count { display: inline-grid; min-width: 26px; height: 26px; place-items: center; border-radius: var(--border-radius-full); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
-.column-step { background: var(--primary); color: var(--primary-foreground); }
-.column-count { background: var(--muted); color: var(--text-secondary); }
-.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 180px; padding: var(--spacing-3); }
-.fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 1px solid var(--border-light); border-radius: var(--border-radius); background: var(--card); box-shadow: var(--shadow-sm); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
-.fourniture-card:hover { border-color: var(--border); box-shadow: var(--shadow-card-hover); }
+.column-count { color: var(--atelier-counter); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 302px; padding: var(--spacing-3); }
+.fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 0; border-radius: var(--atelier-card-radius); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.fourniture-card:hover { box-shadow: 0 4px 12px rgb(108 75 96 / 13%), 0 1px 2px rgb(108 75 96 / 6%); }
 .fourniture-card:active { cursor: grabbing; }
 .fourniture-card-dragging { opacity: .45; }
 .fourniture-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-2); }
 .fourniture-type { color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); line-height: var(--line-height-normal); }
-.fourniture-quantity { flex: 0 0 auto; padding: 3px 8px; border-radius: var(--border-radius-full); background: var(--primary-light); color: var(--primary); font-size: var(--font-size-xs); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
-.fourniture-card h3 { overflow-wrap: anywhere; font-size: var(--font-size-md); line-height: var(--line-height-normal); }
+.fourniture-quantity { flex: 0 0 auto; padding: 3px 8px; border-radius: var(--border-radius-sm); border: 1px solid var(--atelier-glass-edge); color: var(--primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-bold); font-variant-numeric: tabular-nums; }
+.fourniture-card h3 { overflow-wrap: anywhere; font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); line-height: var(--line-height-normal); }
 .fourniture-actions { display: grid; gap: var(--spacing-2); }
 .fourniture-actions button { min-height: 44px; padding: var(--spacing-2) var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-sm); background: var(--card); color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); cursor: pointer; }
 .fourniture-actions button:hover { border-color: var(--primary); color: var(--primary); }
@@ -292,41 +266,53 @@ onMounted(refreshWorkflow);
 .move-form input[aria-invalid="true"] { border-color: var(--error); }
 .form-help { color: var(--text-secondary); font-size: var(--font-size-sm); }
 .form-error { color: var(--error-dark); font-weight: var(--font-weight-medium); }
-.bilan-toolbar { display: flex; align-items: end; gap: var(--spacing-4); margin-bottom: var(--spacing-6); }
-.month-picker { position: relative; display: grid; gap: var(--spacing-2); }
-.month-label { color: var(--text-secondary); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
-.month-input { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-5); min-width: 146px; min-height: 44px; padding: var(--spacing-2) var(--spacing-4); border: 1px solid var(--border); border-radius: var(--border-radius); background: var(--card); color: var(--foreground); font: inherit; cursor: pointer; }
-.month-input:hover, .month-input:focus-visible { border-color: var(--primary); }.month-input:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }.month-input svg { width: 18px; }
-.month-picker-panel { position: absolute; z-index: var(--z-dropdown); top: calc(100% + var(--spacing-2)); left: 0; width: 286px; padding: var(--spacing-3); border: 1px solid var(--border); border-radius: var(--border-radius-xl); background: var(--card); box-shadow: var(--shadow-float); }
-.month-picker-year { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-3); }.month-picker-year button { width: 36px; height: 36px; border: 0; border-radius: var(--border-radius-sm); background: var(--muted); color: var(--foreground); font-size: var(--font-size-xl); cursor: pointer; }.month-picker-year button:hover { background: var(--primary-light); color: var(--primary); }
-.month-picker-months { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-2); }.month-picker-months button { min-height: 40px; border: 1px solid var(--border-light); border-radius: var(--border-radius-sm); background: var(--card); color: var(--foreground); font: inherit; cursor: pointer; }.month-picker-months button:hover, .month-picker-months button.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: var(--font-weight-semibold); }
-.bilan-content, .bilan-section { display: grid; gap: var(--spacing-4); }
-.bilan-content { gap: var(--spacing-8); }
-.bilan-ca-card { display: grid; gap: var(--spacing-2); padding: var(--spacing-6) var(--spacing-8); border-radius: var(--border-radius-2xl); background: linear-gradient(135deg, var(--primary), var(--success-dark)); color: var(--text-inverse); }
-.bilan-ca-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); text-transform: uppercase; letter-spacing: var(--letter-spacing-wider); }
-.bilan-ca-value { font-family: var(--font-heading); font-size: var(--font-size-4xl); font-weight: 800; }
-.section-title { display: flex; align-items: center; gap: var(--spacing-3); font-size: var(--font-size-lg); }
-.section-dot { width: 10px; height: 10px; border-radius: 50%; }
-.section-dot-blue { background: var(--info); }.section-dot-amber { background: var(--secondary); }.section-dot-green { background: var(--success); }
-.stock-table-wrapper { max-width: 100%; overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--border-radius-xl); background: var(--card); }
+.bilan-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px 24px; padding: 20px; margin-bottom: 16px; border-radius: var(--border-radius-xl); background: var(--card); box-shadow: var(--shadow-sm); }
+.bilan-period { display: flex; align-items: end; gap: 12px; min-width: 0; }
+.bilan-toolbar p, .bilan-ca-card p { color: var(--text-secondary); font-size: var(--font-size-sm); }
+.bilan-content { display: grid; gap: 16px; min-width: 0; }
+.bilan-ca-card { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px 32px; padding: 24px; border-radius: var(--border-radius-xl); background: var(--card); box-shadow: var(--shadow-sm); min-width: 0; }
+.bilan-ca-card h2 { margin-bottom: 8px; font-size: var(--font-size-xl); color: var(--primary); }
+.bilan-ca-label { color: var(--text-secondary); font-size: var(--font-size-sm); }
+.bilan-ca-value { font-family: var(--font-heading); font-size: clamp(28px, 3vw, 40px); line-height: 1.2; font-weight: var(--font-weight-bold); color: var(--primary); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.bilan-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 16px; }
+.bilan-section { min-width: 0; overflow: hidden; border-radius: var(--border-radius-xl); background: var(--card); box-shadow: var(--shadow-sm); }
+.bilan-section-heading { padding: 20px; border-bottom: 1px solid var(--border-light); }
+.bilan-section-heading h3 { font-size: var(--font-size-base); color: var(--primary); }
+.stock-table-wrapper { max-width: 100%; overflow-x: auto; }
+.stock-table-wrapper:focus-visible { outline: 2px solid var(--primary); outline-offset: -3px; }
 .stock-table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
-.stock-table th, .stock-table td { padding: var(--spacing-3) var(--spacing-5); border-bottom: 1px solid var(--border-light); text-align: left; }
-.stock-table th { background: var(--muted); color: var(--text-tertiary); font-size: var(--font-size-xs); text-transform: uppercase; }
+.stock-table th, .stock-table td { padding: 12px 20px; text-align: left; }
+.stock-table thead th { color: var(--text-secondary); font-size: var(--font-size-xs); font-weight: var(--font-weight-medium); border-bottom: 1px solid var(--border-light); }
+.stock-table tbody th { font-weight: var(--font-weight-medium); overflow-wrap: anywhere; }
+.stock-table tbody tr + tr > * { border-top: 1px solid var(--border-light); }
+.stock-table tbody tr:hover { background: var(--surface-hover); }
 .stock-table .col-number, .stock-table .cell-number { text-align: right; font-variant-numeric: tabular-nums; }
-.badge-count { display: inline-flex; padding: var(--spacing-1) var(--spacing-2); border-radius: var(--border-radius-full); background: var(--primary-light); color: var(--primary); font-weight: var(--font-weight-bold); }
-.empty-section { padding: var(--spacing-5); border-radius: var(--border-radius-xl); background: var(--muted); color: var(--text-tertiary); }
-.promo-list { display: grid; gap: var(--spacing-2); }
-.promo-item { display: flex; justify-content: space-between; gap: var(--spacing-4); padding: var(--spacing-3) var(--spacing-5); border: 1px solid var(--border-light); border-radius: var(--border-radius-xl); background: var(--card); }
-.promo-info { display: flex; min-width: 0; gap: var(--spacing-4); }.promo-texte { overflow-wrap: anywhere; font-weight: var(--font-weight-medium); }.promo-price { color: var(--text-secondary); }.promo-count { color: var(--primary); font-weight: var(--font-weight-bold); }
-@media (max-width: 1100px) { .kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.stock-table .cell-number { white-space: nowrap; }
+.empty-section { padding: 20px; color: var(--text-secondary); font-size: var(--font-size-sm); }
+.promo-list { list-style: none; padding: 0; margin: 0; }
+.promo-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 20px; }
+.promo-item + .promo-item { border-top: 1px solid var(--border-light); }
+.promo-item:hover { background: var(--surface-hover); }
+.promo-info { display: grid; min-width: 0; gap: 4px; }
+.promo-texte { overflow-wrap: anywhere; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
+.promo-price { color: var(--text-secondary); font-size: var(--font-size-sm); overflow-wrap: anywhere; }
+.promo-count { flex-shrink: 0; color: var(--primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
+.bilan-note { max-width: 90ch; color: var(--text-secondary); font-size: var(--font-size-sm); line-height: 1.6; }
+.bilan-state { padding: 24px; border-radius: var(--border-radius-xl); background: var(--card); }
+.bilan-error { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: var(--feedback-padding); border-radius: var(--feedback-radius); background: var(--error-light); color: var(--error-dark); overflow-wrap: anywhere; }
+@media (max-width: 900px) { .kanban { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) {
-  .workflow-toolbar, .bilan-toolbar { align-items: stretch; flex-direction: column; }
+  .workflow-toolbar { align-items: stretch; flex-direction: column; }
   .kanban { grid-template-columns: 1fr; }
   .kanban-column-content { min-height: 120px; }
   .tabs { overflow-x: auto; }
   .tab-btn { flex: 1 0 auto; }
-  .bilan-ca-card { padding: var(--spacing-5); }
-  .bilan-ca-value { font-size: var(--font-size-3xl); }
+  .bilan-toolbar, .bilan-ca-card { padding: 16px; }
+  .bilan-period { width: 100%; flex-wrap: wrap; }
+  .bilan-period :deep(.month-picker) { flex: 1 1 170px; }
+  .bilan-details { grid-template-columns: minmax(0, 1fr); }
+  .stock-table th, .stock-table td { padding: 12px 10px; }
+  .bilan-section-heading { padding: 16px; }
 }
 @media (prefers-reduced-motion: reduce) { .kanban-column, .fourniture-card { transition: none; } }
 </style>

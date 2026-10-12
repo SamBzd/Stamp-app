@@ -1,0 +1,109 @@
+{
+  "meta": {
+    "status": "reference-documentaire-non-importee",
+    "direction": "atelier-prune-citron",
+    "validatedBy": "Sam",
+    "validatedOn": "2026-10-03",
+    "theme": "light",
+    "units": "Tailles en px CSS ; voile en pourcentage",
+    "references": [
+      "maquettes/sources/fournitures.fragment.html",
+      "maquettes/sources/commandes.fragment.html"
+    ],
+    "note": "Valeurs relevees dans les maquettes ; noms de tokens proposes. Aucun changement applicatif ou metier."
+  },
+  "primitive": {
+    "color": {
+      "citron": "#FCF3CF",
+      "white": "#FFFFFF",
+      "prune": "#6C4B60",
+      "pruneHeader": "#745668",
+      "ink": "#30232D",
+      "mutedInk": "#61505B",
+      "onPrune": "#FFF8FC",
+      "yellow": "#E4B63C",
+      "yellowCounter": "#F6DA86",
+      "goldMark": "#A67408",
+      "citronSelected": "#FFF8DE",
+      "tableSeparator": "#EAE3E8"
+    },
+    "typography": {
+      "uiFamily": "-apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+      "logoFamily": "'Snell Roundhand', 'Apple Chancery', cursive",
+      "bodySize": 14,
+      "secondarySize": 12,
+      "denseSize": 13,
+      "pageTitleSize": 27,
+      "detailTitleSize": 21,
+      "logoSize": 33,
+      "regularWeight": 400,
+      "mediumWeight": 500,
+      "semiboldWeight": 600
+    },
+    "space": {
+      "small": 8,
+      "card": 12,
+      "section": 16,
+      "detailInset": 18,
+      "desktopGutter": 24
+    },
+    "radius": {
+      "column": 10,
+      "panel": 12,
+      "glassCard": 12,
+      "dock": 23
+    }
+  },
+  "semantic": {
+    "appBackground": "{primitive.color.citron}",
+    "workSurface": "{primitive.color.white}",
+    "brand": "{primitive.color.prune}",
+    "sectionHeader": "{primitive.color.pruneHeader}",
+    "textPrimary": "{primitive.color.ink}",
+    "textSecondary": "{primitive.color.mutedInk}",
+    "textOnBrand": "{primitive.color.onPrune}",
+    "accent": "{primitive.color.yellow}",
+    "counterOnHeader": "{primitive.color.yellowCounter}",
+    "activeNavigationMark": "{primitive.color.goldMark}",
+    "selectionSurface": "{primitive.color.citronSelected}",
+    "tableDivider": "{primitive.color.tableSeparator}",
+    "fontInterface": "{primitive.typography.uiFamily}",
+    "fontLogo": "{primitive.typography.logoFamily}"
+  },
+  "component": {
+    "hero": {
+      "background": "{semantic.brand}",
+      "foreground": "{semantic.textOnBrand}",
+      "referenceHeight": 150,
+      "gutter": "{primitive.space.desktopGutter}"
+    },
+    "workPanel": {
+      "background": "{semantic.workSurface}",
+      "radius": "{primitive.radius.panel}"
+    },
+    "kanban": {
+      "gap": "{primitive.space.card}",
+      "columnBackground": "{semantic.workSurface}",
+      "columnRadius": "{primitive.radius.column}",
+      "headerBackground": "{semantic.sectionHeader}",
+      "counterForeground": "{semantic.counterOnHeader}",
+      "cardRadius": "{primitive.radius.glassCard}",
+      "cardWhiteVeilPercent": 16
+    },
+    "ordersTable": {
+      "referenceRowHeight": 63,
+      "headerBackground": "{semantic.sectionHeader}",
+      "selectionBackground": "{semantic.selectionSurface}",
+      "selectionMark": "{semantic.accent}",
+      "divider": "{semantic.tableDivider}"
+    },
+    "dock": {
+      "radius": "{primitive.radius.dock}",
+      "activeMark": "{semantic.activeNavigationMark}",
+      "foreground": "{semantic.textSecondary}",
+      "background": "Verre clair presque incolore, voir les sources figees ; pas une surface opaque prune",
+      "cssFallbackBlur": 3,
+      "cssFallbackSaturationPercent": 120
+    }
+  }
+}

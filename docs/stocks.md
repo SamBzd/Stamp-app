@@ -82,3 +82,18 @@ ouverture de la provenance et actualisation. Les vues bureau et 375 px ont été
 contrôlées : sous 640 px, les tableaux Stocks deviennent des lignes empilées
 avec leurs libellés de quantité, sans débordement horizontal. Aucun avertissement
 ni erreur navigateur n’a été relevé dans ce parcours.
+
+## Bilan dans l’atelier
+
+Depuis la demande de Sam du 10 octobre 2026, l’onglet Bilan mensuel reprend
+les surfaces blanches et les contrôles communs. Le sélecteur affiche un mois
+en toutes lettres et ouvre un dialogue compact accessible au clavier. Le
+chargement reste explicite ; le titre du bilan correspond au mois chargé,
+même si une autre période est ensuite choisie. Le Kanban conserve ses cinq
+états et ses mutations sans filtre de mois. Voir le [contrat du bilan](bilan-commandes.md)
+et la [recette UI](ui/recette-bilan/README.md).
+
+Les onglets Fournitures/Bilan mensuel reposent sur une surface blanche bordée ;
+l’onglet actif a un fond prune et un texte clair. Les cibles conservent 44 px
+de hauteur et la navigation par flèches :
+[ajustements UI](ui/recette-ajustements-ui/README.md).

@@ -87,7 +87,7 @@ const handleClick = (event) => {
 }
 
 .btn:focus-visible {
-  outline: 2px solid rgba(93, 112, 82, 0.40);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -136,7 +136,7 @@ const handleClick = (event) => {
 }
 
 .btn-primary:hover:not(.btn-disabled):not(.btn-loading) {
-  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.30);
+  box-shadow: 0 6px 24px -4px rgba(108, 75, 96, 0.20);
 }
 
 .btn-secondary {
@@ -185,7 +185,7 @@ const handleClick = (event) => {
 }
 
 .btn-success:hover:not(.btn-disabled):not(.btn-loading) {
-  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.30);
+  box-shadow: 0 6px 24px -4px rgba(108, 75, 96, 0.20);
 }
 
 /* === States === */

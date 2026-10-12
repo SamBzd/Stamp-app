@@ -115,15 +115,16 @@ const handleKeydown = event => {
 <style scoped>
 .email-domain-field { position: relative; display: flex; flex-direction: column; gap: var(--spacing-2); margin-bottom: var(--spacing-3); min-width: 0; }
 .email-domain-label { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--text-primary); }
-.email-domain-control { display: flex; align-items: center; min-height: 44px; background: rgba(255, 255, 255, .5); border: 1.5px solid var(--border); border-radius: var(--border-radius-full); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.email-domain-control { display: flex; align-items: center; min-height: var(--control-height); background: var(--card); border: 1.5px solid var(--border); border-radius: var(--control-radius); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
 .email-domain-control:hover:not(.email-domain-control-error) { border-color: var(--muted-foreground); }
-.email-domain-control-focused:not(.email-domain-control-error) { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(93, 112, 82, .12); }
+.email-domain-control-focused:not(.email-domain-control-error) { border-color: var(--primary); box-shadow: var(--control-focus-ring); }
 .email-domain-control-error { border-color: var(--error); }
-.email-domain-control input { width: 100%; min-width: 0; min-height: 44px; padding: var(--spacing-2) var(--spacing-5); border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); }
+.email-domain-control-error.email-domain-control-focused { box-shadow: var(--control-error-ring); }
+.email-domain-control input { width: 100%; min-width: 0; min-height: calc(var(--control-height) - 3px); padding: var(--control-padding); border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); line-height: 1.5; }
 .email-domain-control input::placeholder { color: var(--text-tertiary); }
 .email-domain-list { position: absolute; z-index: var(--z-dropdown); top: calc(100% - var(--spacing-1)); right: 0; left: 0; max-height: 240px; overflow-y: auto; padding: var(--spacing-2); border: 1px solid var(--border); border-radius: var(--border-radius); background: var(--card); box-shadow: var(--shadow-lg); list-style: none; }
 .email-domain-list li { min-height: 40px; display: flex; align-items: center; padding: var(--spacing-2) var(--spacing-3); border-radius: var(--border-radius-sm); color: var(--text-primary); cursor: pointer; overflow-wrap: anywhere; }
 .email-domain-list li:hover, .email-domain-option-active { background: var(--primary-light); }
-.email-domain-error { margin: 0; padding-left: var(--spacing-4); color: var(--error); font-size: var(--font-size-xs); }
+.email-domain-error { margin: 0; padding-left: 0; color: var(--error); font-size: var(--font-size-xs); }
 @media (max-width: 640px) { .email-domain-control input { font-size: 16px; } }
 </style>

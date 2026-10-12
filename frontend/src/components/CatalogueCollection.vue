@@ -40,7 +40,7 @@ import Button from './Button.vue';
 import { cataloguesAPI, papierCartonnesAPI } from '../services/api';
 import { usePaperSearch } from '../composables/usePaperSearch';
 const props = defineProps({ collection: { type: Object, required: true }, mutate: { type: Function, required: true }, disabled: Boolean });
-const emit = defineEmits(['dirty']);
+const emit = defineEmits(['dirty', 'busy']);
 const uid = useId();
 const name = ref(props.collection.nom);
 const editing = ref(false);
@@ -56,6 +56,7 @@ const exactMatch = computed(() => results.value.find(paper => normalizeName(pape
 const availableResults = computed(() => results.value.filter(paper => !selected.value.some(item => item.id === paper.id)));
 const dirty = computed(() => name.value !== props.collection.nom || editing.value);
 watch(dirty, value => emit('dirty', value));
+watch(creating, value => emit('busy', value));
 onBeforeUnmount(paperSearch.stop);
 async function rename() {
   if (!name.value.trim() || props.disabled) return;

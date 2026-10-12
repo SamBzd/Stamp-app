@@ -56,14 +56,15 @@ const handleInput = async event => {
 <style scoped>
 .phone-field { display: flex; flex-direction: column; gap: var(--spacing-2); min-width: 0; }
 .phone-label { color: var(--text-primary); font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
-.phone-control { display: flex; align-items: center; min-height: 44px; background: rgba(255, 255, 255, .5); border: 1.5px solid var(--border); border-radius: var(--border-radius-full); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
+.phone-control { display: flex; align-items: center; min-height: var(--control-height); background: var(--card); border: 1.5px solid var(--border); border-radius: var(--control-radius); transition: border-color var(--transition-fast), box-shadow var(--transition-fast); }
 .phone-control:hover:not(.phone-control-error) { border-color: var(--muted-foreground); }
-.phone-control-focused:not(.phone-control-error) { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(93, 112, 82, .12); }
+.phone-control-focused:not(.phone-control-error) { border-color: var(--primary); box-shadow: var(--control-focus-ring); }
 .phone-control-error { border-color: var(--error); }
-.phone-control input { width: 100%; min-width: 0; min-height: 44px; padding: var(--spacing-2) var(--spacing-5); border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); }
+.phone-control-error.phone-control-focused { box-shadow: var(--control-error-ring); }
+.phone-control input { width: 100%; min-width: 0; min-height: calc(var(--control-height) - 3px); padding: var(--control-padding); border: 0; outline: 0; background: transparent; color: var(--text-primary); font: inherit; font-size: var(--font-size-sm); line-height: 1.5; }
 .phone-control input::placeholder { color: var(--text-tertiary); }
-.phone-hint, .phone-error { margin: 0; padding-left: var(--spacing-4); font-size: var(--font-size-xs); }
-.phone-hint { color: var(--text-tertiary); }
+.phone-hint, .phone-error { margin: 0; padding-left: 0; font-size: var(--font-size-xs); }
+.phone-hint { color: var(--text-secondary); }
 .phone-error { color: var(--error); }
 @media (max-width: 640px) { .phone-control input { font-size: 16px; } }
 </style>

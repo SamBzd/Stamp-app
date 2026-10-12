@@ -1,14 +1,14 @@
 <template>
-  <Layout>
-    <div class="catalogue-workspace">
-      <RouterLink to="/catalogues" class="catalogue-back">← Tous les catalogues</RouterLink>
+  <section class="catalogue-editor" @focusin="keepFocusedControlVisible" aria-label="Préparation du catalogue">
+      <header class="catalogue-editor-header">
+        <button type="button" class="catalogue-editor-close" :disabled="blocked" :aria-label="isNew ? 'Fermer la création du catalogue' : 'Fermer la préparation du catalogue'" @click="emit('close')"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
+        <div class="catalogue-editor-title"><p class="catalogue-eyebrow">{{ isNew ? 'Commencer un brouillon' : 'Atelier catalogue' }}</p><h2 ref="heading" tabindex="-1" class="page-title">{{ isNew ? 'Nouveau catalogue' : catalogue?.titre || 'Préparation du catalogue' }}</h2></div>
+        <span v-if="catalogue" class="catalogue-status" :class="{ published: catalogue.statut === 'publie' && !catalogue.archive }">{{ catalogue.archive ? 'Archivé' : catalogue.statut === 'publie' ? 'Publié' : 'Brouillon' }}</span>
+      </header>
+      <div class="catalogue-editor-body" tabindex="0" role="region" aria-label="Formulaire du catalogue">
       <p v-if="loading" role="status" class="catalogue-section">Chargement du catalogue…</p>
       <div v-else-if="loadError" class="catalogue-section" role="alert"><p class="catalogue-error">{{ loadError }}</p><Button variant="secondary" @click="load">Réessayer</Button></div>
       <template v-else>
-        <header class="page-header">
-          <div><p class="catalogue-eyebrow">{{ isNew ? 'Commencer un brouillon' : 'Atelier catalogue' }}</p><h1 ref="heading" tabindex="-1" class="page-title">{{ isNew ? 'Nouveau catalogue' : catalogue.titre }}</h1></div>
-          <span v-if="catalogue" class="catalogue-status" :class="{ published: catalogue.statut === 'publie' && !catalogue.archive }">{{ catalogue.archive ? 'Archivé' : catalogue.statut === 'publie' ? 'Publié' : 'Brouillon' }}</span>
-        </header>
         <p v-if="error" ref="errorSummary" tabindex="-1" class="catalogue-alert catalogue-error" role="alert">{{ error }}</p>
         <p v-if="notice" class="catalogue-alert" role="status">{{ notice }}</p>
         <p v-if="catalogue?.archive" class="catalogue-alert">Ce catalogue est conservé pour consultation. Restaurez-le pour reprendre sa préparation ; il faudra ensuite le publier explicitement.</p>
@@ -18,7 +18,7 @@
               <h2>1. Nom et matériel</h2>
               <p>Le nom est libre. Un papier spécial, un embellissement ou les deux sont nécessaires avant publication.</p>
               <form @submit.prevent="saveIdentity">
-                <fieldset :disabled="busy || Boolean(catalogue?.archive)">
+                <fieldset :disabled="blocked || Boolean(catalogue?.archive)">
                   <label for="catalogue-title">Nom du catalogue<input id="catalogue-title" v-model="identity.titre" placeholder="Ex. Noël créatif" required /></label>
                   <div class="catalogue-two-columns"><label for="catalogue-special">Papier spécial<input id="catalogue-special" v-model="identity.papier_spe" placeholder="Ex. Kraft naturel" /></label><label for="catalogue-embellishment">Embellissement<input id="catalogue-embellishment" v-model="identity.embellissement" placeholder="Ex. Dimensionals" /></label></div>
                   <p v-if="isNew" class="catalogue-hint">Le brouillon sera enregistré avec les tarifs par défaut actuels. Sa composition pourra être complétée ensuite.</p>
@@ -30,10 +30,10 @@
               <section class="catalogue-section">
                 <div class="catalogue-section-heading"><h2>2. Collections et papiers</h2><span>{{ catalogue.collections.length }}/4</span></div>
                 <p>De 1 à 4 collections, contenant chacune 1 à 5 papiers différents de la bibliothèque.</p>
-                <CatalogueCollection v-for="collection in catalogue.collections" :key="collection.id" :collection="collection" :mutate="mutate" :disabled="busy || Boolean(catalogue.archive)" @dirty="value => collectionDirty[collection.id] = value" />
+                <CatalogueCollection v-for="collection in catalogue.collections" :key="collection.id" :collection="collection" :mutate="mutate" :disabled="blocked || Boolean(catalogue.archive)" @dirty="value => collectionDirty[collection.id] = value" @busy="value => collectionBusy[collection.id] = value" />
                 <form v-if="!catalogue.archive" class="catalogue-inline-form" @submit.prevent="addCollection">
-                  <label for="new-collection">Nouvelle collection<input id="new-collection" v-model="collectionName" :disabled="busy || catalogue.collections.length >= 4" required placeholder="Nom de la collection" /></label>
-                  <Button type="submit" variant="secondary" :disabled="busy || !collectionName.trim() || catalogue.collections.length >= 4">Ajouter une collection</Button>
+                  <label for="new-collection">Nouvelle collection<input id="new-collection" v-model="collectionName" :disabled="blocked || catalogue.collections.length >= 4" required placeholder="Nom de la collection" /></label>
+                  <Button type="submit" variant="secondary" :disabled="blocked || !collectionName.trim() || catalogue.collections.length >= 4">Ajouter une collection</Button>
                 </form>
                 <p v-if="catalogue.collections.length === 4" class="catalogue-hint">Maximum de 4 collections atteint.</p>
               </section>
@@ -41,19 +41,19 @@
                 <div class="catalogue-section-heading"><h2>3. Rubans</h2><span>{{ catalogue.rubans.length }}/2</span></div>
                 <p>Facultatifs : de 0 à 2 rubans nommés, propres à ce catalogue.</p>
                 <form v-for="ruban in catalogue.rubans" :key="ruban.id" class="catalogue-inline-form" @submit.prevent="renameRuban(ruban)">
-                  <label :for="`ruban-${ruban.id}`">Ruban {{ ruban.ordre }}<input :id="`ruban-${ruban.id}`" v-model="rubanNames[ruban.id]" :disabled="busy || Boolean(catalogue.archive)" required /></label>
-                  <Button v-if="!catalogue.archive" type="submit" variant="secondary" size="sm" :disabled="busy || rubanNames[ruban.id] === ruban.nom">Renommer</Button>
+                  <label :for="`ruban-${ruban.id}`">Ruban {{ ruban.ordre }}<input :id="`ruban-${ruban.id}`" v-model="rubanNames[ruban.id]" :disabled="blocked || Boolean(catalogue.archive)" required /></label>
+                  <Button v-if="!catalogue.archive" type="submit" variant="secondary" size="sm" :disabled="blocked || rubanNames[ruban.id] === ruban.nom">Renommer</Button>
                 </form>
                 <form v-if="!catalogue.archive" class="catalogue-inline-form" @submit.prevent="addRuban">
-                  <label for="new-ruban">Nouveau ruban<input id="new-ruban" v-model="rubanName" :disabled="busy || catalogue.rubans.length >= 2" required placeholder="Nom du ruban" /></label>
-                  <Button type="submit" variant="secondary" :disabled="busy || !rubanName.trim() || catalogue.rubans.length >= 2">Ajouter un ruban</Button>
+                  <label for="new-ruban">Nouveau ruban<input id="new-ruban" v-model="rubanName" :disabled="blocked || catalogue.rubans.length >= 2" required placeholder="Nom du ruban" /></label>
+                  <Button type="submit" variant="secondary" :disabled="blocked || !rubanName.trim() || catalogue.rubans.length >= 2">Ajouter un ruban</Button>
                 </form>
                 <p v-if="catalogue.rubans.length === 2" class="catalogue-hint">Maximum de 2 rubans atteint.</p>
               </section>
               <section class="catalogue-section">
                 <h2>4. Tarifs du catalogue</h2>
                 <p>Ces prix sont propres à « {{ catalogue.titre }} ». Les modifier ne change ni les autres catalogues, ni les tarifs par défaut, ni les commandes passées.</p>
-                <CataloguePrices :key="catalogue.id" :prices="catalogue" :disabled="Boolean(catalogue.archive) || busy" :save-prices="savePrices" @dirty="value => pricesDirty = value" />
+                <CataloguePrices :key="catalogue.id" :prices="catalogue" :disabled="Boolean(catalogue.archive) || blocked" :save-prices="savePrices" @dirty="value => pricesDirty = value" />
               </section>
             </template>
           </div>
@@ -64,23 +64,22 @@
             <p v-if="catalogue.collections.length === 1" class="catalogue-hint">Avec une seule collection, seul le format C sera disponible. A et B nécessitent deux collections distinctes.</p>
             <p v-else-if="catalogue.collections.length >= 2" class="catalogue-hint">Formats proposés après publication : A, B et C.</p>
             <p v-if="dirty" class="catalogue-hint">Enregistrez ou annulez vos modifications en cours avant de publier ou archiver.</p>
-            <Button v-if="!catalogue.archive && catalogue.statut === 'brouillon'" :disabled="busy || dirty || Boolean(requirements.length)" :loading="busy" @click="publish">Publier le catalogue</Button>
+            <Button v-if="!catalogue.archive && catalogue.statut === 'brouillon'" :disabled="blocked || dirty || Boolean(requirements.length)" :loading="busy" @click="publish">Publier le catalogue</Button>
             <p v-if="catalogue.statut === 'publie'" class="catalogue-hint">Une modification rendant sa composition incomplète le remettra automatiquement en brouillon.</p>
-            <div class="catalogue-archive-action"><Button variant="secondary" :disabled="busy || dirty" @click="archiveDialog = true">{{ catalogue.archive ? 'Restaurer le catalogue' : 'Archiver le catalogue' }}</Button></div>
+            <div class="catalogue-archive-action"><Button variant="secondary" :disabled="blocked || dirty" @click="archiveDialog = true">{{ catalogue.archive ? 'Restaurer le catalogue' : 'Archiver le catalogue' }}</Button></div>
           </aside>
         </div>
       </template>
+      </div>
       <ConfirmDialog :is-open="archiveDialog" :title="catalogue?.archive ? 'Restaurer le catalogue' : 'Archiver le catalogue'"
         :message="catalogue?.archive ? 'Le catalogue sera restauré en brouillon. Vous pourrez le publier après vérification.' : 'Le catalogue restera consultable et sera retiré des nouvelles commandes. Ses collections, papiers et rubans seront conservés.'"
         :confirm-text="catalogue?.archive ? 'Restaurer' : 'Archiver'" :loading="busy" @confirm="setArchive" @cancel="archiveDialog = false" />
-    </div>
-  </Layout>
+  </section>
 </template>
 
 <script setup>
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue';
-import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
-import Layout from '../components/Layout.vue';
+import { keepFocusedControlVisible } from '../utils/viewportFocus';
 import Button from '../components/Button.vue';
 import ConfirmDialog from '../components/ConfirmDialog.vue';
 import CatalogueCollection from '../components/CatalogueCollection.vue';
@@ -88,13 +87,13 @@ import CataloguePrices from '../components/CataloguePrices.vue';
 import { cataloguesAPI } from '../services/api';
 import { useCataloguesStore } from '../stores/catalogues';
 import { catalogueMutationNotice, publicationErrors } from '../utils/catalogue';
-const route = useRoute();
-const router = useRouter();
+const props = defineProps({ catalogueId: { type: String, required: true } });
+const emit = defineEmits(['created', 'dirty', 'busy', 'close']);
 const store = useCataloguesStore();
 const catalogue = ref(null);
 const heading = ref(null);
 const identity = ref({ titre: '', papier_spe: '', embellissement: '' });
-const identityBaseline = ref('');
+const identityBaseline = ref(JSON.stringify(identity.value));
 const loading = ref(false);
 const busy = ref(false);
 const loadError = ref('');
@@ -107,9 +106,13 @@ const rubanNames = ref({});
 const collectionDirty = ref({});
 const pricesDirty = ref(false);
 const archiveDialog = ref(false);
-const isNew = computed(() => route.params.id === 'nouveau');
+const collectionBusy = ref({});
+const blocked = computed(() => busy.value || Object.values(collectionBusy.value).some(Boolean));
+const isNew = computed(() => props.catalogueId === 'nouveau');
+watch(blocked, value => emit('busy', value), { immediate: true });
 const identityDirty = computed(() => JSON.stringify(identity.value) !== identityBaseline.value);
 const dirty = computed(() => identityDirty.value || pricesDirty.value || Object.values(collectionDirty.value).some(Boolean) || Boolean(collectionName.value.trim()) || Boolean(rubanName.value.trim()) || catalogue.value?.rubans.some(ruban => rubanNames.value[ruban.id] !== ruban.nom));
+watch(dirty, value => emit('dirty', Boolean(value)), { immediate: true });
 const requirements = computed(() => catalogue.value ? publicationErrors(catalogue.value) : []);
 function syncIdentity() {
   identity.value = { titre: catalogue.value?.titre || '', papier_spe: catalogue.value?.papier_spe || '', embellissement: catalogue.value?.embellissement || '' };
@@ -120,17 +123,26 @@ function remember(value) {
   store.rememberCatalogue(value);
   for (const ruban of value.rubans) if (!(ruban.id in rubanNames.value)) rubanNames.value[ruban.id] = ruban.nom;
 }
+let loadGeneration = 0;
 async function load() {
+  const generation = ++loadGeneration;
+  const id = props.catalogueId;
   loading.value = true; loadError.value = ''; error.value = ''; notice.value = '';
   catalogue.value = null; rubanNames.value = {}; collectionDirty.value = {}; pricesDirty.value = false;
   collectionName.value = ''; rubanName.value = '';
-  try { if (!isNew.value) remember(await cataloguesAPI.getById(route.params.id)); syncIdentity(); }
-  catch (failure) { loadError.value = failure.message; }
-  finally { loading.value = false; await nextTick(); heading.value?.focus(); }
+  try {
+    if (id !== 'nouveau') {
+      const detail = await cataloguesAPI.getById(id);
+      if (generation !== loadGeneration) return;
+      remember(detail);
+    }
+    syncIdentity();
+  } catch (failure) { if (generation === loadGeneration) loadError.value = failure.message; }
+  finally { if (generation === loadGeneration) { loading.value = false; await nextTick(); heading.value?.focus(); } }
 }
-watch(() => route.params.id, load, { immediate: true });
+watch(() => props.catalogueId, load, { immediate: true });
 async function mutate(action, message) {
-  if (busy.value) return false;
+  if (blocked.value) return false;
   busy.value = true; error.value = ''; notice.value = '';
   const previousStatus = catalogue.value?.statut;
   try {
@@ -142,14 +154,14 @@ async function mutate(action, message) {
   finally { busy.value = false; }
 }
 async function saveIdentity() {
-  if (busy.value || catalogue.value?.archive || !identity.value.titre.trim()) return;
+  if (blocked.value || catalogue.value?.archive || !identity.value.titre.trim()) return;
   const payload = { titre: identity.value.titre.trim(), papier_spe: identity.value.papier_spe.trim() || null, embellissement: identity.value.embellissement.trim() || null };
   if (isNew.value) {
     busy.value = true; error.value = '';
     try {
       const created = await store.createCatalogue(payload);
       identityBaseline.value = JSON.stringify(identity.value);
-      await router.replace(`/catalogues/${created.id}`);
+      emit('created', created);
     } catch (failure) { error.value = failure.message; await nextTick(); errorSummary.value?.focus(); }
     finally { busy.value = false; }
   } else if (await mutate(() => cataloguesAPI.update(catalogue.value.id, payload), 'Informations enregistrées.')) syncIdentity();
@@ -167,33 +179,46 @@ async function renameRuban(ruban) {
   if (await mutate(() => cataloguesAPI.updateRuban(ruban.id, rubanNames.value[ruban.id].trim()), 'Ruban renommé.')) rubanNames.value[ruban.id] = catalogue.value.rubans.find(item => item.id === ruban.id).nom;
 }
 const savePrices = payload => mutate(() => cataloguesAPI.update(catalogue.value.id, payload), 'Tarifs du catalogue enregistrés.');
-const publish = () => { if (!dirty.value && !requirements.value.length && !catalogue.value.archive) return mutate(() => cataloguesAPI.publish(catalogue.value.id), 'Catalogue publié.'); };
+const publish = () => { if (!blocked.value && !dirty.value && !requirements.value.length && !catalogue.value.archive) return mutate(() => cataloguesAPI.publish(catalogue.value.id), 'Catalogue publié.'); };
 async function setArchive() {
-  if (dirty.value) return;
+  if (dirty.value || blocked.value) return;
   if (await mutate(() => cataloguesAPI.setArchive(catalogue.value.id, !catalogue.value.archive), catalogue.value.archive ? 'Catalogue restauré en brouillon.' : 'Catalogue archivé.')) archiveDialog.value = false;
 }
-const leave = () => !dirty.value || window.confirm('Des modifications ne sont pas enregistrées. Quitter ce catalogue ?');
-onBeforeRouteLeave(leave);
-onBeforeRouteUpdate(leave);
 function warnBeforeUnload(event) {
-  if (!dirty.value) return;
+  if (!dirty.value && !blocked.value) return;
   event.preventDefault();
   event.returnValue = '';
 }
-watch(dirty, isDirty => {
-  if (isDirty) window.addEventListener('beforeunload', warnBeforeUnload);
+watch([dirty, blocked], ([isDirty, isBusy]) => {
+  if (isDirty || isBusy) window.addEventListener('beforeunload', warnBeforeUnload);
   else window.removeEventListener('beforeunload', warnBeforeUnload);
 }, { immediate: true });
-onBeforeUnmount(() => window.removeEventListener('beforeunload', warnBeforeUnload));
+onBeforeUnmount(() => { ++loadGeneration; window.removeEventListener('beforeunload', warnBeforeUnload); });
 </script>
 
 <style scoped>
-.catalogue-back { display: inline-block; color: var(--text-secondary); margin-bottom: var(--spacing-5); }
-.catalogue-eyebrow { color: var(--primary); font-size: 13px; font-weight: 600; margin-bottom: var(--spacing-2); }
-.catalogue-editor-layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: var(--spacing-6); align-items: start; }
-.catalogue-editor-main { display: grid; gap: var(--spacing-5); min-width: 0; }
-.catalogue-publication { position: sticky; top: 90px; }
-.catalogue-requirements { padding-left: var(--spacing-5); display: grid; gap: var(--spacing-2); }
-.catalogue-archive-action { border-top: 1px solid var(--border); padding-top: var(--spacing-5); }
-@media (max-width: 1100px) { .catalogue-editor-layout { grid-template-columns: 1fr; } .catalogue-publication { position: static; } }
+.catalogue-editor { display: flex; flex-direction: column; height: 100%; min-height: 0; min-width: 0; overflow: hidden; background: var(--card); border-radius: 12px; box-shadow: var(--shadow-sm); }
+.catalogue-editor-header { display: flex; align-items: start; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border-light); flex-shrink: 0; background: var(--card); }
+.catalogue-editor-title { min-width: 0; flex: 1; }
+.catalogue-editor .catalogue-editor-close { flex: 0 0 44px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: transparent; color: var(--primary); }
+.catalogue-editor-close svg { width: 24px; height: 24px; }
+.catalogue-editor .catalogue-editor-close:hover { background: var(--surface-hover); }
+.catalogue-editor-header .catalogue-status { flex-shrink: 0; }
+.catalogue-editor-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 0 20px 20px; scroll-padding-block: 16px; }
+.catalogue-editor-body:focus-visible { outline: 2px solid var(--primary); outline-offset: -3px; }
+.catalogue-editor .page-title { color: var(--primary); font-size: 24px; line-height: 1.3; }
+.catalogue-eyebrow { color: var(--text-secondary); font-size: 12px; margin-bottom: 4px; }
+.catalogue-editor-layout, .catalogue-editor-main { display: grid; gap: 0; min-width: 0; align-items: start; }
+.catalogue-publication { align-content: start; }
+.catalogue-editor .catalogue-section { padding: 20px 0; border: 0; border-radius: 0; border-top: 1px solid var(--border-light); gap: 12px; }
+.catalogue-editor .catalogue-section h2 { color: var(--primary); font-size: 17px; font-weight: 600; }
+.catalogue-editor .catalogue-section > p { font-size: 13px; }
+.catalogue-editor :deep(.catalogue-collection) { background: var(--card); border: 0; border-radius: 0; padding: 12px 0; border-top: 1px solid var(--border-light); gap: 12px; }
+.catalogue-editor :deep(.catalogue-paper-tag) { border-radius: 4px; padding: 4px 8px; }
+.catalogue-requirements { padding-left: 18px; display: grid; gap: 6px; font-size: 13px; }
+.catalogue-archive-action { border-top: 1px solid var(--border-light); padding-top: 12px; }
+@media (min-width: 1250px) { .catalogue-editor-layout { grid-template-columns: minmax(0, 1fr) 230px; gap: 20px; } .catalogue-publication { position: sticky; top: 16px; } }
+@media (min-width: 901px) { .catalogue-editor-body { padding-bottom: var(--dock-clearance, 20px); scroll-padding-bottom: var(--dock-clearance, 20px); } }
+@media (max-width: 900px) { .catalogue-editor { height: 65dvh; min-height: 240px; } }
+@media (max-width: 600px) { .catalogue-editor-header { padding: 12px; gap: 8px; flex-wrap: wrap; } .catalogue-editor-header .catalogue-status { margin-left: 52px; } .catalogue-editor-body { padding: 0 16px 16px; } .catalogue-editor .page-title { font-size: 21px; } }
 </style>

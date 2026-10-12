@@ -11,6 +11,8 @@
         :value="modelValue"
         :required="required"
         :disabled="disabled"
+        :aria-invalid="Boolean(error)"
+        :aria-describedby="error || hint ? `${selectId}-feedback` : undefined"
         class="form-select"
         @change="handleChange"
         @focus="handleFocus"
@@ -26,19 +28,19 @@
           {{ option.label }}
         </option>
       </select>
-      <span class="select-icon">
+      <span class="select-icon" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="6 9 12 15 18 9"/>
         </svg>
       </span>
     </div>
-    <p v-if="error" class="form-error">{{ error }}</p>
-    <p v-else-if="hint" class="form-hint">{{ hint }}</p>
+    <p v-if="error" :id="`${selectId}-feedback`" class="form-error" role="alert">{{ error }}</p>
+    <p v-else-if="hint" :id="`${selectId}-feedback`" class="form-hint">{{ hint }}</p>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, useId } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -76,7 +78,7 @@ const props = defineProps({
   },
 });
 
-const selectId = computed(() => `select-${Math.random().toString(36).substr(2, 9)}`);
+const selectId = useId();
 const selectRef = ref(null);
 const isFocused = ref(false);
 
@@ -125,9 +127,9 @@ defineExpose({
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.50);
+  background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: var(--border-radius-full);
+  border-radius: var(--control-radius);
   transition: all var(--transition-fast);
 }
 
@@ -137,7 +139,7 @@ defineExpose({
 
 .select-focused:not(.select-error) {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(93, 112, 82, 0.12);
+  box-shadow: var(--control-focus-ring);
 }
 
 .select-error {
@@ -145,16 +147,17 @@ defineExpose({
 }
 
 .select-error.select-focused {
-  box-shadow: 0 0 0 3px rgba(168, 84, 72, 0.12);
+  box-shadow: var(--control-error-ring);
 }
 
 .form-select {
   flex: 1;
-  padding: var(--spacing-3) var(--spacing-10) var(--spacing-3) var(--spacing-5);
+  padding: 10px 40px 10px 12px;
   border: none;
   background: transparent;
   font-size: var(--font-size-sm);
   font-family: var(--font-family);
+  line-height: 1.5;
   color: var(--text-primary);
   cursor: pointer;
   appearance: none;
@@ -162,7 +165,7 @@ defineExpose({
   -moz-appearance: none;
   min-width: 0;
   width: 100%;
-  min-height: 48px;
+  min-height: calc(var(--control-height) - 3px);
 }
 
 .form-select:focus {
@@ -204,13 +207,14 @@ defineExpose({
   font-size: var(--font-size-xs);
   color: var(--error);
   margin: 0;
-  padding-left: var(--spacing-4);
+  padding-left: 0;
 }
 
 .form-hint {
   font-size: var(--font-size-xs);
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   margin: 0;
-  padding-left: var(--spacing-4);
+  padding-left: 0;
 }
+@media (max-width: 640px) { .form-select { font-size: 16px; } }
 </style>
