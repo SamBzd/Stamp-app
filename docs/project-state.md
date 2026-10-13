@@ -114,9 +114,11 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   La recette consolidée (#12) est clôturée : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
   La préparation NAS #13 reste ouverte : voir [le plan de livraison](livraison-nas.md).
-  Une répétition Docker locale et un import préparatoire de 25 clientes sur
-  copie diagnostique ont été vérifiés. La sauvegarde cohérente, la restauration
-  de l’ancienne version et la répétition sur NAS restent à réaliser.
+  La collecte technique, la restauration isolée de l’ancienne application et
+  la recette ciblée de la nouvelle version sur NAS sont validées par Sam le
+  13 octobre 2026. Les détails opérationnels restent dans une note locale
+  exclue de Git. La sauvegarde cohérente actualisée, le nouvel import final
+  et la bascule autorisée restent à réaliser.
   Ce socle n’est pas encore déployé.
 - Le formulaire Catalogue V2 est réalisé localement le 13 octobre 2026 sur
   `codex/petits-fix` : liste 1/3, formulaire 2/3, quatre étapes à navigation libre
