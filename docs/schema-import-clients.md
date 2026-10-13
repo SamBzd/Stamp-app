@@ -130,6 +130,50 @@ Les noms et prénoms doivent être des textes non vides ; les champs optionnels
 sont des textes non vides ou NULL. `date_naissance` est une date valide
 `YYYY-MM-DD` ou NULL ; `created_at` est un horodatage ISO valide ; `contacter`
 est l'entier 0 ou 1. Aucune valeur vide ou ambiguë n'est corrigée silencieusement.
+
+Sam autorise le 12 octobre 2026 la conversion des **seules dates de naissance
+vides** en NULL lors de l’import. Elle exige l’option explicite
+`--empty-birthdates-as-null`, identique pour le précontrôle et l’import :
+
+```bash
+node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --empty-birthdates-as-null --check
+node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --empty-birthdates-as-null
+```
+
+L’outil annonce le nombre de dates vides converties. La source reste en lecture
+seule ; seuls les textes vides ou composés d’espaces deviennent NULL en cible.
+Une date ISO valide est conservée, une date déjà NULL reste NULL. Les dates
+renseignées sans année ou invalides restent refusées : aucune année inventée
+et aucun anniversaire renseigné supprimé. Les autres champs facultatifs vides
+restent refusés et demandent une décision distincte. Sans cette option,
+le comportement strict initial est conservé.
+
+### Décision suivante : champs facultatifs incompatibles à NULL
+
+Sam élargit ensuite la décision du 12 octobre 2026 : tout champ facultatif
+incompatible avec le contrat d’import devient NULL en cible. L’option explicite
+`--invalid-optional-fields-as-null` remplace l’option limitée aux dates vides
+pour la préparation NAS :
+
+```bash
+node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --invalid-optional-fields-as-null --check
+node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --invalid-optional-fields-as-null
+```
+
+Cette option met à NULL les dates de naissance non ISO/invalides (y compris
+les anniversaires jour/mois sans année) et les champs facultatifs textuels
+vides ou de type incompatible : adresse, code postal, ville, email, téléphone,
+relais préféré. Les valeurs compatibles restent identiques ; aucun contrôle
+de validité supplémentaire d’email, téléphone ou adresse n’est inventé.
+Le rapport expose uniquement les nombres convertis par champ, sans coordonnées.
+Les NULL existants ne comptent pas comme conversions. La source n’est pas modifiée.
+
+Nom, prénom, préférence de contact et date de création sont obligatoires dans
+la cible : une valeur invalide reste bloquante. Une colonne source manquante
+ou un doublon d’email renseigné reste bloquant, sans fusion ni effacement
+automatique. Sans option, le mode strict demeure ; l’option précédente garde
+son comportement limité pour les usages qui souhaitent conserver cette règle.
+
 Les doublons d'email suivent exactement la normalisation SQLite
 `lower(trim(email))` du schéma (ASCII, pas de normalisation Unicode ajoutée).
 Plusieurs emails NULL sont permis ; aucun rapprochement par nom/téléphone

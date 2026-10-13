@@ -4,6 +4,11 @@ Utilise cette checklist lorsqu'une version validée localement doit être livré
 sur le NAS. Une livraison réelle exige l'autorisation explicite de Sam ; ce
 document ne remplace ni une sauvegarde ni une procédure de restauration testée.
 
+Pour la première bascule depuis la production historique, suivre le
+[plan NAS #13](livraison-nas.md) : créer une base et un volume distincts avec
+les seules clientes. La migration en place ci-dessous concerne uniquement
+une base déjà compatible avec la version livrée.
+
 ## Avant la livraison
 
 - [ ] La PR est fusionnée dans `main`, la CI est verte et le commit à livrer est identifié.
