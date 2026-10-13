@@ -47,7 +47,7 @@ function assertSourceColumns(source) {
   }
 }
 
-function validateRows(source) {
+function validateRows(source, { emptyBirthdatesAsNull = false, invalidOptionalFieldsAsNull = false } = {}) {
   assertSourceColumns(source);
   const rows = source.prepare(`
     SELECT ${SOURCE_FIELDS.map((field) => `"${field}"`).join(', ')},
@@ -56,6 +56,12 @@ function validateRows(source) {
     ORDER BY id
   `).all();
   const seenEmails = new Set();
+  let emptyBirthdatesConverted = 0;
+  const optionalFieldsConverted = {};
+  function nullify(row, field) {
+    row[field] = null;
+    optionalFieldsConverted[field] = (optionalFieldsConverted[field] || 0) + 1;
+  }
 
   rows.forEach((row, index) => {
     const rowNumber = index + 1;
@@ -65,7 +71,13 @@ function validateRows(source) {
       }
     }
     if (row.date_naissance !== null && !isDate(row.date_naissance)) {
-      fail(rowNumber, 'date_naissance', 'une date ISO YYYY-MM-DD ou NULL est attendue');
+      const blank = isBlank(row.date_naissance);
+      if (invalidOptionalFieldsAsNull === true || (emptyBirthdatesAsNull === true && blank)) {
+        nullify(row, 'date_naissance');
+        if (blank) emptyBirthdatesConverted += 1;
+      } else {
+        fail(rowNumber, 'date_naissance', 'une date ISO YYYY-MM-DD ou NULL est attendue');
+      }
     }
     if (typeof row.created_at !== 'string' || isBlank(row.created_at) || !isTimestamp(row.created_at)) {
       fail(rowNumber, 'created_at', 'un horodatage ISO non vide est attendu');
@@ -75,7 +87,12 @@ function validateRows(source) {
     }
     for (const field of OPTIONAL_TEXT_FIELDS) {
       if (row[field] !== null && (typeof row[field] !== 'string' || isBlank(row[field]))) {
-        fail(rowNumber, field, 'un texte non vide ou NULL est attendu');
+        if (invalidOptionalFieldsAsNull === true) {
+          nullify(row, field);
+          if (field === 'email') row.email_norm = null;
+        } else {
+          fail(rowNumber, field, 'un texte non vide ou NULL est attendu');
+        }
       }
     }
     if (row.email_norm !== null) {
@@ -86,7 +103,19 @@ function validateRows(source) {
     }
   });
 
-  return rows;
+  return { rows, emptyBirthdatesConverted, optionalFieldsConverted };
+}
+
+function sourceReport(validated, options) {
+  return {
+    clientCount: validated.rows.length,
+    ...(options.emptyBirthdatesAsNull === true
+      ? { emptyBirthdatesConverted: validated.emptyBirthdatesConverted }
+      : {}),
+    ...(options.invalidOptionalFieldsAsNull === true
+      ? { optionalFieldsConverted: validated.optionalFieldsConverted }
+      : {})
+  };
 }
 
 function resolvePaths({ sourcePath, targetPath } = {}) {
@@ -112,7 +141,7 @@ function inspectSource(options = {}) {
   const source = new Database(resolvedSource, { readonly: true, fileMustExist: true });
   try {
     source.pragma('query_only = ON');
-    return { clientCount: validateRows(source).length };
+    return sourceReport(validateRows(source, options), options);
   } finally {
     source.close();
   }
@@ -125,14 +154,16 @@ function createTemporaryTargetPath(targetPath) {
   );
 }
 
-function importClients({ sourcePath, targetPath, schemaPath, migrationsDirectory } = {}) {
+function importClients({ sourcePath, targetPath, schemaPath, migrationsDirectory, emptyBirthdatesAsNull = false, invalidOptionalFieldsAsNull = false } = {}) {
   const { resolvedSource, resolvedTarget } = resolvePaths({ sourcePath, targetPath });
 
   const source = new Database(resolvedSource, { readonly: true, fileMustExist: true });
   let temporaryTarget;
   try {
     source.pragma('query_only = ON');
-    const rows = validateRows(source);
+    const options = { emptyBirthdatesAsNull, invalidOptionalFieldsAsNull };
+    const validated = validateRows(source, options);
+    const { rows } = validated;
     const effectiveSchemaPath = schemaPath ?? path.resolve(__dirname, '../../../db/schema.sql');
     const schema = fs.readFileSync(effectiveSchemaPath, 'utf8');
     temporaryTarget = createTemporaryTargetPath(resolvedTarget);
@@ -167,7 +198,7 @@ function importClients({ sourcePath, targetPath, schemaPath, migrationsDirectory
     }
     fs.unlinkSync(temporaryTarget);
     temporaryTarget = undefined;
-    return { clientCount: rows.length };
+    return sourceReport(validated, options);
   } finally {
     source.close();
     if (temporaryTarget && fs.existsSync(temporaryTarget)) fs.unlinkSync(temporaryTarget);

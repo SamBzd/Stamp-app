@@ -100,7 +100,9 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   Il demande aussi un bandeau compact (96 px minimum desktop), réalisé
   et validé visuellement avec autorisation de commit/push :
   [validation actuelle de #39](ui/validation-issue39.md).
-  Zoom 200 % et consolidation de la recette restent ouverts.
+  Le zoom Chromium natif à 200 % est vérifié. Les PR #40 et #41 sont
+  fusionnées dans `main` et les issues #39, #24 et #25 sont clôturées.
+  Les réserves ciblées de recette restent consignées dans la validation UI.
   La migration v3 est
   documentée, mais cette évolution reste non déployée. Le workflow persistant
   des fournitures (#30) est décrit par son
@@ -109,9 +111,13 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   dans cinq colonnes, avec déplacements partiels, archivage des piles traitées
   et alertes anonymes : voir le
   [contrat API et d’interface](workflow-fournitures-api.md).
-  La recette consolidée (#12) est en cours : voir
+  La recette consolidée (#12) est clôturée : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
-  Ce socle n’est pas prêt pour le déploiement.
+  La préparation NAS #13 reste ouverte : voir [le plan de livraison](livraison-nas.md).
+  Une répétition Docker locale et un import préparatoire de 25 clientes sur
+  copie diagnostique ont été vérifiés. La sauvegarde cohérente, la restauration
+  de l’ancienne version et la répétition sur NAS restent à réaliser.
+  Ce socle n’est pas encore déployé.
 - Le formulaire Catalogue V2 est réalisé localement le 13 octobre 2026 sur
   `codex/petits-fix` : liste 1/3, formulaire 2/3, quatre étapes à navigation libre
   après création du brouillon nommé et sauvegardes par section conservées.
