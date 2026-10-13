@@ -10,13 +10,13 @@
         <div class="price-input">
           <input :id="`${uid}-${format}`" v-model="values[format]" type="text" inputmode="decimal"
             :disabled="disabled || saving" :aria-invalid="Boolean(errors[format])"
-            :aria-describedby="errors[format] ? `${uid}-${format}-error` : `${uid}-hint`" />
+            :aria-describedby="errors[format] ? `${uid}-${format}-error` : compact ? undefined : `${uid}-hint`" />
           <span aria-hidden="true">€</span>
         </div>
         <p v-if="errors[format]" :id="`${uid}-${format}-error`" class="catalogue-error">{{ errors[format] }}</p>
       </div>
     </div>
-    <p :id="`${uid}-hint`" class="catalogue-hint">De 0 à 100 € par format, deux décimales maximum. La virgule et le point sont acceptés.</p>
+    <p v-if="!compact" :id="`${uid}-hint`" class="catalogue-hint">De 0 à 100 € par format, deux décimales maximum. La virgule et le point sont acceptés.</p>
     <p v-if="error" ref="serverError" tabindex="-1" class="catalogue-error" role="alert">{{ error }}</p>
     <p v-if="success" role="status" class="catalogue-success">Tarifs enregistrés.</p>
     <Button v-if="!disabled" type="submit" variant="secondary" :loading="saving" :disabled="!dirty">Enregistrer les tarifs</Button>
@@ -27,7 +27,7 @@
 import { computed, nextTick, ref, useId, watch } from 'vue';
 import Button from './Button.vue';
 import { centsToInput, eurosToCents, formats } from '../utils/catalogue';
-const props = defineProps({ prices: { type: Object, required: true }, savePrices: { type: Function, required: true }, disabled: Boolean });
+const props = defineProps({ prices: { type: Object, required: true }, savePrices: { type: Function, required: true }, disabled: Boolean, compact: Boolean });
 const emit = defineEmits(['dirty']);
 const uid = useId();
 const values = ref({});

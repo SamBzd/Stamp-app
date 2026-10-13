@@ -112,6 +112,14 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   La recette consolidée (#12) est en cours : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
   Ce socle n’est pas prêt pour le déploiement.
+- Le formulaire Catalogue V2 est réalisé localement le 13 octobre 2026 sur
+  `codex/petits-fix` : liste 1/3, formulaire 2/3, quatre étapes à navigation libre
+  après création du brouillon nommé et sauvegardes par section conservées.
+  Sam a choisi ensuite une composition en onglets avec cinq cartes papier par
+  collection et titre modifiable au clic, réalisée sur cette même branche.
+  Le contrat API et les règles métier sont inchangés. La validation visuelle
+  de Sam reste ouverte : [parcours](catalogue-ui.md#formulaire-v2--petits-correctifs-du-13-octobre-2026)
+  et [recette](ui/recette-catalogue-v2/README.md). Aucun déploiement.
 - Les anciens catalogues, collections, commandes, stocks et bilans de
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.
@@ -124,3 +132,18 @@ Informations encore à confirmer :
 - méthode souhaitée pour tester puis déployer `main`.
 
 Ces points sont des questions de découverte. Ils ne constituent ni un backlog validé ni une autorisation de modifier l'application.
+
+## Navigation conservée
+
+Le 13 octobre 2026, Sam teste le dock en haut puis intégré au bandeau avec
+liquid glass. Il demande finalement le retour à la disposition d’origine :
+dock fixe en bas et phrase descriptive dans le bandeau. Les essais sont
+abandonnés ; [trace des essais](ui/essai-navigation-glass/README.md).
+Aucun commit ni déploiement.
+
+## Bords des conteneurs harmonisés
+
+Sam demande le 13 octobre 2026 d’étendre le bord suivant la dernière ligne du
+détail Catalogue aux panneaux de l’application. Implémentation partagée locale
+pour les listes, détails et formulaires ; les colonnes Fournitures suivent aussi
+leur contenu. [Recette](ui/recette-bords-conteneurs/README.md). Aucun déploiement.

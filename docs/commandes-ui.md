@@ -180,3 +180,15 @@ Le champ date hors kit occupe toute la largeur disponible du formulaire,
 y compris dans sa disposition verticale. Sans commande sélectionnée, le
 panneau d’aide suit son texte. Les listes courtes n’ont plus de gouttière vide
 à droite du surlignage : [ajustements UI](ui/recette-ajustements-ui/README.md).
+
+## Allègement des textes du kit — 13 octobre 2026
+
+À la demande de Sam, les contrôles de quantité ne sont plus accompagnés des
+rappels base/à préparer, compteur complet et Total atteint. Seule une répartition
+incomplète affiche un état local concis. Les quantités à préparer sont dans le
+résumé et les explications redondantes des tarifs, matériaux et suppléments sont
+retirées. Les erreurs, limites et règles métier restent identiques.
+[Recette et capture](ui/recette-kit-textes/README.md).
+
+Le champ Date de commande du kit et son calendrier déplié prennent toute la
+largeur du formulaire principal, sur une ligne sous le paiement.

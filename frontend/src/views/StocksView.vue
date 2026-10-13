@@ -238,13 +238,13 @@ onMounted(refreshWorkflow);
 .workflow-alerts ul { display: grid; gap: var(--spacing-2); padding-left: var(--spacing-6); }
 .workflow-alerts li span { display: block; color: var(--text-secondary); }
 .workflow-error { margin-bottom: var(--spacing-4); }
-.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: stretch; gap: var(--spacing-3); }
+.kanban { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-items: start; gap: var(--spacing-3); }
 .kanban-column { min-width: 0; border-radius: var(--border-radius-lg); background: var(--card); box-shadow: var(--shadow-sm); transition: background-color var(--transition-fast); }
 .kanban-column-drop { outline: 3px solid var(--primary); outline-offset: 2px; background: var(--primary-light); }
 .kanban-column-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--spacing-2); min-height: 48px; padding: var(--spacing-3); border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0; background: var(--atelier-header); color: var(--primary-foreground); }
 .kanban-column-header h2 { min-width: 0; overflow-wrap: anywhere; font-size: var(--font-size-sm); line-height: var(--line-height-tight); }
 .column-count { color: var(--atelier-counter); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
-.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); min-height: 302px; padding: var(--spacing-3); }
+.kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); padding: var(--spacing-3); }
 .fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 0; border-radius: var(--atelier-card-radius); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
 .fourniture-card:hover { box-shadow: 0 4px 12px rgb(108 75 96 / 13%), 0 1px 2px rgb(108 75 96 / 6%); }
 .fourniture-card:active { cursor: grabbing; }
@@ -258,7 +258,7 @@ onMounted(refreshWorkflow);
 .fourniture-actions button:hover { border-color: var(--primary); color: var(--primary); }
 .fourniture-actions button:disabled { cursor: not-allowed; opacity: .55; }
 .fourniture-actions .finish-button { border-color: var(--destructive); color: var(--destructive); }
-.column-empty { display: grid; min-height: 130px; place-items: center; align-content: center; gap: var(--spacing-2); color: var(--text-tertiary); text-align: center; font-size: var(--font-size-sm); }
+.column-empty { display: grid; place-items: center; align-content: center; gap: var(--spacing-2); color: var(--text-tertiary); text-align: center; font-size: var(--font-size-sm); }
 .column-empty svg { width: 26px; }
 .move-form { display: grid; gap: var(--spacing-3); }
 .move-form label { font-weight: var(--font-weight-semibold); }
@@ -304,7 +304,7 @@ onMounted(refreshWorkflow);
 @media (max-width: 640px) {
   .workflow-toolbar { align-items: stretch; flex-direction: column; }
   .kanban { grid-template-columns: 1fr; }
-  .kanban-column-content { min-height: 120px; }
+
   .tabs { overflow-x: auto; }
   .tab-btn { flex: 1 0 auto; }
   .bilan-toolbar, .bilan-ca-card { padding: 16px; }

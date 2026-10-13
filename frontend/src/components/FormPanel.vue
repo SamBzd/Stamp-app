@@ -1,5 +1,5 @@
 <template>
-  <section ref="panel" v-if="isOpen" class="form-panel" :aria-label="title" @keydown.esc.stop.prevent="requestClose" @focusin="keepFocusedControlVisible">
+  <section ref="panel" v-if="isOpen" v-following-bottom="{ body: '.form-panel-body', enabled: true }" class="form-panel" :aria-label="title" @keydown.esc.stop.prevent="requestClose" @focusin="keepFocusedControlVisible">
     <header class="form-panel-header">
       <button type="button" class="form-panel-close" :disabled="busy" :aria-label="`Fermer : ${title}`" @click="requestClose"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="m6 6 12 12M6 18 18 6"/></svg></button>
       <div><p class="form-panel-eyebrow">Atelier · {{ eyebrow }}</p><h2 ref="heading" tabindex="-1">{{ title }}</h2></div>
@@ -10,6 +10,7 @@
 </template>
 
 <script setup>
+import { vFollowingBottom } from '../directives/followingBottom';
 import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
 import { keepFocusedControlVisible } from '../utils/viewportFocus';
 const props = defineProps({ isOpen: Boolean, busy: Boolean, title: String, eyebrow: { type: String, default: 'Création et modification' }, returnFocusId: { type: String, default: '' } });

@@ -3,7 +3,7 @@
     <div class="catalogue-workspace catalogue-list-workspace">
       <div class="catalogue-actions"><Button @click="openCreation" :disabled="editorBusy">Nouveau catalogue</Button></div>
       <div class="catalogue-browse" :class="{ 'catalogue-settings-only': tab === 'parametres', 'catalogue-preparing': editorMode }">
-      <section class="catalogue-list-panel" aria-label="Gestion des catalogues">
+      <section class="catalogue-list-panel" v-following-bottom="{ body: followingListBody }" aria-label="Gestion des catalogues">
         <header id="catalogue-list-heading" class="catalogue-list-heading" tabindex="-1">
           <nav class="catalogue-list-tabs" aria-label="Gestion des catalogues">
             <RouterLink to="/catalogues" :aria-current="tab === 'catalogues' ? 'page' : undefined">Catalogues</RouterLink>
@@ -77,6 +77,7 @@
 </template>
 
 <script setup>
+import { vFollowingBottom } from '../directives/followingBottom';
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue';
 import { onBeforeRouteLeave, onBeforeRouteUpdate, useRoute, useRouter } from 'vue-router';
 import Layout from '../components/Layout.vue';
@@ -88,6 +89,7 @@ import CataloguePrices from '../components/CataloguePrices.vue';
 import { useCataloguesStore } from '../stores/catalogues';
 import { useSettingsStore } from '../stores/settings';
 import { formatPrice, formats } from '../utils/catalogue';
+const followingListBody = ".catalogue-list-content:not([style*='display: none']), .catalogue-defaults:not([style*='display: none'])";
 const route = useRoute();
 const router = useRouter();
 const store = useCataloguesStore();
@@ -209,7 +211,7 @@ onUnmounted(() => { desktopMedia.removeEventListener('change', updateDesktopDeta
 .catalogue-list-state { display: grid; justify-items: start; gap: 12px; padding: 24px; }
 .catalogue-list-state.empty-state { justify-items: center; }
 .catalogue-browse { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; align-items: start; transition: grid-template-columns 280ms cubic-bezier(.2,.7,.2,1); }
-.catalogue-browse.catalogue-preparing { grid-template-columns: minmax(0, 1fr) minmax(0, 3fr); }
+.catalogue-browse.catalogue-preparing { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); }
 .catalogue-editor-slot { min-height: 0; grid-column: 2; grid-row: 1; min-width: 0; animation: catalogue-editor-enter 220ms ease-out; }
 @keyframes catalogue-editor-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .catalogue-preparing .catalogue-list-heading { padding-inline: 12px; }
@@ -272,7 +274,7 @@ onUnmounted(() => { desktopMedia.removeEventListener('change', updateDesktopDeta
 @media (min-width: 901px) {
   .catalogue-list-content { flex: 0 1 auto; scroll-padding-block: 12px; }
   .catalogue-defaults { padding-bottom: var(--dock-clearance); }
-  .catalogue-detail-slot :deep(.slide-panel-inline .slide-panel-body) { padding-bottom: var(--dock-clearance); scroll-padding-bottom: var(--dock-clearance); overscroll-behavior: contain; scrollbar-gutter: stable; }
+  .catalogue-detail-slot :deep(.slide-panel-inline .slide-panel-body) { padding-bottom: var(--dock-clearance); scroll-padding-bottom: 18px; overscroll-behavior: contain; scrollbar-gutter: stable; }
   .catalogue-list-workspace { display: flex; flex-direction: column; min-height: 0; flex: 1; }
   .catalogue-browse { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); align-items: stretch; }
   .catalogue-list-panel { min-height: 0; height: auto; align-self: start; max-height: calc(100% - var(--dock-clearance)); }

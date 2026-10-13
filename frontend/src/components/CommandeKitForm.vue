@@ -16,12 +16,11 @@
               <p>{{ catalogueDetail.titre }} · Format {{ form.format_type }}</p>
               <div v-for="(line, index) in form.collections" :key="index" class="summary-collection">
                 <strong>{{ collectionName(line) || 'Collection à choisir' }}</strong>
-                <p class="allocation" :class="{ complete: allocated(line) === line.nb_feuilles }">{{ allocated(line) }} / {{ line.nb_feuilles }} feuilles — {{ remainingText(line) }}</p>
-                <ul><li v-for="paper in line.papiers.filter(p => Number(p.quantite_base) > 0)" :key="paper.papier_cartonne_id">{{ paperName(index, paper.papier_cartonne_id) }} : {{ paper.quantite_base }} de base → {{ paper.quantite_base * multiplier }} à préparer</li></ul>
+                <ul><li v-for="paper in line.papiers.filter(p => Number(p.quantite_base) > 0)" :key="paper.papier_cartonne_id">{{ paperName(index, paper.papier_cartonne_id) }} : {{ paper.quantite_base * multiplier }} feuille{{ paper.quantite_base * multiplier > 1 ? 's' : '' }}</li></ul>
               </div>
-              <p>Papiers : {{ totalAllocated }} de base → {{ totalAllocated * multiplier }} à préparer</p>
+              <p>{{ totalAllocated * multiplier }} feuilles à préparer</p>
               <p class="price-line">Total à enregistrer <strong>{{ formatMoney(pricing.applied) }}</strong></p>
-              <p class="hint">{{ form.prix_manuel ? 'Total corrigé manuellement.' : 'Total calculé avec les options et suppléments.' }}</p>
+              <p v-if="form.prix_manuel" class="hint">Prix manuel</p>
             </template>
           </section>
         </aside>
@@ -59,7 +58,6 @@
               <span><strong>Format {{ format }}</strong><span>{{ formatMoney(catalogueDetail[`prix_${format}_cents`]) }}</span><small>{{ format === 'C' ? '1 collection' : formats.includes(format) ? '2 collections' : '2 collections requises' }}</small></span>
             </label>
           </fieldset>
-          <p class="hint">Tarifs propres à « {{ catalogueDetail.titre }} ».</p>
           <div v-for="(line, index) in form.collections" :key="index" class="collection-slot">
             <div class="field">
               <label :for="id(`collection_${index}`)">{{ form.format_type === 'C' ? 'Collection' : `Collection ${index + 1}` }} *</label>
@@ -73,7 +71,7 @@
               <label v-for="quantity in [2, 3]" :key="quantity"><input type="radio" :name="id(`contribution-${index}`)" :checked="line.nb_feuilles === quantity" @change="changeContribution(index, quantity)" /> {{ quantity }} feuilles</label>
             </fieldset>
             <div v-if="line.collection_id" :id="id(`papiers_${index}`)" tabindex="-1" class="papers">
-              <p v-if="form.format_type === 'C'" class="hint">Conservez au moins un exemplaire de chaque papier et complétez jusqu’à 5 feuilles.</p>
+              <p v-if="form.format_type === 'C'" class="hint">5 feuilles · au moins 1 par papier</p>
               <div v-for="paper in line.papiers" :key="paper.papier_cartonne_id" class="paper-row">
                 <span class="paper-name">{{ paperName(index, paper.papier_cartonne_id) }}</span>
                 <div class="quantity-stepper" role="group" :aria-label="`Quantité de ${paperName(index, paper.papier_cartonne_id)}`" :aria-invalid="Boolean(errors[`papiers_${index}`])" :aria-describedby="errors[`papiers_${index}`] ? id(`paper-error-${index}`) : undefined">
@@ -81,10 +79,8 @@
                   <output :id="id(`quantity-${index}-${paper.papier_cartonne_id}`)" :aria-label="`${paper.quantite_base || 0} feuille${paper.quantite_base === 1 ? '' : 's'} de base`">{{ paper.quantite_base || 0 }}</output>
                   <button type="button" :disabled="!canAdjustPaperQuantity(form, index, paper.papier_cartonne_id, 1)" :aria-label="`Ajouter une feuille de ${paperName(index, paper.papier_cartonne_id)}`" @click="changePaperQuantity(index, paper.papier_cartonne_id, 1)">+</button>
                 </div>
-                <span class="hint">base {{ paper.quantite_base || 0 }} → à préparer {{ (paper.quantite_base || 0) * multiplier }}</span>
               </div>
-              <p class="allocation" :class="{ complete: allocated(line) === line.nb_feuilles }" role="status" aria-live="polite">{{ allocated(line) }} / {{ line.nb_feuilles }} feuilles de base — {{ remainingText(line) }}</p>
-              <p v-if="allocated(line) === line.nb_feuilles" class="limit-hint">Total atteint — diminuez un autre papier pour modifier la répartition.</p>
+              <p v-if="allocated(line) !== line.nb_feuilles" class="allocation" role="status" aria-live="polite">Feuilles : {{ remainingText(line) }}</p>
               <p v-if="errors[`papiers_${index}`]" :id="id(`paper-error-${index}`)" class="field-error">{{ errors[`papiers_${index}`] }}</p>
             </div>
           </div>
@@ -92,21 +88,20 @@
         <section v-if="form.format_type">
           <h3>3. Matériaux et suppléments</h3>
           <div v-if="catalogueDetail.rubans.length === 2" class="field"><label :for="id('ruban_id')">Ruban *</label><select :id="id('ruban_id')" v-model="form.ruban_id" :aria-invalid="Boolean(errors.ruban_id)"><option value="" disabled>Choisir un ruban…</option><option v-for="ruban in catalogueDetail.rubans" :key="ruban.id" :value="String(ruban.id)">{{ ruban.nom }}</option></select><p v-if="errors.ruban_id" class="field-error">{{ errors.ruban_id }}</p></div>
-          <p v-else class="hint">{{ catalogueDetail.rubans.length ? `Ruban inclus automatiquement : ${catalogueDetail.rubans[0].nom} ×1` : 'Aucun ruban dans ce catalogue.' }}</p>
-          <label class="check"><input v-model="form.papier_supplementaire" type="checkbox" /> Papier supplémentaire (+3,50 €) — les papiers sont doublés</label>
-          <p class="hint">Le ruban, le papier spécial et l’embellissement restent chacun en un exemplaire.</p>
+          <p v-else-if="catalogueDetail.rubans.length" class="hint">Ruban : {{ catalogueDetail.rubans[0].nom }}</p>
+          <label class="check"><input v-model="form.papier_supplementaire" type="checkbox" /> Doubler les papiers (+3,50 €)</label>
           <div v-for="category in supplementCategories" :key="category.key" class="extras-row">
             <div class="field"><label :for="id(`${category.key}_texte`)">{{ category.label }} — libellé</label><input :id="id(`${category.key}_texte`)" v-model="form[`${category.key}_texte`]" type="text" :aria-invalid="Boolean(errors[`${category.key}_texte`])" /><p v-if="errors[`${category.key}_texte`]" class="field-error">{{ errors[`${category.key}_texte`] }}</p></div>
             <div class="field"><label :for="id(`${category.key}_prix`)">Montant (€)</label><input :id="id(`${category.key}_prix`)" v-model="form[`${category.key}_prix`]" inputmode="decimal" placeholder="0,00" :aria-invalid="Boolean(errors[`${category.key}_prix`])" /><p v-if="errors[`${category.key}_prix`]" class="field-error">{{ errors[`${category.key}_prix`] }}</p></div>
           </div>
-          <p class="hint">Renseignez ensemble le libellé et le montant ; laissez les deux vides pour ne pas ajouter de supplément.</p>
         </section>
         <section v-if="form.format_type">
           <h3>4. Prix et paiement</h3>
           <p class="price-line">Total calculé <strong>{{ formatMoney(pricing.automatic) }}</strong></p>
           <label class="check"><input :checked="form.prix_manuel" type="checkbox" @change="toggleManual($event.target.checked)" /> Corriger manuellement le total</label>
           <div v-if="form.prix_manuel" class="field"><label :for="id('prix_manuel_euros')">Total manuel (€) *</label><input :id="id('prix_manuel_euros')" v-model="form.prix_manuel_euros" inputmode="decimal" :aria-invalid="Boolean(errors.prix_manuel_euros)" /><p v-if="errors.prix_manuel_euros" class="field-error">{{ errors.prix_manuel_euros }}</p></div>
-          <div class="extras-row"><div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div><DatePicker :id="id('date_commande')" v-model="form.date_commande" label="Date de commande" :error="errors.date_commande" :disabled="loading || saving || Boolean(loadError) || Boolean(commande?.reglee)" /></div>
+          <div class="field"><label :for="id('methode_paiement')">Méthode de paiement *</label><select :id="id('methode_paiement')" v-model="form.methode_paiement" :aria-invalid="Boolean(errors.methode_paiement)"><option value="" disabled>Choisir…</option><option v-for="payment in PAYMENTS" :key="payment" :value="payment">{{ payment }}</option></select><p v-if="errors.methode_paiement" class="field-error">{{ errors.methode_paiement }}</p></div>
+          <DatePicker :id="id('date_commande')" v-model="form.date_commande" label="Date de commande" :error="errors.date_commande" :disabled="loading || saving || Boolean(loadError) || Boolean(commande?.reglee)" />
         </section>
         </div>
       </fieldset>
@@ -214,6 +209,7 @@ onBeforeRouteUpdate((to, from) => {
 </script>
 
 <style scoped>
+.kit-form :deep(.calendar-expansion) { max-width: none; }
 .kit-form { display: flex; flex-direction: column; gap: var(--spacing-5); }
 .form-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 340px); gap: var(--spacing-6); align-items: start; border: 0; padding: 0; margin: 0; min-width: 0; }
 .form-main, .summary-column { display: flex; flex-direction: column; gap: var(--spacing-5); min-width: 0; }
@@ -240,7 +236,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
 .collection-slot { display: flex; flex-direction: column; gap: var(--spacing-3); }
 .contributions { display: flex; gap: var(--spacing-4); padding: 0; margin: 0; border: 0; }
 .contributions label, .check { display: flex; align-items: center; gap: var(--spacing-2); min-height: 44px; cursor: pointer; }
-.paper-row { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: var(--spacing-3); align-items: center; margin-bottom: var(--spacing-2); }
+.paper-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--spacing-3); align-items: center; margin-bottom: var(--spacing-2); }
 .paper-name { overflow-wrap: anywhere; font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); }
 .quantity-stepper { display: grid; grid-template-columns: 44px 48px 44px; align-items: center; border: 1.5px solid var(--border); border-radius: var(--border-radius); overflow: hidden; background: var(--bg-primary); }
 .quantity-stepper button { min-width: 44px; min-height: 44px; border: 0; background: var(--bg-secondary); color: var(--text-primary); font: inherit; font-size: var(--font-size-lg); cursor: pointer; }
@@ -249,7 +245,6 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
 .quantity-stepper output { text-align: center; font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
 .allocation { font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
 .allocation.complete { color: var(--success, var(--primary)); }
-.limit-hint { color: var(--text-secondary); font-size: var(--font-size-sm); }
 .extras-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 180px); gap: var(--spacing-3); }
 .price-line { display: flex; justify-content: space-between; align-items: baseline; gap: var(--spacing-3); }
 .price-line strong { font-size: var(--font-size-xl); font-variant-numeric: tabular-nums; }
@@ -272,7 +267,6 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .choices { flex-direction: column; }
   .extras-row { grid-template-columns: minmax(0, 1fr); }
   .paper-row { grid-template-columns: minmax(0, 1fr) auto; }
-  .paper-row .hint { grid-column: 1 / -1; }
   .contributions { flex-wrap: wrap; }
   .footer-status { flex-basis: 100%; }
 }
