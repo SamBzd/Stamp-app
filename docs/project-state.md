@@ -132,14 +132,24 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.
 
-Informations encore à confirmer :
+Informations encore à confirmer avant la bascule :
 
-- règles métier hors de ce périmètre, notamment les points de fidélité ;
-- versions, variables d'environnement, volumes et procédure de sauvegarde utilisés sur le NAS ;
-- contenu et état d'intégrité de la base de production ;
-- méthode souhaitée pour tester puis déployer `main`.
+- autres écrivains SQLite éventuels et procédure d’arrêt de tous les accès ;
+- sauvegarde cohérente actualisée et intégrité de cette copie finale, puis
+  précontrôle et nouvel import des clientes ;
+- identifiants exacts des nouvelles images et configuration finale de livraison,
+  correspondant au commit applicatif testé ;
+- tarifs initiaux à appliquer, créneau de maintenance, retour arrière et
+  autorisation explicite de bascule.
 
-Ces points sont des questions de découverte. Ils ne constituent ni un backlog validé ni une autorisation de modifier l'application.
+Les versions, variables, volumes et droits du déploiement actuel ont été
+relevés ; la configuration Hyper Backup est confirmée par Sam. La restauration
+et la méthode de test isolé ont été validées sur NAS. Ces acquis ne remplacent
+pas les contrôles actualisés de la base finale. Voir le
+[plan de livraison](livraison-nas.md#restant-avant-le-point-5).
+
+Les règles métier hors du périmètre validé restent des questions distinctes de
+la livraison, sans nouveau backlog ni autorisation de modifier l’application.
 
 ## Navigation conservée
 
