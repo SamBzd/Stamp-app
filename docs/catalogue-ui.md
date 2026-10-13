@@ -14,8 +14,11 @@ avec le backend de l’issue #7.
 - `/catalogues/nouveau` crée un brouillon avec un nom libre et des matériaux
   facultatifs. Les trois tarifs par défaut sont copiés par le serveur à sa
   création ; aucun statut ni tarif n’est envoyé par ce formulaire.
-- L’écran de préparation enregistre séparément les informations, collections,
-  associations de papiers, rubans et tarifs locaux. La bibliothèque de papiers
+- L’écran de préparation propose quatre étapes : Informations, Composition,
+  Rubans et tarifs, Vérification. Après création du brouillon avec un titre,
+  la navigation entre étapes est libre, même si la composition est incomplète.
+  Il enregistre séparément les informations, collections, associations de
+  papiers, rubans et tarifs locaux. La bibliothèque de papiers
   permet recherche, création et réutilisation. Après chaque sélection, la
   recherche revient à un état vide et prêt pour le papier suivant ; une réponse
   asynchrone ancienne ne peut pas remplacer les résultats courants. Retirer un
@@ -135,7 +138,7 @@ navigation vers une autre page ou un rechargement quitte ce formulaire et peut
 perdre une saisie non enregistrée, comme précédemment. Cette conservation entre
 onglets ne remplace pas les protections de départ propres à l’éditeur.
 
-## Création et préparation intégrées — lot 3B.2
+## Création et préparation intégrées — lot 3B.2 (historique)
 
 Sam a demandé un espace unique, sans page dédiée : en consultation, liste 2/3
 et détail 1/3 ; Nouveau catalogue ou Ouvrir la préparation passe à liste 1/4
@@ -186,3 +189,93 @@ hauteur du contenu affiché, y compris après filtrage. Une longue liste desktop
 s’arrête avant le dock et défile indépendamment ; les paramètres et les
 panneaux de droite conservent leurs actions accessibles. Les contrôles
 reprennent les tokens communs : [recette](ui/recette-composants-communs/README.md).
+
+## Formulaire V2 — petits correctifs du 13 octobre 2026
+
+Cette évolution remplace la présentation simultanée des sections de préparation.
+Sur desktop, la liste occupe **1/3** et le formulaire **2/3** du même espace.
+La consultation garde ses proportions antérieures. Aucune page dédiée, aucun
+changement du contrat API, du schéma ni des règles de publication.
+
+- Une timeline de quatre étapes reste visible au-dessus du contenu :
+  **Informations**, **Composition**, **Rubans et tarifs**, **Vérification**.
+  Une seule étape est affichée, avec navigation directe et Précédent/Suivant.
+- Le titre reste obligatoire pour créer le brouillon. La création ouvre ensuite
+  Composition ; toutes les étapes sont accessibles sans condition de complétude.
+  Les mutations en cours verrouillent temporairement la navigation.
+- Les sections restent montées lorsqu’elles sont masquées : valeurs, recherches,
+  sélections de papiers et erreurs locales sont conservées. Changer d’étape
+  conserve les saisies. Les sauvegardes restent explicites par section, sauf
+  les noms des collections et des rubans : ils s’enregistrent à la sortie du champ ou avec Entrée,
+  sans bouton Renommer. Un refus conserve la saisie ; un nom vide reste refusé.
+  Après renommage puis ouverture des papiers, la recherche retrouve son focus
+  une fois réactivée, sans le reprendre à une autre étape ou un autre contrôle.
+- Les étapes ayant une saisie en cours sont signalées « À enregistrer ».
+  Vérification affiche les **données enregistrées**, identifie les étapes ayant
+  des saisies en attente et permet d’y revenir. Les conditions manquantes de
+  publication sont également des liens vers l’étape concernée.
+- Pendant le choix des papiers, seul le compteur de la sélection en cours est
+  affiché ; le compteur des papiers enregistrés réapparaît à sa fermeture.
+- À quatre collections, le formulaire d’ajout disparaît ; à deux rubans,
+  celui d’ajout de ruban disparaît également. Les compteurs et limites restent.
+- Vérification regroupe chaque collection vide et son action « Ajouter un papier »
+  au même endroit. Cette condition n’est plus répétée dans une liste séparée.
+  Les catalogues archivés gardent un constat unique, sans action de modification.
+- Les succès ordinaires sont annoncés aux lecteurs d’écran sans bandeau visuel.
+  Les erreurs et le retour automatique au brouillon restent visibles.
+- Les rappels pédagogiques permanents sont retirés. Restent les compteurs,
+  plafonds atteints, erreurs, confirmations et signalements utiles.
+  Les règles de validation tarifaire restent appliquées ; l’aide détaillée des
+  tarifs par défaut demeure dans Paramètres.
+- Publication et archivage restent bloqués en présence de saisies non enregistrées.
+  Les confirmations d’abandon et la protection au rechargement sont conservées.
+  Les catalogues archivés se consultent dans les mêmes étapes ; la restauration
+  est proposée dans Vérification.
+- Sous 901 px, le formulaire reste au-dessus de la liste. Le défilement conserve
+  le dégagement nécessaire sous le dock ; la navigation clavier place le focus
+  sur le titre de l’étape choisie.
+
+Voir la [recette V2](ui/recette-catalogue-v2/README.md) et ses captures.
+La validation visuelle de Sam reste à recueillir avant livraison.
+
+## Composition en onglets — variante choisie le 13 octobre 2026
+
+Sam a choisi la proposition Collections en onglets pour remplacer l’empilement
+vertical des collections. La timeline et le ratio liste 1/3–formulaire 2/3 restent.
+Une seule collection apparaît à la fois ; chaque onglet indique son nom et le
+nombre de papiers, y compris une sélection non encore enregistrée. Les composants
+masqués restent montés, donc recherches, sélections et noms saisis sont conservés.
+
+Le nom de collection est un titre cliquable ; le champ n’apparaît que pendant
+le renommage. Sauvegarde à sortie du champ ou avec Entrée, conservation après
+refus. La bibliothèque s’ouvre par clic sur l’une des cinq cartes : ajout depuis
+un emplacement vide, remplacement depuis une carte remplie, ou retrait de
+l’association dans le sélecteur. Le plafond de cinq reste applicable même lors
+d’un remplacement. Choisir un papier ferme la bibliothèque et replace le focus
+sur sa carte. Enregistrer les papiers et Annuler restent explicites pour la
+sélection entière ; aucune suppression de source ou de collection n’est ajoutée.
+
+Nouvelle collection ouvre un champ ponctuel, après création du brouillon nommé.
+L’ajout sélectionne la collection créée ; à quatre, cette action disparaît.
+Vérification ouvre la collection concernée lorsqu’on clique Ajouter un papier.
+Les catalogues archivés gardent les onglets en consultation et leurs cartes
+inactives. Les contrôles s’adaptent aux écrans étroits sans débordement horizontal.
+
+La recette active est désormais
+[la recette des onglets](ui/recette-catalogue-v2/browser-onglets.cjs).
+La recette `browser.cjs` garde la présentation linéaire précédente à titre
+historique. API, schéma, validation métier et publication restent inchangés.
+
+### Bord inférieur du détail au défilement
+
+Sam demande le 13 octobre 2026 que le bord inférieur du panneau de consultation
+suive la dernière ligne lorsqu’elle remonte. Sur desktop, la hauteur visible
+s’ajuste à la fin du contenu, action de préparation comprise ; l’espace sous
+l’action diminue simultanément pour conserver le même débattement de scroll.
+L’en-tête et l’emplacement du panneau restent fixes. Le retour vers le haut
+rétablit la hauteur disponible. Le panneau mobile conserve son comportement.
+
+Le comportement du bord inférieur est ensuite partagé avec les autres panneaux
+et les listes, via la directive commune `followingBottom`, en remplacement de
+la mesure propre à la vue Catalogue. Les quatre étapes, la bibliothèque et les
+paramètres suivent le même principe ; [recette](ui/recette-bords-conteneurs/README.md).

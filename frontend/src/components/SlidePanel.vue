@@ -2,7 +2,7 @@
   <Teleport to="body" :disabled="inline">
     <Transition :name="inline ? 'inline-panel' : 'slide-panel'">
       <div v-if="isOpen" class="slide-panel-overlay" :class="{ 'slide-panel-inline': inline, 'slide-panel-contained': inline && scrollFooter }" @click.self="!inline && $emit('close')">
-        <div ref="dialog" class="slide-panel" :style="{ maxWidth: inline ? 'none' : maxWidth }" :role="inline ? 'region' : 'dialog'" :aria-modal="inline ? undefined : true" :aria-label="title || 'Détails'" tabindex="-1">
+        <div ref="dialog" class="slide-panel" v-following-bottom="{ body: '.slide-panel-body', enabled: props.inline }" :style="{ maxWidth: inline ? 'none' : maxWidth }" :role="inline ? 'region' : 'dialog'" :aria-modal="inline ? undefined : true" :aria-label="title || 'Détails'" tabindex="-1">
           <!-- Header -->
           <div class="slide-panel-header">
             <slot name="header"><h2 v-if="title" class="slide-panel-title">{{ title }}</h2></slot>
@@ -31,6 +31,7 @@
 </template>
 
 <script setup>
+import { vFollowingBottom } from '../directives/followingBottom';
 import { nextTick, ref, watch, onMounted, onUnmounted } from 'vue';
 import { lockBodyScroll } from '../composables/useBodyScrollLock';
 

@@ -27,7 +27,7 @@
       <p v-if="operationError" class="form-error-global" role="alert">{{ operationError }}</p>
 
       <div class="commandes-workspace form-workspace" :class="{ 'form-workspace-editing': isKitFormOpen || isHorsKitFormOpen }">
-      <section class="commandes-list-panel" aria-labelledby="commandes-list-title">
+      <section class="commandes-list-panel" v-following-bottom="{ body: '#commandes-list-content' }" aria-labelledby="commandes-list-title">
         <header id="commandes-list-header" ref="listHeading" class="commandes-list-heading" tabindex="-1">
           <h2 id="commandes-list-title" class="sr-only">{{ activeType === 'kit' ? 'Commandes kits' : 'Commandes hors kit' }}</h2>
           <nav class="commandes-pages" aria-label="Types de commandes">
@@ -328,6 +328,7 @@
 </template>
 
 <script setup>
+import { vFollowingBottom } from '../directives/followingBottom';
 import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import '../styles/form-workspace.css';

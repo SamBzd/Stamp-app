@@ -44,6 +44,7 @@ async function renderCommande(commande, search = '') {
     // Le template compilé en mode function sonde aussi la clé « undefined ».
     if (!warning.startsWith('Property undefined was accessed')) throw new Error(warning);
   };
+  app.directive('following-bottom', {});
   app.component('Layout', { template: '<main><slot /></main>' });
   app.component('RouterLink', { props: ['to'], template: '<a :href="to"><slot /></a>' });
   app.component('Button', { template: '<button><slot /></button>' });

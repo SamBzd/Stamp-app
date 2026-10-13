@@ -33,6 +33,7 @@ async function renderClients(overrides = {}) {
     closeModal: noop, handleSubmit: noop, archiveClient: noop, ...overrides,
   }) });
   app.config.warnHandler = warning => { if (!warning.startsWith('Property undefined was accessed')) throw new Error(warning); };
+  app.directive('following-bottom', {});
   app.component('Layout', { template: '<main><slot /></main>' });
   app.component('RouterLink', { props: ['to'], template: '<a :href="to.path + \'?commande=\' + to.query.commande"><slot /></a>' });
   app.component('Button', { template: '<button><slot /></button>' });

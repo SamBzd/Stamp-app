@@ -4,7 +4,7 @@
       <div class="clients-toolbar"><Button id="clients-create" :disabled="isModalOpen" @click="openCreateModal"><template #icon><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></template>Ajouter une cliente</Button></div>
       <p v-if="operationError && !isViewModalOpen" class="client-error" role="alert">{{ operationError }}</p>
       <div class="clients-workspace form-workspace" :class="{ 'form-workspace-editing': isModalOpen }">
-      <section class="clients-list-panel" aria-label="Répertoire des clientes">
+      <section class="clients-list-panel" v-following-bottom="{ body: '#clients-list-content' }" aria-label="Répertoire des clientes">
         <header id="clients-list-header" class="clients-list-heading" tabindex="-1">
           <div class="clients-tabs" role="tablist" aria-label="Statut des clientes">
             <button id="clients-tab-actifs" type="button" role="tab" :disabled="pointsSaving" :aria-selected="archiveFilter === 'actifs'" aria-controls="clients-list-content" :tabindex="archiveFilter === 'actifs' ? 0 : -1" @click="selectArchiveTab('actifs')" @keydown="onTabKeydown">Actives <span>{{ activeCount }}</span></button>
@@ -398,6 +398,7 @@
 </template>
 
 <script setup>
+import { vFollowingBottom } from '../directives/followingBottom';
 import { ref, computed, watch, nextTick, onMounted, onUnmounted } from 'vue';
 import { useRouter, onBeforeRouteLeave } from 'vue-router';
 import Layout from '../components/Layout.vue';
