@@ -114,9 +114,11 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   La recette consolidée (#12) est clôturée : voir
   [la matrice, les preuves et les validations restantes](recette-metier.md).
   La préparation NAS #13 reste ouverte : voir [le plan de livraison](livraison-nas.md).
-  Une répétition Docker locale et un import préparatoire de 25 clientes sur
-  copie diagnostique ont été vérifiés. La sauvegarde cohérente, la restauration
-  de l’ancienne version et la répétition sur NAS restent à réaliser.
+  La collecte technique, la restauration isolée de l’ancienne application et
+  la recette ciblée de la nouvelle version sur NAS sont validées par Sam le
+  13 octobre 2026. Les détails opérationnels restent dans une note locale
+  exclue de Git. La sauvegarde cohérente actualisée, le nouvel import final
+  et la bascule autorisée restent à réaliser.
   Ce socle n’est pas encore déployé.
 - Le formulaire Catalogue V2 est réalisé localement le 13 octobre 2026 sur
   `codex/petits-fix` : liste 1/3, formulaire 2/3, quatre étapes à navigation libre
@@ -130,14 +132,24 @@ L'architecture et les constats techniques décrits ici proviennent principalemen
   production ne seront pas repris. Seules les clientes seront importées dans
   une base neuve selon la procédure documentée.
 
-Informations encore à confirmer :
+Informations encore à confirmer avant la bascule :
 
-- règles métier hors de ce périmètre, notamment les points de fidélité ;
-- versions, variables d'environnement, volumes et procédure de sauvegarde utilisés sur le NAS ;
-- contenu et état d'intégrité de la base de production ;
-- méthode souhaitée pour tester puis déployer `main`.
+- autres écrivains SQLite éventuels et procédure d’arrêt de tous les accès ;
+- sauvegarde cohérente actualisée et intégrité de cette copie finale, puis
+  précontrôle et nouvel import des clientes ;
+- identifiants exacts des nouvelles images et configuration finale de livraison,
+  correspondant au commit applicatif testé ;
+- tarifs initiaux à appliquer, créneau de maintenance, retour arrière et
+  autorisation explicite de bascule.
 
-Ces points sont des questions de découverte. Ils ne constituent ni un backlog validé ni une autorisation de modifier l'application.
+Les versions, variables, volumes et droits du déploiement actuel ont été
+relevés ; la configuration Hyper Backup est confirmée par Sam. La restauration
+et la méthode de test isolé ont été validées sur NAS. Ces acquis ne remplacent
+pas les contrôles actualisés de la base finale. Voir le
+[plan de livraison](livraison-nas.md#restant-avant-le-point-5).
+
+Les règles métier hors du périmètre validé restent des questions distinctes de
+la livraison, sans nouveau backlog ni autorisation de modifier l’application.
 
 ## Navigation conservée
 
