@@ -9,10 +9,18 @@ Recette locale du contrat validé en #4, sur le socle #5 à #11 :
 Toutes les données sont synthétiques ; les bases SQLite des tests sont
 temporaires. La production NAS, l’import réel et le déploiement relèvent de #13.
 
-Date : 18 septembre 2026. Référence de départ : `05ea8e1` sur `main`.
-Les résultats automatiques portent sur les fichiers locaux de ce lot ; la CI
-distante de ce lot restera à vérifier après création de sa PR.
-La recette ne sera acceptée qu’après la démonstration validée par Sam.
+## Statut actuel et provenance
+
+L’issue #12 est clôturée. La matrice et le journal ci-dessous sont les preuves
+historiques du 18 septembre 2026, depuis `05ea8e1` ; leurs compteurs et attentes
+humaines décrivent cette exécution. Ils ne sont pas les contrôles finaux du NAS.
+Les validations UI ultérieures et la livraison du 14 octobre sont consignées
+respectivement dans [la validation UI](ui/validation-issue39.md) et
+[le compte rendu de livraison](livraison-nas.md).
+
+La suite actuelle contient aussi une répétition CLI de sauvegarde/précontrôle/
+import sur fixtures synthétiques, ajoutée après ce journal. Voir
+[qualité](quality.md) pour les contrôles de la référence courante.
 
 `OK API/SQL` signifie que les assertions des tests cités ont été exécutées.
 `OK logique UI` couvre les utilitaires frontend, sans prouver le câblage Vue.
@@ -160,7 +168,7 @@ Ouvrir `http://localhost:5174/`. La fixture comprend :
 Les scénarios UI mutent cette base jetable. Pour rejouer depuis l’état initial,
 créer une nouvelle fixture. Le rapport JSON expose IDs, mois et bilan attendus.
 
-## Journal de recette navigateur
+## Journal historique de recette navigateur
 
 Exécution Jarvis, 18 septembre 2026, Vite 5174 / API 3100,
 base synthétique `/tmp/stamp-recette-HCBR6T/recette.db`.
@@ -183,7 +191,7 @@ dans `/tmp/stamp-recette-HCBR6T/demo.db`, servie sur les mêmes ports.
 | U12 — Suppression | Confirmation puis suppression synthétique #9 : détail fermé, liste actualisée et besoins C5 absents des stocks | OK navigateur |
 | HUM1 — Démonstration | Acceptation de Sam, retour cliente si nécessaire | En attente de Sam |
 
-## Contrôles et limites de livraison
+## Contrôles et limites historiques du lot initial
 
 - `npm run check` : réussi, 84 tests backend, 29 tests frontend, build Vue.
 - `docker compose config --quiet` : réussi le 18 septembre 2026.
@@ -206,7 +214,7 @@ dans `/tmp/stamp-recette-HCBR6T/demo.db`, servie sur les mêmes ports.
   `npm run check`, Docker Compose et `git diff --check` réussis. Point de
   traçabilité mineur (2/5) : le journal navigateur décrit une exécution manuelle,
   sans captures jointes ni suite navigateur automatisée. La validation de Sam
-  reste nécessaire.
+  restait nécessaire à cette date.
 - Le parcours CLI d’import réussi de bout en bout n’est pas couvert par un
   test dédié : l’import réel et le précontrôle CLI sont testés séparément.
 - Écart UI mineur reproduit, pertinence 2/5, corrigé avec l’accord de Sam :
@@ -218,5 +226,5 @@ dans `/tmp/stamp-recette-HCBR6T/demo.db`, servie sur les mêmes ports.
 - Bibliothèque #28 vérifiée sur une base temporaire : création et refus de
   doublon, trois recherches/sélections successives sans chargement parasite,
   troisième suggestion visible, retrait puis réajout et sauvegarde à 3/5.
-- CI de la future PR #12 et acceptation humaine en attente. Aucun verdict
-  d’acceptation de l’issue ni de préparation au déploiement à ce stade.
+- À la date de ce journal, CI et acceptation restaient en attente. Ce statut
+  est historique ; le statut actuel est décrit en tête de document.

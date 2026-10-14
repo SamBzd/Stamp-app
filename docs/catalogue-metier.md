@@ -3,8 +3,8 @@
 ## Statut et périmètre
 
 Règles confirmées avec Sam le 16 septembre 2026 à la suite de son échange avec
-la cliente. Elles définissent le fonctionnement à implémenter dans `main` ;
-elles ne décrivent ni une implémentation terminée ni l'état du NAS.
+la cliente. Elles définissent le contrat implémenté dans le socle livré le
+14 octobre 2026 ; [l’état du projet](project-state.md) identifie sa référence.
 
 Le périmètre couvre les catalogues, collections, commandes kits, quantités à
 préparer et prix historiques. La création des clientes ne change pas. Les
@@ -113,21 +113,16 @@ des tests exécutables ou une validation du code actuel.
 | Tarif d'un catalogue modifié après création d'une commande | Prix de cette commande et sa contribution au bilan inchangés. |
 | Papier retiré/renommé, collection renommée, ruban ou élément du catalogue modifié après une commande | Composition consultable et quantités historiques inchangées. |
 
-## Préparation des étapes suivantes
+## Implémentation et reprise des données
 
-1. Concevoir le modèle et la migration : brouillons, prix par catalogue, rubans,
-   quantités par papier et composition historique autonome des commandes.
-2. Adapter les validations SQL/API, notamment cardinalités, appartenance des
-   papiers, contributions par collection et exclusion des brouillons.
-3. Adapter le parcours catalogue, puis les commandes A/B/C.
-4. Aligner les détails de commande, les stocks et le bilan sur les données de
-   commande, puis compléter les tests métier et les contrôles CI.
+Le schéma, les validations API, les interfaces et les calculs historiques sont
+implémentés. Les scénarios ci-dessus sont reliés aux preuves dans
+[la recette métier](recette-metier.md) ; la recette ciblée NAS et la bascule
+sont consignées dans [la livraison](livraison-nas.md).
 
-Les anciens catalogues, collections, commandes, stocks et bilans de production
-ne seront pas repris. Seules les clientes sont importées dans une base neuve,
-sur une copie contrôlée et après sauvegarde vérifiée du NAS.
-
-Les décisions de conception complémentaires sont fixées dans la
-[proposition de modèle](catalogue-model-proposal.md) : modification d’une
-commande non réglée, correction manuelle explicite du prix, retour au brouillon
-d’un catalogue devenu incomplet, archivage des données et contrat API.
+La première bascule a repris uniquement les clientes dans une base neuve,
+sans anciens catalogues, collections, commandes, stocks ou bilans.
+Les décisions initiales sont conservées dans
+[le dossier de conception](catalogue-model-proposal.md). Pour le contrat actuel,
+voir [le modèle de données](data-model.md), [l’API catalogues](catalogue-api.md)
+et [l’API commandes](commandes-kit-api.md).

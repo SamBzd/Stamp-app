@@ -1,7 +1,8 @@
 # API commandes kits — issue #7
 
-Ce contrat concerne la future version, pas le NAS. Il utilise le schéma de
-l’issue #5 sans migration supplémentaire. L’interface commandes est intégrée
+Ce contrat décrit les commandes du socle livré le 14 octobre 2026. Les
+snapshots proviennent du schéma introduit en issue #5, complété par les
+migrations de bibliothèque et de workflow. L’interface commandes est intégrée
 en #9 : voir [le parcours et sa recette navigateur](commandes-ui.md).
 
 ## Création

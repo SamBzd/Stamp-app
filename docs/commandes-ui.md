@@ -1,7 +1,8 @@
 # Commandes — issues #9 et #29
 
-Ce parcours concerne la future version de Stamp App sur `main`, avec l’API du
-[lot #7](commandes-kit-api.md). Il ne décrit pas le NAS actuellement déployé.
+Ce parcours décrit le socle livré le 14 octobre 2026, avec
+[le contrat API commandes](commandes-kit-api.md). Les recettes citées sont
+des preuves datées, complétées par [la validation NAS](livraison-nas.md).
 
 ## Liste et consultation
 
@@ -66,7 +67,7 @@ et la fin de la composition reste accessible par défilement. Voir la
 
 La [recette visuelle et fonctionnelle](ui/recette-jalon2/README.md) détaille les
 écarts à la maquette et les vérifications locales. Le rendu de liste/consultation
-est validé par Sam le 9 octobre 2026. Safari reste à vérifier. Les formulaires
+est validé par Sam le 9 octobre 2026. Safari reste non testé et non bloquant ; voir les limites de la validation UI. Les formulaires
 sont harmonisés et validés visuellement par Sam le 10 octobre 2026, avec les corrections du dock.
 
 ## Composition et prix

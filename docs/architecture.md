@@ -1,6 +1,6 @@
 # Architecture
 
-> Périmètre : ce document décrit le code de `main`, issu de la refonte v2 et désormais retenu comme base de stabilisation. Il ne décrit pas la version actuellement déployée sur le NAS ; voir [État du projet](project-state.md).
+> Périmètre : architecture du socle stabilisé livré le 14 octobre 2026. Le code de la référence examinée fait autorité ; [l’état du projet](project-state.md) identifie le commit applicatif déployé.
 
 ## Vue d'ensemble
 
@@ -10,7 +10,8 @@ Navigateur → Vue 3 / Pinia → API Express → SQLite
 
 Le frontend se trouve dans `frontend/src/` et l'API dans `backend/src/`. Le schéma SQLite versionné est `db/schema.sql`; les fichiers de données sous `db/` sont locaux et ignorés par Git. `npm run dev` utilise `db/dev.db`. Les données locales ne permettent pas de conclure sur la production.
 
-Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/api` au service backend sur le réseau interne ; seul le port HTTP du frontend est exposé. SQLite est stockée dans un volume persistant indépendant des images.
+Le déploiement Compose sert le frontend statique avec Nginx. Nginx transmet `/api` au service backend sur le réseau interne ; seul le port HTTP du frontend est exposé. SQLite utilise un stockage persistant indépendant des images : volume nommé
+dans le Compose générique, dossier monté dans la configuration NAS réelle.
 
 ## Frontend
 

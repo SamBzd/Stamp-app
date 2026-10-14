@@ -1,12 +1,17 @@
 # Schéma cible et import clientes — issue #5
 
-Le schéma versionné `0002_catalogue_target.sql` prépare les lots métier suivants.
-Le fichier `db/schema.sql` décrit exactement la même structure pour une base
-neuve. La baseline `0001_main_baseline.sql` reste immuable. Cette procédure
+La migration `0002_catalogue_target.sql` introduit le socle catalogues/kits.
+`0003_papiers_library.sql` et `0004_workflow_fournitures.sql` le complètent.
+`db/schema.sql` décrit leur état courant pour une base neuve ; la baseline
+`0001_main_baseline.sql` et les migrations déjà appliquées restent immuables. Cette procédure
 n'autorise aucune intervention sur le NAS ni sur `db/app.db` ; la répétition
 sur copie contrôlée de production appartient à l'issue #13.
 
-## Structure livrée
+## Structure introduite par la migration 0002
+
+Cette section décrit le lot initial. La bibliothèque ajoute ensuite l’archivage
+des papiers en 0003 ; le workflow ajoute les unités et alertes en 0004. Voir
+[le modèle actuel](data-model.md) pour la synthèse complète.
 
 - `settings` stocke trois entiers entre 0 et 10 000 centimes :
   `prix_catalogue_A_cents`, `prix_catalogue_B_cents`, `prix_catalogue_C_cents`.
@@ -52,9 +57,8 @@ Le détail d'un kit expose aussi `ruban` (objet contenant `ruban_id`, `ruban_nom
 et `quantite`, ou NULL), lu exclusivement depuis son snapshot.
 
 La création de kits utilise désormais le contrat #7 pour produire les snapshots
-requis ; un ancien corps v2 incomplet est refusé (`400`). Ce lot est un socle de
-développement, pas une version prête à déployer. Les champs et la règle de
-fidélité hors-kit sont conservés.
+requis ; un ancien corps v2 incomplet est refusé (`400`). Ce socle est livré ;
+les champs et la règle de fidélité hors-kit sont conservés.
 Les anciens endpoints DELETE des clientes, catalogues et collections (y compris
 la route historique `/api/collections/:id`) répondent `405` et ne suppriment
 aucune ligne, même sans référence. Les endpoints d’archivage/restauration
@@ -89,8 +93,11 @@ l’API). La version 4 ajoute le workflow de fournitures sans reprendre les
 commandes déjà présentes. Le statut doit être contrôlé avant, puis la migration
 appliquée explicitement sur une copie sauvegardée.
 
-**Toute donnée métier existante** (papier de bibliothèque, catalogue, collection,
-composition ou commande, y compris hors-kit) bloque la migration. Aucune
+**Pour la migration 0002 depuis la version 1**, toute donnée métier existante
+(papier de bibliothèque, catalogue, collection, composition ou commande, y
+compris hors-kit) bloque le passage au schéma catalogues/kits. Les migrations
+0003 et 0004 ont leurs contrôles propres et peuvent conserver des données
+métier d’une base déjà compatible avec la version 2. Aucune
 commande n'est reconstituée et aucune donnée n'est supprimée. La transaction
 annule la modification de structure et l'enregistrement de version en cas
 d'échec. Le contrôle de compatibilité refuse également tout schéma dégradé.
@@ -131,48 +138,30 @@ sont des textes non vides ou NULL. `date_naissance` est une date valide
 `YYYY-MM-DD` ou NULL ; `created_at` est un horodatage ISO valide ; `contacter`
 est l'entier 0 ou 1. Aucune valeur vide ou ambiguë n'est corrigée silencieusement.
 
-Sam autorise le 12 octobre 2026 la conversion des **seules dates de naissance
-vides** en NULL lors de l’import. Elle exige l’option explicite
-`--empty-birthdates-as-null`, identique pour le précontrôle et l’import :
+### Options explicites de conversion
 
-```bash
-node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --empty-birthdates-as-null --check
-node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --empty-birthdates-as-null
-```
+Sans option, le mode strict refuse les valeurs incompatibles. Les valeurs
+compatibles et NULL existants sont conservés ; la source n’est pas modifiée.
 
-L’outil annonce le nombre de dates vides converties. La source reste en lecture
-seule ; seuls les textes vides ou composés d’espaces deviennent NULL en cible.
-Une date ISO valide est conservée, une date déjà NULL reste NULL. Les dates
-renseignées sans année ou invalides restent refusées : aucune année inventée
-et aucun anniversaire renseigné supprimé. Les autres champs facultatifs vides
-restent refusés et demandent une décision distincte. Sans cette option,
-le comportement strict initial est conservé.
+| Option | Effet |
+| --- | --- |
+| `--empty-birthdates-as-null` | Convertit seulement les dates de naissance textuelles vides ou composées d’espaces ; dates renseignées invalides et autres champs incompatibles restent refusés |
+| `--invalid-optional-fields-as-null` | Convertit les dates non ISO/invalides et les champs facultatifs textuels vides ou de type incompatible en NULL |
 
-### Décision suivante : champs facultatifs incompatibles à NULL
-
-Sam élargit ensuite la décision du 12 octobre 2026 : tout champ facultatif
-incompatible avec le contrat d’import devient NULL en cible. L’option explicite
-`--invalid-optional-fields-as-null` remplace l’option limitée aux dates vides
-pour la préparation NAS :
+La seconde option est la décision validée par Sam pour la bascule initiale.
+Elle porte sur date de naissance, adresse, code postal, ville, email, téléphone
+et relais préféré. Elle n’invente ni année ni contrôles supplémentaires de
+validité d’email, téléphone ou adresse. Le rapport contient seulement les
+nombres convertis par champ ; les NULL existants ne sont pas comptés.
 
 ```bash
 node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --invalid-optional-fields-as-null --check
 node backend/scripts/import-clients.js --source /copies/source.db --target /copies/cible-neuve.db --invalid-optional-fields-as-null
 ```
 
-Cette option met à NULL les dates de naissance non ISO/invalides (y compris
-les anniversaires jour/mois sans année) et les champs facultatifs textuels
-vides ou de type incompatible : adresse, code postal, ville, email, téléphone,
-relais préféré. Les valeurs compatibles restent identiques ; aucun contrôle
-de validité supplémentaire d’email, téléphone ou adresse n’est inventé.
-Le rapport expose uniquement les nombres convertis par champ, sans coordonnées.
-Les NULL existants ne comptent pas comme conversions. La source n’est pas modifiée.
-
-Nom, prénom, préférence de contact et date de création sont obligatoires dans
-la cible : une valeur invalide reste bloquante. Une colonne source manquante
-ou un doublon d’email renseigné reste bloquant, sans fusion ni effacement
-automatique. Sans option, le mode strict demeure ; l’option précédente garde
-son comportement limité pour les usages qui souhaitent conserver cette règle.
+Employer la même option au précontrôle et à l’import. Les noms, prénoms,
+préférence de contact et date de création invalides, colonnes manquantes et
+vrais doublons restent bloquants : aucune fusion ou correction implicite.
 
 Les doublons d'email suivent exactement la normalisation SQLite
 `lower(trim(email))` du schéma (ASCII, pas de normalisation Unicode ajoutée).
@@ -190,8 +179,11 @@ de configuration de la version précédente hors du volume actif.
 
 Après import, comparer le nombre de clientes, vérifier un échantillon de champs
 sur la copie contrôlée et confirmer l'absence de commandes/catalogues. La
-validation sur données réelles et la bascule seront réalisées en #13. Une
+validation de l’import réel et la bascule du 14 octobre 2026 sont consignées
+dans [le compte rendu de livraison](livraison-nas.md). Une
 relance vers la même cible est refusée ; pour une répétition, choisir un autre
 nom de fichier. En cas d'échec de migration, conserver la version précédente ;
-en cas d'échec après bascule, remettre la sauvegarde avec le code correspondant.
-Il n'existe pas de migration descendante ni de reset automatique.
+en cas d’échec après bascule, appliquer le retour arrière avec le code et la
+base correspondants. Après nouvelles saisies, préserver d’abord la nouvelle
+base et faire décider leur traitement : voir [l’exploitation](operations.md#retour-arrière-et-nettoyage).
+Il n’existe pas de migration descendante ni de reset automatique.

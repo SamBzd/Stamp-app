@@ -4,10 +4,10 @@ Utilise cette checklist lorsqu'une version validée localement doit être livré
 sur le NAS. Une livraison réelle exige l'autorisation explicite de Sam ; ce
 document ne remplace ni une sauvegarde ni une procédure de restauration testée.
 
-Pour la première bascule depuis la production historique, suivre le
-[plan NAS #13](livraison-nas.md) : créer une base et un volume distincts avec
-les seules clientes. La migration en place ci-dessous concerne uniquement
-une base déjà compatible avec la version livrée.
+Cette checklist est un modèle pour une nouvelle livraison, pas un relevé
+de cases de la bascule passée. Le [compte rendu du 14 octobre](livraison-nas.md)
+documente la reprise initiale des seules clientes dans un stockage distinct.
+Les futures migrations en place concernent uniquement une base compatible.
 
 ## Avant la livraison
 
@@ -22,16 +22,23 @@ une base déjà compatible avec la version livrée.
 ## Livraison
 
 - [ ] Les services qui accèdent à SQLite sont arrêtés avant toute maintenance de la base.
-- [ ] La migration est contrôlée en lecture seule, puis appliquée une seule fois selon la procédure documentée.
+- [ ] La migration ou l’import nécessaire est précontrôlé, puis exécuté selon
+      la procédure autorisée ; aucune opération inutile ni reset implicite.
 - [ ] Les images et conteneurs de la version visée sont déployés avec les variables et volumes attendus.
-- [ ] Les services démarrent et les journaux ne signalent aucune erreur bloquante.
+- [ ] Les services sont sains et le routage frontend/API fonctionne ; tout
+      diagnostic de journal évite de publier les données personnelles.
 
 ## Après la livraison
 
 - [ ] La sonde de santé répond et le frontend atteint l'API.
 - [ ] Un parcours métier représentatif est contrôlé sans modifier de données réelles inutilement.
 - [ ] Les commandes, stocks et bilan concernés sont cohérents avec les données attendues.
-- [ ] La version, la date, les migrations appliquées et les contrôles effectués sont consignés dans l'issue ou la PR de livraison.
+- [ ] La sauvegarde couvre le nouveau stockage et une sauvegarde réussie est
+      vérifiée ; ne pas confondre présence des fichiers et restauration testée.
+- [ ] Les accès temporaires sont refermés, les essais retirés et le retour
+      arrière conservé selon la durée décidée.
+- [ ] La version, la date, les migrations et contrôles sont consignés dans
+      la synthèse partagée ; les détails privés restent locaux.
 
 ## En cas d'échec
 

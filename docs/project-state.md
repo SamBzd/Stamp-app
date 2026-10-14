@@ -1,167 +1,55 @@
 # État du projet
 
-## Situation confirmée
+## Production et sources de vérité
 
-- L'application est utilisée par une seule personne depuis un Mac, dans Chrome.
-- Elle est accessible uniquement sur le réseau local.
-- Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
-- La branche `production` est le miroir du code actuellement présent sur le NAS.
-- Les copies SQLite locales sont ignorées par Git et ne représentent pas les données de production.
-- La v2 n'a jamais été déployée, mais son travail est conservé et repris comme fondation de `main`.
-- `main` est la base commune de stabilisation et ne représente pas encore la production.
+Stamp App est utilisée par une seule personne sur Mac, dans Chrome, et hébergée
+avec Docker sur un NAS Synology. La cliente y accède sur son réseau local.
 
-## Cartographie des versions
+La version stabilisée a été livrée le **14 octobre 2026**, depuis le commit
+applicatif `6cc981766bdff0a298812508ff3974c9bfef0cef`. Sam a exécuté les
+opérations, validé les données et paramètres, puis confirmé les services sains,
+la sauvegarde de la nouvelle base et la fermeture de SSH.
 
-| Référence | Rôle | Autorité actuelle |
-|---|---|---|
-| `production` | Code déployé sur le NAS | Référence pour l'application en service |
-| `main` | Refonte v2 reprise et à stabiliser | Référence pour le développement futur |
-| archive de `v2` | État de la refonte avant son adoption par `main` | Référence historique uniquement |
-| `db/dev.db` locale | Base vide générée pour le développement | Référence de développement uniquement |
-| `db/app.db` et sa sauvegarde locales | Copies obsolètes ignorées par Git | Ne pas utiliser pour déduire l'état de production |
+| Référence | Rôle |
+| --- | --- |
+| Commit applicatif `6cc9817` | Code des images effectivement livrées |
+| `main` | Base de développement ; un merge ne constitue pas un déploiement |
+| Branche `production` | Ancienne application conservée pour le retour arrière |
+| Archive de `v2` | Historique de la refonte, sans développement actif |
+| `db/dev.db` | Données locales de développement, ignorées par Git |
+| Copies SQLite locales | Ne prouvent ni les données ni le montage NAS actuels |
 
-## Ce que la documentation permet d'affirmer
+Le code et `db/schema.sql` de la référence examinée font autorité technique.
+L’état réel des données et de la configuration NAS exige des preuves de terrain.
+L’inventaire, les chemins, identifiants d’images et commandes spécifiques au NAS
+restent dans des notes locales exclues de Git ; aucun secret ou contenu client
+ne doit être publié.
 
-L'architecture et les constats techniques décrits ici proviennent principalement de `main`, issue de la v2. Ils décrivent la future base applicative, pas nécessairement le comportement du NAS. Les détails exacts du déploiement et des données réelles devront être contrôlés avant toute migration.
+## Périmètre livré
 
-## Informations encore ouvertes
+- Clientes : coordonnées, préférences, historique, archivage et restauration.
+- Catalogues : brouillon/publication, compositions, tarifs locaux et paramètres.
+- Bibliothèque de papiers : création, réutilisation, renommage et archivage protégé.
+- Commandes kits et hors kit : création, édition non réglée, règlement et historique.
+- Fournitures : besoins persistants, déplacements partiels et alertes anonymes.
+- Bilan : montants réglés historiques, exposés en centimes par l’API.
+- Interface atelier : listes et panneaux intégrés, calendriers, clavier et zoom
+  Chromium ; les limites de recette restent documentées, Safari non bloquant.
 
-- Les règles métier, le modèle cible et le contrat API proposés pour les
-  catalogues et kits ont été confirmés avec Sam le 16 septembre 2026 : voir
-  [les règles et scénarios d'acceptation](catalogue-metier.md) et la
-  [proposition de modèle](catalogue-model-proposal.md). Le schéma cible et
-  l'outillage d'import clientes sont implémentés en issue #5 : voir
-  [la procédure](schema-import-clients.md). Les API sources/settings, publication/démotion et archivage sont implémentées
-  en issue #6 : voir [le contrat API](catalogue-api.md). Le parcours commandes
-  kits, le règlement et les calculs associés sont implémentés en issue #7 : voir
-  [le contrat commandes](commandes-kit-api.md). Le parcours
-  catalogue, les paramètres tarifaires et l’archivage des clientes sont
-  implémentés en issue #8 : voir [le parcours UI](catalogue-ui.md). L’interface
-  commandes (#9) est implémentée : voir [le parcours commandes](commandes-ui.md).
-  Le lot UI Clientes 3A est validé visuellement par Sam :
-  voir [le parcours Clientes](clients-ui.md). La liste Catalogues et les
-  Paramètres 3B.1 sont réalisés localement ; Sam a validé la composition avec
-  fiches allégées et consultation à droite. À sa demande, les listes Clientes
-  et Commandes reprennent ce format sans en-tête prune ni colonnes fixes ;
-  Sam a validé ces listes et autorisé les commits/push sur la branche UI :
-  [recette d’harmonisation](ui/recette-fiches/README.md) ;
-  [recette 3B.1](ui/recette-jalon3b1/README.md). Sam a demandé que la création
-  et la préparation partagent cet espace avec la liste : ratios 1/4–3/4 en
-  préparation, 2/3–1/3 en consultation, transition et protection des saisies.
-  Ses corrections de défilement indépendant, en-tête persistant, fermeture
-  par croix et dock fixe sont réalisées localement :
-  [recette](ui/recette-scroll-catalogues/README.md).
-  Le pied fixe de consultation qui raccourcissait le détail a également été
-  corrigé : action dans le contenu défilant sous le dock, vérifications
-  Chromium et audit indépendant terminés le 10 octobre 2026.
-  Sam a validé le lot 3B.2 et les corrections de détail Commandes le
-  10 octobre 2026, autorisé leurs commits/push et le lot Papiers 3C :
-  [recette](ui/recette-jalon3b2/README.md).
-  Les stocks et leurs provenances historiques (#10) sont alignés sur les
-  compositions enregistrées : voir [le parcours Stocks](stocks.md).
-  Le bilan (#11) utilise les prix appliqués historiques et expose ses montants
-  en centimes : voir [le contrat du bilan](bilan-commandes.md).
-  La bibliothèque de papiers (#28) dispose d’une page dédiée, d’un archivage
-  protégé et d’une sélection catalogue répétable : voir le
-  [parcours catalogue et bibliothèque](catalogue-ui.md). Le lot UI Papiers 3C
-  est livré sur la branche UI avec autorisation de commits/push de Sam le
-  10 octobre 2026 : liste compacte, recherche et filtres repliables,
-  création/renommage inline ; [recette](ui/recette-papiers/README.md).
-  Les formulaires Clientes et Commandes sont harmonisés localement le
-  10 octobre 2026 : liste 2/3 en consultation puis 1/4 en saisie, formulaire
-  intégré à droite, panneaux desktop pleine hauteur sous le dock, actions dans
-  le contenu défilant avec dégagement final et confirmation
-  d’abandon ; [recette](ui/recette-formulaires/README.md).
-  Sam a validé les formulaires et les corrections du dock le 10 octobre 2026,
-  et autorisé leur commit/push sur la branche UI. Safari est non testé, sans
-  condition bloquante de livraison. Sam a ensuite autorisé l’harmonisation
-  des composants communs et
-  demandé que les listes Clientes, Catalogues et Commandes suivent leur contenu,
-  sans remplissage vide jusqu’en bas. Ce lot est livré sur la branche UI :
-  [recette](ui/recette-composants-communs/README.md). Sam a ensuite autorisé
-  l’harmonisation du bilan mensuel et de son sélecteur, livrée sur la branche UI :
-  [recette](ui/recette-bilan/README.md). La recette consolidée reste ouverte.
-  Sam a demandé le remplacement des fenêtres de date système : naissance et
-  commandes partagent désormais un calendrier personnalisé déplié sous le
-  champ dans le formulaire, avec saisie directe et valeurs API inchangées ;
-  [recette](ui/recette-calendriers/README.md).
-  Les ajustements suivants sont aussi livrés sur la branche UI : champ date hors kit pleine
-  largeur, onglets Fournitures/Bilan contrastés, surlignage sans gouttière vide
-  et panneaux sans sélection à hauteur du contenu ;
-  [recette](ui/recette-ajustements-ui/README.md).
-  Sam a autorisé les commits cohérents et le push de ces lots le
-  10 octobre 2026 ; aucune modification du NAS ni déploiement.
-  Sam a autorisé trois finitions de l’issue #39 le 11 octobre 2026,
-  corrigées sur la branche UI : survol de semaine du calendrier neutralisé, mesure
-  atomique après animation dans la recette du bilan, et `aria-controls`
-  conditionnel pour la création Papiers. Les trois recettes décrivent ces
-  corrections ; Sam autorise leur commit/push. Il confirme Chrome pour la
-  cliente et valide le fonctionnement sous Zen ; Safari n’est plus bloquant.
-  Il demande aussi un bandeau compact (96 px minimum desktop), réalisé
-  et validé visuellement avec autorisation de commit/push :
-  [validation actuelle de #39](ui/validation-issue39.md).
-  Le zoom Chromium natif à 200 % est vérifié. Les PR #40 et #41 sont
-  fusionnées dans `main` et les issues #39, #24 et #25 sont clôturées.
-  Les réserves ciblées de recette restent consignées dans la validation UI.
-  La migration v3 est
-  documentée, mais cette évolution reste non déployée. Le workflow persistant
-  des fournitures (#30) est décrit par son
-  [contrat API et de synchronisation](workflow-fournitures-api.md) et sa
-  migration v4 sans backfill. Le Kanban opérationnel #31 consomme ce workflow
-  dans cinq colonnes, avec déplacements partiels, archivage des piles traitées
-  et alertes anonymes : voir le
-  [contrat API et d’interface](workflow-fournitures-api.md).
-  La recette consolidée (#12) est clôturée : voir
-  [la matrice, les preuves et les validations restantes](recette-metier.md).
-  La préparation NAS #13 reste ouverte : voir [le plan de livraison](livraison-nas.md).
-  La collecte technique, la restauration isolée de l’ancienne application et
-  la recette ciblée de la nouvelle version sur NAS sont validées par Sam le
-  13 octobre 2026. Les détails opérationnels restent dans une note locale
-  exclue de Git. La sauvegarde cohérente actualisée, le nouvel import final
-  et la bascule autorisée restent à réaliser.
-  Ce socle n’est pas encore déployé.
-- Le formulaire Catalogue V2 est réalisé localement le 13 octobre 2026 sur
-  `codex/petits-fix` : liste 1/3, formulaire 2/3, quatre étapes à navigation libre
-  après création du brouillon nommé et sauvegardes par section conservées.
-  Sam a choisi ensuite une composition en onglets avec cinq cartes papier par
-  collection et titre modifiable au clic, réalisée sur cette même branche.
-  Le contrat API et les règles métier sont inchangés. La validation visuelle
-  de Sam reste ouverte : [parcours](catalogue-ui.md#formulaire-v2--petits-correctifs-du-13-octobre-2026)
-  et [recette](ui/recette-catalogue-v2/README.md). Aucun déploiement.
-- Les anciens catalogues, collections, commandes, stocks et bilans de
-  production ne seront pas repris. Seules les clientes seront importées dans
-  une base neuve selon la procédure documentée.
+Seules les clientes ont été reprises vers une base neuve : points à zéro,
+dernière commande vide, aucun catalogue, commande, fourniture, stock ou bilan
+historique importé. Les paramètres de la cible neuve ont été validés par Sam.
+Voir [le compte rendu de livraison](livraison-nas.md).
 
-Informations encore à confirmer avant la bascule :
+## Suivi après livraison
 
-- autres écrivains SQLite éventuels et procédure d’arrêt de tous les accès ;
-- sauvegarde cohérente actualisée et intégrité de cette copie finale, puis
-  précontrôle et nouvel import des clientes ;
-- identifiants exacts des nouvelles images et configuration finale de livraison,
-  correspondant au commit applicatif testé ;
-- tarifs initiaux à appliquer, créneau de maintenance, retour arrière et
-  autorisation explicite de bascule.
+- DNS local reporté jusqu’à accès au poste ou identification du routeur cible.
+- Retrait de l’ancienne application à décider après validation en usage réel.
+  Après nouvelles saisies, un retour arrière exige leur préservation.
+- Clôture du suivi GitHub à décider lors de la review documentaire.
+- Nettoyage des modules hérités et évolution de la fidélité : chantiers distincts,
+  à qualifier et autoriser, sans extension automatique du périmètre livré.
 
-Les versions, variables, volumes et droits du déploiement actuel ont été
-relevés ; la configuration Hyper Backup est confirmée par Sam. La restauration
-et la méthode de test isolé ont été validées sur NAS. Ces acquis ne remplacent
-pas les contrôles actualisés de la base finale. Voir le
-[plan de livraison](livraison-nas.md#restant-avant-le-point-5).
-
-Les règles métier hors du périmètre validé restent des questions distinctes de
-la livraison, sans nouveau backlog ni autorisation de modifier l’application.
-
-## Navigation conservée
-
-Le 13 octobre 2026, Sam teste le dock en haut puis intégré au bandeau avec
-liquid glass. Il demande finalement le retour à la disposition d’origine :
-dock fixe en bas et phrase descriptive dans le bandeau. Les essais sont
-abandonnés ; [trace des essais](ui/essai-navigation-glass/README.md).
-Aucun commit ni déploiement.
-
-## Bords des conteneurs harmonisés
-
-Sam demande le 13 octobre 2026 d’étendre le bord suivant la dernière ligne du
-détail Catalogue aux panneaux de l’application. Implémentation partagée locale
-pour les listes, détails et formulaires ; les colonnes Fournitures suivent aussi
-leur contenu. [Recette](ui/recette-bords-conteneurs/README.md). Aucun déploiement.
+La [chronologie de stabilisation](archive/chronologie-stabilisation.md) et les
+[recettes UI datées](ui/README.md) gardent la trace des décisions et essais.
+Elles ne constituent pas une liste de travaux encore ouverts.

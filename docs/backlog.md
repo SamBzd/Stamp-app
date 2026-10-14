@@ -1,23 +1,26 @@
-# Constats techniques hérités de la v2
+# Suivi après livraison
 
-Les éléments ci-dessous proviennent de l'audit initial de la v2, désormais reprise comme fondation de `main`. Ils ne sont ni des corrections déjà appliquées, ni un backlog entièrement validé. Leur pertinence devra être réévaluée pendant la stabilisation, à partir de la production et des règles métier confirmées.
+Cette page distingue les suites convenues des constats à qualifier. Elle
+n’autorise aucune intervention NAS, évolution métier ou suppression.
 
-## Risques métier observés
+## Suites connues
 
-- Valider côté API la composition exacte des kits : 2+3 papiers de deux collections distinctes pour A/B, 5 papiers pour C, tous issus des collections déclarées.
-- Bloquer ou encadrer les catalogues et collections incomplets avant utilisation.
-- Réconcilier les données existantes qui ne respectent pas ces invariants.
-- Recalculer les points de fidélité lors de la modification ou suppression d'une commande hors kit.
+- Préparer le DNS local de la cliente lorsque le poste ou routeur sera accessible.
+- Décider du retrait de l’ancien déploiement après validation en usage réel,
+  en tenant compte des saisies et sauvegardes postérieures à la bascule.
+- Clôturer le suivi GitHub à partir du [compte rendu de livraison](livraison-nas.md).
 
-## Déploiement et données observés sur la v2
+## À qualifier séparément
 
-- L'URL API codée en dur et la politique CORS permissive héritées de la v2 ont été remplacées sur `main` par une configuration générique.
-- La configuration Docker actuelle se trouve sur la branche `production` et devra être adaptée à `main` avant tout déploiement.
-- Les anciennes bases `db/app.db` et `db/app.db.backup` ne sont plus suivies par Git. Prévoir, si nécessaire, des données de démonstration anonymisées.
-- Mettre à jour les dépendances signalées par `npm audit`.
+- Les modules Groupes et la vue Dashboard hérités restent dans le dépôt,
+  hors navigation active ; évaluer leur retrait avec leurs usages API.
+- La fidélité reste attribuée uniquement à la création d’une hors-kit de plus
+  de 70 euros. Aucun recalcul en édition/suppression n’est promis ni autorisé.
+- Toute mise à jour de dépendances demande un audit actuel, pas la reprise
+  automatique des alertes de l’ancien audit v2.
+- Anciennes copies SQLite dans l’historique Git : une éventuelle purge serait
+  un chantier distinct avec sauvegarde et accord explicite.
 
-## Maintenabilité observée
-
-- Ajouter tests d'intégration et CI.
-- Retirer le code, les stores et les requêtes Bruno v1 devenus obsolètes.
-- Rendre le Dashboard accessible ou supprimer la vue inutilisée.
+Les validations de composition, publication, prix historiques, tests et CI
+ont été livrées ; les anciens constats sont conservés dans
+[l’archive de l’audit v2](archive/audit-v2.md).

@@ -1,7 +1,7 @@
 # Workflow opérationnel des fournitures — issue #30
 
-Ce contrat prépare le futur Kanban sans construire son interface. Il ne reprend
-aucune commande existante lors de la migration `0004_workflow_fournitures.sql`.
+Ce contrat décrit le workflow et le Kanban livrés. La migration
+`0004_workflow_fournitures.sql` ne reprend aucune commande existante.
 Une nouvelle commande kit crée immédiatement une ligne persistante par unité
 physique. Une ancienne commande kit est initialisée seulement à son premier
 `PUT`; une lecture, un règlement ou une suppression ne déclenche aucun backfill.
@@ -64,23 +64,23 @@ glisser-déposer ouvre un sélecteur de quantité. Pour les cartes hors « Trait
 un clic ou les touches Entrée/Espace ouvrent aussi le choix de destination et
 de quantité ; aucune mutation optimiste ne masque un refus du serveur.
 
-Sur petit écran, les colonnes passent à la verticale dans le même ordre. Les
+Sur écran étroit, les colonnes se replient en conservant le même ordre. Les
 alertes anonymes du workflow sont affichées au-dessus du tableau. Dans Traité,
 « Terminer » archive toute la pile après confirmation. Le bilan mensuel reste
 disponible dans un second onglet de la même route.
 
-### Présentation atelier — premier jalon UI #39
+### Présentation atelier livrée
 
-Le socle local utilise le bandeau prune, le fond citron, les colonnes blanches
-à en-tête prune et compteurs jaunes. Les cinq colonnes restent côte à côte
-au-dessus de 900 px CSS ; le repli passe ensuite à deux colonnes, puis à une
-jusqu’à 640 px. Les noms longs restent complets. Les cartes et le dock utilisent
-une couche de verre derrière le texte, avec repli blanc sans filtre ou en
-transparence réduite. Le dock reste dans le flux après le contenu et conserve
-les routes métier. Les états, API et règles de déplacement ne changent pas.
+Le Kanban utilise l’identité prune/citron, des cartes avec nom complet et
+compteurs par pile. Les colonnes se replient selon la largeur disponible.
+Le dock fixe conserve les routes métier ; l’onglet Bilan partage cette page.
+Les améliorations visuelles ne changent pas les états ni les mutations API.
 
-Cette réalisation attend la validation visuelle de Sam sur son Mac ; voir
-[les captures comparables, écarts et limites](ui/recette-jalon1/README.md).
+Le premier jalon est conservé dans
+[la recette datée](ui/recette-jalon1/README.md). L’issue UI #39 est clôturée ;
+[la validation UI](ui/validation-issue39.md) consigne les limites restantes.
+Le déplacement partiel et sa persistance sont validés lors de
+[la recette ciblée NAS](livraison-nas.md#recette-synthétique-exécutée-sur-nas).
 
 ## Synchronisation avec les commandes
 

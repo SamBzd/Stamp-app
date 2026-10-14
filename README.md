@@ -2,13 +2,15 @@
 
 Application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur le réseau local. La production est hébergée sur un NAS Synology avec Docker.
 
-> La branche `production` est le miroir du code présent sur le NAS. La branche `main` reprend la refonte v2 comme base de stabilisation ; elle n'est pas encore déployée.
+La version stabilisée du commit applicatif **`6cc9817`** est livrée sur NAS
+depuis le **14 octobre 2026**. `main` reste la base de développement ; la
+branche `production` conserve l’ancienne version pour le retour arrière.
 
-> Les bases SQLite locales ne sont pas versionnées. L'historique Git contient encore d'anciennes copies : ne le diffuse pas sans suivre les précautions décrites dans la [documentation d'exploitation](docs/operations.md).
-
-## État du dépôt
-
-`main` constitue désormais la base commune pour stabiliser la refonte v2 avant son futur déploiement. Ses commandes de développement ne constituent pas la procédure d'exploitation du NAS. Consulte [l'état des versions](docs/project-state.md) avant toute intervention.
+Commence par [l’état du projet](docs/project-state.md),
+[le compte rendu de livraison](docs/livraison-nas.md) et
+[le sommaire](docs/README.md). Les configurations réelles et notes privées du
+NAS restent locales, exclues de Git. L’historique contient encore d’anciennes
+copies SQLite : voir [les précautions d’exploitation](docs/operations.md#confidentialité).
 
 ## Développer `main` en local
 
@@ -39,13 +41,13 @@ Le frontend appelle `/api` par défaut. Pour un autre environnement, le backend 
 
 ## Lancer avec Docker
 
-Le déploiement Compose est générique et ne dépend d'aucune adresse machine :
+Pour un environnement local Docker neuf, le Compose générique permet :
 
 ```bash
 docker compose up --build
 ```
 
-L'interface est ensuite disponible sur `http://localhost:8080`. Les données sont conservées dans le volume Docker `stamp-data`. Le port HTTP et le nom du volume peuvent être remplacés avec `STAMP_HTTP_PORT` et `STAMP_VOLUME_NAME`.
+Ce Compose ne remplace pas celui du NAS. L'interface locale est disponible sur `http://localhost:8080`. Les données sont conservées dans le volume Docker `stamp-data`. Le port HTTP et le nom du volume peuvent être remplacés avec `STAMP_HTTP_PORT` et `STAMP_VOLUME_NAME`.
 
 ## Structure
 
@@ -58,6 +60,6 @@ docs/        documentation maintenue
 
 ## Documentation
 
-Commence par le [sommaire de la documentation](docs/README.md), puis par [l'état des versions](docs/project-state.md). La documentation distingue les faits confirmés, l'état observé du code et les sujets restant à vérifier avec le client.
+Commence par le [sommaire de la documentation](docs/README.md), puis par [l'état des versions](docs/project-state.md). Les archives conservent les anciennes intentions et recettes ; les contrats actifs décrivent le socle livré.
 
 Les conventions destinées aux agents et assistants sont dans [AGENTS.md](AGENTS.md).

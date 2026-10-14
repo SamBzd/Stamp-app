@@ -1,7 +1,8 @@
 # Bilan des commandes — issue #11
 
-Ce contrat concerne `main` stabilisée, pas la production du NAS. Aucun schéma,
-import historique ni migration supplémentaire n’est nécessaire.
+Ce contrat décrit le bilan du socle livré le 14 octobre 2026. Aucun
+historique de bilan n’a été repris lors de la bascule ; les prix des nouvelles
+commandes sont conservés pour leurs calculs ultérieurs.
 
 ## Chaîne des prix
 

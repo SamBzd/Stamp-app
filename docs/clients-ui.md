@@ -2,7 +2,8 @@
 
 La route `/clients` affiche le répertoire dans le socle atelier prune/citron.
 Sam a validé cette composition le 9 octobre 2026 et autorisé ses commits/push.
-La recette consolidée reste ouverte ; Safari est non testé et non bloquant.
+La recette UI est intégrée et la livraison NAS validée. Safari reste non
+testé et non bloquant ; les limites ciblées sont conservées dans les recettes.
 Voir le [cadrage actuel de #39](ui/validation-issue39.md). Voir la [recette 3A](ui/recette-jalon3a/README.md).
 
 ## Répertoire
