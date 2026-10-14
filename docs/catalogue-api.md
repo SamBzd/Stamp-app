@@ -1,6 +1,6 @@
 # API catalogues, sources, tarifs et archivage — issues #6 et #28
 
-Cette API vise la future version, pas le NAS actuellement déployé. La migration
+Cette API décrit le socle livré le 14 octobre 2026. La migration
 `0003_papiers_library.sql` ajoute l’archivage de la bibliothèque et l’unicité
 normalisée des noms. Les parcours Vue sont intégrés en [#8 et #28](catalogue-ui.md)
 et [#9](commandes-ui.md). Le backend compositions kit et règlement est

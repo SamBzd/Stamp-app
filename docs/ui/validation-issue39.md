@@ -1,4 +1,8 @@
-# Validation actuelle de l’issue #39 — 11 octobre 2026
+# Validation UI — issue #39
+
+Statut actualisé : issue clôturée après intégration de la PR #40 le 12 octobre
+2026. Le socle a ensuite été livré sur NAS le 14 octobre ; voir
+[la livraison](../livraison-nas.md). Les preuves datées ci-dessous sont conservées.
 
 Ce cadrage remplace les anciennes réserves de livraison liées à un Mac précis
 ou à Safari dans les recettes historiques et les documents des jalons.
@@ -84,12 +88,10 @@ des gardes et parcours navigateur depuis l’autre liste. Les deux ne reproduise
 pas le signalement (pertinence 1/5). Sam autorise la documentation de cette
 conclusion puis le merge de la PR #40 le 12 octobre 2026.
 
-## Restant avant clôture
+## Limites de recette conservées après clôture
 
 - Consolidation de la recette : contrastes composés et repli/transparence réduite
   sur les navigateurs retenus ; preuve spécifique du zoom/clavier dans Zen.
   La validation générale Zen ne vaut pas confirmation de chacun de ces critères.
-- Revue et intégration dans `main` après accord.
-- Clôture de #39 puis examen des critères propres à l’EPIC #24.
-
-Aucun déploiement NAS n’est inclus dans cette issue.
+La PR #40 est intégrée et les issues #39, #24 et #25 sont clôturées.
+La livraison NAS est une étape distincte, documentée dans le compte rendu.
