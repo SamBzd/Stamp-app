@@ -1,46 +1,69 @@
 # Exploitation
 
-## État actuel
+## Version et configuration réelles
 
-L'application est utilisée par une seule personne depuis un Mac, uniquement sur le réseau local. Elle s'exécute dans des conteneurs Docker sur un NAS Synology.
+La version stabilisée est livrée sur NAS depuis le 14 octobre 2026 :
+[compte rendu](livraison-nas.md), [références](project-state.md).
+Le code `main` est une base de développement ; seule la référence des images
+livrées et la configuration terrain établissent ce qui tourne réellement.
 
-La branche `production` reflète le code présent sur le NAS et contient sa configuration Docker. La branche `main`, issue de la v2, est la future base applicative mais ne contient pas encore une configuration de déploiement validée. `npm run dev` reste donc une commande de développement local, pas une procédure de production.
+La production utilise deux services, Nginx devant Express, une origine unique
+et un dossier SQLite persistant distinct. Le Compose réel épingle les images,
+monte ce dossier vers `/data` et exige `STAMP_DB_PATH=/data/app.db`.
+Les droits du dossier et de la base sont adaptés à l’utilisateur `node` du
+backend. Hyper Backup inclut ce dossier. Le détail machine reste local (`*.local`).
 
-## Base SQLite
+Le `compose.yaml` du dépôt est un **exemple générique**, avec volume nommé
+`stamp-data` et port 8080 par défaut ; il ne doit pas être exécuté tel quel
+contre le NAS en remplacement de son Compose réel. `npm run dev` utilise
+`db/dev.db`, jamais la base du NAS.
 
-La base de production pourra être récupérée depuis le NAS lors d'une étape ultérieure. Les copies locales `db/app.db` et `db/app.db.backup` sont ignorées par Git, obsolètes et ne doivent pas servir de référence métier ou opérationnelle. Elles peuvent néanmoins contenir des données personnelles.
+## Configuration applicative
 
-- Ne les partage pas ni ne les remplace ; `npm run dev` utilise exclusivement `db/dev.db`.
-- Sauvegarde-les hors du dépôt avant toute opération de maintenance.
-- N'exécute `node db/reset_v2.js` que sur une base jetable ou après sauvegarde : le script supprime les données des commandes et catalogues v2.
-- Ne remplace jamais la base du NAS par la copie locale.
-- Avant toute maintenance future, identifier le volume réellement monté par Docker et réaliser une sauvegarde vérifiable de la base du NAS.
-- Le `db/schema.sql` d'une branche décrit l'intention de cette branche ; il ne remplace pas l'inspection du schéma réel de production.
+| Variable | Usage |
+| --- | --- |
+| `STAMP_DB_PATH` | Chemin obligatoire de SQLite dans le backend |
+| `PORT` | Port backend, 3000 par défaut |
+| `CORS_ORIGIN` | Origines tierces facultatives ; vide pour une origine unique |
+| `VITE_API_BASE_URL` | Préfixe API compilé dans le frontend, `/api` par défaut |
+| `STAMP_HTTP_PORT`, `STAMP_VOLUME_NAME` | Paramètres de l’exemple Compose du dépôt, pas preuve des montages NAS |
 
-## Réseau et sécurité
+Le backend ne charge pas automatiquement `.env`. Les variables doivent être
+transmises par son environnement. Nginx relaie `/api/` vers `backend:3000` ; seul
+le frontend publie un port. Vérifier la portée des accès dans l’environnement
+réel ; un bind ne remplace pas une vérification de la configuration réseau.
 
-Le frontend appelle `/api` par défaut et ne contient aucune adresse de déploiement. Le backend exige `STAMP_DB_PATH`, utilise `PORT=3000` par défaut et n'autorise aucune origine tierce tant que `CORS_ORIGIN` n'est pas renseignée. Une origine CORS ne doit être configurée que si le frontend et l'API sont servis depuis des origines différentes.
+## Sauvegarde et restauration
 
-Ces variables constituent le contrat de déploiement indépendamment du support choisi. Les valeurs réelles sont fournies par l'environnement et ne doivent pas être commitées.
+La tâche Hyper Backup protège le nouveau dossier de base, l’ancien dossier et
+la sauvegarde finale de bascule. Son succès et la présence des fichiers ont
+été confirmés. Pour une maintenance :
 
-## Procédure de production
+1. Identifier le montage actif et tous les écrivains ; faire autoriser le créneau.
+2. Arrêter les écritures puis vérifier l’état des services. Un conteneur arrêté
+   ne prouve pas un arrêt gracieux ni le checkpoint complet du WAL.
+3. Produire une copie autonome avec l’API backup de SQLite ou une copie arrêtée
+   contrôlée de l’ensemble base/WAL. Ne jamais copier uniquement `app.db` en
+   ignorant un WAL, ni supprimer WAL/SHM manuellement.
+4. Conserver l’original, relever une empreinte, protéger la copie hors du
+   stockage actif. Contrôler `PRAGMA integrity_check` et `PRAGMA foreign_key_check`.
+5. Restaurer dans un dossier différent, démarrer les images correspondantes
+   sur une copie de travail et confirmer le fonctionnement attendu.
 
-Le projet fournit un déploiement Compose générique :
+Une sauvegarde Hyper Backup de fichiers pendant les écritures n’est pas, à elle
+seule, une preuve de cohérence SQLite. Prévoir une copie cohérente pour les
+opérations sensibles et tester périodiquement une restauration. Ne pas ouvrir
+ni modifier silencieusement les données clientes pendant un diagnostic.
 
-```bash
-docker compose up --build -d
-```
+## Mise à jour d’une base compatible
 
-- `STAMP_HTTP_PORT` choisit le port HTTP publié, `8080` par défaut.
-- `STAMP_VOLUME_NAME` choisit le nom du volume persistant, `stamp-data` par défaut.
-- `VITE_API_BASE_URL` vaut `/api` par défaut et ne doit changer que si l'API est servie séparément.
-- `CORS_ORIGIN` reste vide pour un déploiement sur une origine unique.
+Au démarrage, le backend vérifie la version et la structure. Une base neuve
+reçoit le schéma courant ; une base incompatible ou avec migration en attente
+bloque le démarrage. Les migrations sont explicites, atomiques et enregistrées
+avec leurs empreintes ; ne jamais modifier une migration déjà appliquée.
 
-Au premier démarrage sur un volume vide, le backend crée le schéma et les paramètres initiaux, puis enregistre la version courante dans `schema_migrations`. Une base existante au schéma incomplet ou avec une migration en attente bloque le démarrage : elle exige une migration explicite.
-
-Avec le déploiement Compose, arrête le backend pour qu'il n'accède pas à SQLite
-pendant la maintenance. Contrôle ensuite l'état, applique les migrations dans un
-conteneur ponctuel relié au même volume, puis redémarre le service :
+Après sauvegarde et arrêt autorisés, utiliser **le projet et le Compose réels**.
+Ces exemples de commandes sont relatifs au contexte déjà identifié :
 
 ```bash
 docker compose stop backend
@@ -49,22 +72,31 @@ docker compose run --rm backend npm run db:migrate
 docker compose up -d backend
 ```
 
-Réalise une sauvegarde vérifiable de la base avant la commande de migration. La
-commande de statut ouvre la base en lecture seule et ne crée aucune table. Les
-conteneurs ponctuels utilisent `STAMP_DB_PATH=/data/app.db` et le même volume
-`stamp-data`, ou celui sélectionné par `STAMP_VOLUME_NAME`.
+Adapter la syntaxe à la version Compose installée (`docker-compose` si nécessaire)
+et fournir explicitement son fichier/projet. Les conteneurs ponctuels doivent
+monter la même base contrôlée. Le statut est en lecture seule. Ne lancer la
+migration que si elle est nécessaire et autorisée.
 
-Chaque migration est atomique et son empreinte est enregistrée. Un fichier déjà
-appliqué ne doit jamais être modifié. Au démarrage, la structure réelle est aussi
-comparée au schéma attendu pour la version enregistrée ; une base dégradée est
-refusée. Une base neuve reçoit directement le schéma courant ; les migrations
-servent à faire évoluer les bases existantes.
+La livraison initiale n’a pas migré en place l’ancienne production : seules les
+clientes ont été importées vers une cible neuve. Le reset v2 est destructif et
+ne constitue ni une migration NAS ni un outil de réparation.
 
-La baseline `0001_main_baseline.sql` correspond au schéma historique de `main`. Elle
-ne constitue pas la conversion de la base historique du NAS : cette conversion
-sera écrite et validée séparément sur une copie des données lorsque la cible de
-déploiement sera stabilisée.
+## Retour arrière et nettoyage
 
-## À ne pas publier
+Conserver un ensemble cohérent ancien code/images/configuration/base jusqu’à
+validation en usage réel. Avant toute restauration après de nouvelles saisies,
+sauvegarder aussi la nouvelle base et faire décider du traitement des données
+qui seraient perdues. La possibilité de redémarrer d’anciens conteneurs ne
+remplace pas cette décision.
 
-Avant de partager ou pousser le dépôt vers un hébergeur tiers, décider si les anciennes bases SQLite réelles et leurs sauvegardes doivent être retirées de l'historique Git. Cette réécriture sera un chantier séparé, avec une sauvegarde et une coordination explicites. Utilise à la place un schéma et des données de démonstration anonymes.
+Supprimer uniquement les ressources d’essai identifiées, après contrôle de
+leurs montages et utilisateurs. Préférer des cibles explicites aux commandes
+`prune` globales ; ne pas retirer une image partagée avec la production.
+Refermer SSH après l’intervention. La procédure de DNS local reste reportée.
+
+## Confidentialité
+
+Ne publier ni coordonnées, secrets, chemins réels NAS, rapports privés ni
+configurations machine. Notes `*.local` et bases SQLite restent ignorées par Git.
+L’historique Git peut encore contenir d’anciennes copies de données : une purge
+nécessiterait un chantier autorisé et coordonné, avec sauvegarde.

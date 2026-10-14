@@ -1,6 +1,6 @@
 # Développement local
 
-> Ces instructions concernent `main`, issue du travail v2 et encore en stabilisation. Elles ne reproduisent pas nécessairement l'environnement Docker du NAS.
+> Ces instructions concernent le développement de `main`. Le NAS utilise des images figées et une configuration locale distincte ; voir [l’exploitation](operations.md).
 
 ## Prérequis
 
@@ -52,7 +52,7 @@ les seules clientes. La création de kits utilise désormais
 [le contrat API commandes #7](commandes-kit-api.md) ; le parcours Vue est décrit
 dans [la documentation commandes #9](commandes-ui.md).
 
-Cette commande refuse d'écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
+`npm run db:dev:init` refuse d’écraser une base existante. Pour supprimer puis recréer volontairement la base locale de développement (et donc perdre toutes ses données), lance :
 
 ```bash
 npm run db:dev:reset

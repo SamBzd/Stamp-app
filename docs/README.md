@@ -1,30 +1,30 @@
 # Documentation Stamp App
 
-Ce dossier est le point d'entrée de la documentation maintenue du projet. Il sépare la production réellement déployée, la base de stabilisation portée par `main` et les informations qui restent à confirmer.
+## Commencer ici
 
-- [État du projet](project-state.md) : versions, environnement réel et sources de vérité.
-- [Architecture](architecture.md) : composants, frontières et flux.
-- [Développement](development.md) : installation et commandes de la branche `main`.
-- [Modèle de données](data-model.md) : entités et règles héritées de la v2, à revalider.
-- [Catalogues et commandes kits](catalogue-metier.md) : règles validées le 16 septembre 2026 et scénarios d'acceptation à implémenter.
-- [Modèle cible catalogues et kits](catalogue-model-proposal.md) : décisions de l’issue #4, contrat de données et import limité aux clientes.
-- [Schéma et import clientes](schema-import-clients.md) : structures de l’issue #5, migration et préparation d’une base neuve.
-- [API catalogues et archivage](catalogue-api.md) : endpoints, tarifs en centimes, publication, démotion et erreurs de l’issue #6.
-- [API commandes kits](commandes-kit-api.md) : compositions A/B/C, snapshots, prix, règlement, stocks et bilan de l’issue #7.
-- [Quantités à préparer](stocks.md) : identité, provenance historique, quantités de base/finales et rubans de l’issue #10.
-- [Parcours catalogue et bibliothèque](catalogue-ui.md) : préparation/publication, tarifs, sélection et archivage/restauration des issues #8 et #28.
-- [Identité UI atelier prune/citron](ui/identite-atelier.md) : direction visuelle validée, maquettes figées et règles de transposition sans changement métier.
-- [Issue UI #39](ui/issue-ui-atelier.md) : cadrage accepté et publié le 9 octobre 2026, jalons de validation avec Sam et critères de fidélité ; références et maquettes versionnées.
-- [Exploitation](operations.md) : exécution locale, sauvegarde et déploiement.
-- [Qualité](quality.md) : vérifications actuelles et stratégie de tests.
-- [Checklist de livraison](release-checklist.md) : préparation, contrôles et retour arrière pour une livraison sur le NAS.
-- [Préparation NAS #13](livraison-nas.md) : base neuve, import exclusif des clientes, répétition, critères d’arrêt et retour arrière.
-- [Constats techniques](backlog.md) : écarts hérités de la v2 à qualifier pendant la stabilisation.
-- [Archive du plan v2](archive/plan-v2.md) : plan historique, conservé sans valeur de feuille de route.
+- [État du projet](project-state.md) : version livrée, références et suivi restant.
+- [Livraison du 14 octobre 2026](livraison-nas.md) : preuves, limites et ménage.
+- [Développement](development.md) : installation, base jetable et configuration.
+- [Exploitation](operations.md) : stockage, sauvegarde, mises à jour et retour arrière.
+- [Checklist de livraison](release-checklist.md) : contrôles réutilisables pour la prochaine livraison.
+- [Qualité](quality.md) : validations automatiques et recettes humaines.
 
-## Règle de lecture
+## Contrats fonctionnels et techniques
 
-- Pour savoir ce qui tourne sur le NAS, la référence est la branche `production`, complétée plus tard par une copie contrôlée de la base et de la configuration réelles.
-- Pour travailler sur la future version, la référence est `main`, issue du travail v2 et encore non déployée.
-- La branche `v2` reste une référence historique archivée ; elle ne doit plus recevoir de développement.
-- Les règles validées pour les catalogues et kits sont consignées dans [catalogue-metier.md](catalogue-metier.md). Les autres besoins restent à confirmer ; aucun constat de l'audit ne vaut décision de correction.
+| Domaine | Références |
+| --- | --- |
+| Architecture et données | [Architecture](architecture.md), [modèle actuel](data-model.md), [schéma et import](schema-import-clients.md) |
+| Catalogues et kits | [Règles métier](catalogue-metier.md), [décisions de conception](catalogue-model-proposal.md), [API catalogues](catalogue-api.md), [API commandes](commandes-kit-api.md) |
+| Interface | [Clientes](clients-ui.md), [catalogues et papiers](catalogue-ui.md), [commandes](commandes-ui.md) |
+| Fournitures et comptabilité | [Stocks historiques](stocks.md), [workflow et Kanban](workflow-fournitures-api.md), [bilan](bilan-commandes.md) |
+| Scénarios et suivi | [Recette métier](recette-metier.md), [suivi à qualifier](backlog.md) |
+
+## Historique et confidentialité
+
+Les [archives](archive/README.md) conservent les intentions v2 et la chronologie.
+Les [recettes UI](ui/README.md) conservent les preuves datées, captures et scripts.
+Les contrats courants ci-dessus et le code priment sur une variante historique.
+
+Les fichiers `*.local`, configurations réelles NAS, données SQLite et secrets
+restent hors Git. Une documentation ne prouve pas l’état de la base active ;
+la tête de `main` ne remplace pas l’identification du commit effectivement livré.
