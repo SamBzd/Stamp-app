@@ -1,0 +1,34 @@
+{
+  "compose_command": ["docker-compose"],
+  "projects": {
+    "stamp-app": {
+      "enabled": false,
+      "repository": "SamBzd/Stamp-app",
+      "github_token_file": "/path/to/credentials/stamp-github-read",
+      "compose_file": "/path/to/stamp-app/compose.yaml",
+      "compose_version": "2.4",
+      "require_existing": true,
+      "images": {
+        "backend": "ghcr.io/sambzd/stamp-app-backend",
+        "frontend": "ghcr.io/sambzd/stamp-app-frontend"
+      },
+      "preflight": {
+        "service": "backend",
+        "entrypoint": "node",
+        "args": ["scripts/migrate-db.js", "--require-current"]
+      },
+      "probes": ["http://127.0.0.1:8080/", "http://127.0.0.1:8080/api/health"]
+    },
+    "calendrier-avent-maman-2026": {
+      "enabled": false,
+      "repository": "SamBzd/calendrier-avent-maman-2026",
+      "github_token_file": "/path/to/credentials/calendrier-github-read",
+      "compose_file": "/path/to/calendrier-avent-maman-2026/compose.yaml",
+      "compose_version": "2.4",
+      "images": {
+        "web": "ghcr.io/sambzd/calendrier-avent-maman-2026-web"
+      },
+      "probes": ["http://127.0.0.1:8086/"]
+    }
+  }
+}

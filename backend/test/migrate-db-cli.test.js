@@ -151,6 +151,29 @@ test('CLI peut être relancé après succès sans rejouer v2', () => {
   }
 });
 
+test('le précontrôle exige une base à jour et ne lance aucune migration', () => {
+  const context = createContext();
+  seedVersionOne(context);
+
+  const pending = runCli(context, ['--require-current']);
+  assert.equal(pending.status, 1);
+  assert.match(pending.stderr, /requiert une migration/);
+
+  const database = openDatabase(context, { readonly: true });
+  try {
+    assert.deepEqual(getAppliedVersions(database), [1]);
+    assert.deepEqual(getColumnNames(database), ['id', 'valeur']);
+  } finally {
+    database.close();
+  }
+
+  const migration = runCli(context);
+  assert.equal(migration.status, 0, migration.stderr);
+  const current = runCli(context, ['--require-current']);
+  assert.equal(current.status, 0, current.stderr);
+  assert.match(current.stdout, /Migrations en attente : 0/);
+});
+
 test('CLI annule entièrement une v2 SQL qui échoue', () => {
   const context = createContext(`
     ALTER TABLE exemple ADD COLUMN statut TEXT;

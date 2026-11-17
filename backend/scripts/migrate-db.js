@@ -22,8 +22,8 @@ function parseArguments(args) {
   for (let index = 0; index < args.length; index += 1) {
     const argument = args[index];
 
-    if (argument === '--status') {
-      mode = 'status';
+    if (argument === '--status' || argument === '--require-current') {
+      mode = argument.slice(2);
     } else if (argument === '--migrations-dir') {
       const directory = args[index + 1];
 
@@ -48,7 +48,7 @@ try {
 } catch (error) {
   console.error(error.message);
   console.error(
-    'Usage : node backend/scripts/migrate-db.js [--status] [--migrations-dir <chemin>]'
+    'Usage : node backend/scripts/migrate-db.js [--status|--require-current] [--migrations-dir <chemin>]'
   );
   process.exit(1);
 }
@@ -84,12 +84,12 @@ if (!fs.existsSync(databasePath)) {
   process.exit(1);
 }
 
-const database = new Database(databasePath, cliOptions.mode === 'status'
+const database = new Database(databasePath, cliOptions.mode !== 'migrate'
   ? { readonly: true, fileMustExist: true }
   : undefined);
 
 try {
-  if (cliOptions.mode === 'status') {
+  if (cliOptions.mode !== 'migrate') {
     const status = getMigrationStatus(database, migrationOptions);
 
     if (status.applied.length > 0) {
@@ -107,6 +107,10 @@ try {
 
     for (const migration of status.pending) {
       console.log(`- ${migration.filename}`);
+    }
+    if (cliOptions.mode === 'require-current' && status.pending.length) {
+      console.error('La mise à jour requiert une migration SQLite explicite.');
+      process.exitCode = 1;
     }
   } else {
     const initialStatus = getMigrationStatus(database, migrationOptions);

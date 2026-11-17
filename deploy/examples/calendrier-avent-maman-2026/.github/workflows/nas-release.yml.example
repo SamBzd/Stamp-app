@@ -1,0 +1,30 @@
+name: Livrer le calendrier sur le NAS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nas-release
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: node --check calendar.js
+      - run: docker compose config --quiet
+
+  publish:
+    needs: validate
+    permissions:
+      contents: write
+      packages: write
+    uses: SamBzd/Stamp-app/.github/workflows/nas-publish.yml@REMPLACER_PAR_LE_SHA_VALIDE
+    with:
+      images-file: .github/nas-images.json

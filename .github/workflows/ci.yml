@@ -1,6 +1,7 @@
 name: Validation
 
 on:
+  workflow_call:
   push:
     branches:
       - main
@@ -12,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: validation-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: validation-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -49,3 +50,6 @@ jobs:
 
       - name: Vérifier la configuration Docker Compose
         run: npm run check:docker
+
+      - name: Vérifier le déploiement NAS
+        run: python3 -B -m unittest discover -s deploy/tests

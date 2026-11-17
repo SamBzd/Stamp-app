@@ -25,6 +25,9 @@ Ces variables constituent le contrat de déploiement indépendamment du support 
 
 ## Procédure de production
 
+Voir [la livraison automatique sur Synology](cd-nas.md) pour préparer les
+releases Docker et raccorder un projet au déployeur commun.
+
 Le projet fournit un déploiement Compose générique :
 
 ```bash
