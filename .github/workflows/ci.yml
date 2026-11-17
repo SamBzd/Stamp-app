@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+      - codex/nas-cd
   pull_request:
     branches:
       - main
