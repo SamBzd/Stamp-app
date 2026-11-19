@@ -55,10 +55,11 @@ class DeploymentTest(unittest.TestCase):
             "images": {service: f"ghcr.io/sam/{name}-{service}" for service in services},
             "probes": [f"http://localhost/{name}"],
             "health_timeout": 0,
+            "trusted_workflows": {f"sam/{name}/.github/workflows/nas-release.yml": "a" * 64},
             **settings,
         }
 
-    def fake_release(self, config):
+    def fake_release(self, config, known=()):
         return self.releases[config["repository"].split("/")[1]]
 
     def fake_run(self, command, **_):
@@ -195,7 +196,7 @@ class DeploymentTest(unittest.TestCase):
         config = self.projects["calendrier"]
         candidate = self.releases["calendrier"]
         commit = candidate["tag_name"][4:]
-        manifest = {"version": 1, "repository": config["repository"], "commit": commit,
+        manifest = {"version": 2, "repository": config["repository"], "commit": commit,
                     "images": candidate["images"]}
         self.assertEqual(nas_cd.validate_manifest(manifest, config, commit), candidate["images"])
         for invalid in ({"web": "ghcr.io/other/web@sha256:" + "2" * 64},
@@ -211,10 +212,11 @@ class DeploymentTest(unittest.TestCase):
         published = {**candidate, "draft": False, "prerelease": False, "assets": [asset]}
         ordinary = {**published, "id": 4, "tag_name": "v1.0"}
         draft = {**published, "id": 5, "draft": True}
-        manifest = {"version": 1, "repository": config["repository"], "commit": candidate["tag_name"][4:],
+        manifest = {"version": 2, "repository": config["repository"], "commit": candidate["tag_name"][4:],
                     "images": candidate["images"]}
-        with patch.object(nas_cd, "github_json", side_effect=[[draft, ordinary, published], manifest]) as api:
-            self.assertEqual(nas_cd.latest_release(config), candidate)
+        with patch.object(nas_cd, "github_json", side_effect=[[draft, ordinary, published], manifest]) as api, \
+                patch.object(nas_cd, "verify_publication", return_value={"policy": "verified"}):
+            self.assertEqual(nas_cd.latest_release(config), {**candidate, "verification": {"policy": "verified"}})
         api.assert_called_with("/repos/sam/calendrier/releases/assets/14", None, "application/octet-stream")
 
 

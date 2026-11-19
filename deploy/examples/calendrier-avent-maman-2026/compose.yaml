@@ -4,5 +4,19 @@ services:
     image: calendrier-avent-maman-2026:local
     build: .
     ports:
-      - "127.0.0.1:8086:80"
+      - "${CALENDAR_BIND_IP:-127.0.0.1}:8086:8080"
     restart: unless-stopped
+    user: "101:101"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=16m,mode=1777
+    mem_limit: 64m
+    cpus: 0.50
+    pids_limit: 64
+    logging:
+      driver: json-file
+      options:
+        max-size: "1m"
+        max-file: "3"

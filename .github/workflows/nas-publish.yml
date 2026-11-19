@@ -29,7 +29,7 @@ jobs:
             exit 1
           fi
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
 
@@ -57,7 +57,8 @@ jobs:
           IMAGES_FILE: ${{ inputs.images-file }}
         run: |
           printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-          docker buildx create --use --driver docker-container
+          docker buildx create --use --driver docker-container \
+            --driver-opt image=moby/buildkit:buildx-stable-1@sha256:c5f8862f52499773af85bc07695b2379ef08e8002352b0df2c4864c91d78dabe
           python3 - <<'PY'
           import json
           import os
@@ -91,9 +92,21 @@ jobs:
                   if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
                       raise SystemExit(f"Digest absent ou invalide pour {service}.")
                   images[service] = f"{image}@{digest}"
-          manifest = {"version": 1, "repository": repository, "commit": commit, "images": images}
+          manifest = {"version": 2, "repository": repository, "commit": commit, "images": images,
+                      "publication": {"run_id": int(os.environ["GITHUB_RUN_ID"]),
+                                      "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"])}}
           Path(os.environ["RUNNER_TEMP"], "nas-release.json").write_text(json.dumps(manifest, indent=2) + "\n")
           PY
+
+      - name: Conserver le manifeste de cette exécution
+        if: steps.release.outputs.publish == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nas-manifest-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/nas-release.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
 
       - name: Publier la release avec son manifeste
         if: steps.release.outputs.publish == 'true'

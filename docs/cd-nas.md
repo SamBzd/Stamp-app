@@ -13,6 +13,46 @@ Le workflow construit pour `linux/amd64`, l’architecture du NAS relevée lors
 de la livraison initiale. Le déployeur utilise Python 3.8 ou plus récent et
 sa bibliothèque standard.
 
+## Contrôle de publication et limites de confiance
+
+Le manifeste v2 contient l’identifiant de l’exécution Actions et de sa tentative.
+Le NAS exige une exécution manuelle terminée avec succès, sur la branche
+autorisée (par défaut `main`), pour le même dépôt et le même commit. Il compare
+les empreintes SHA-256 des fichiers de tous les workflows exécutés, y compris
+la CI et l’éditeur réutilisable, avec `trusted_workflows`, approuvé localement.
+Il télécharge ensuite l’artefact `nas-manifest-<tentative>`, contrôle son
+empreinte GitHub et exige le même manifeste que celui de la release.
+Les archives sont limitées à 1 Mio, leur manifeste à 64 Kio et aucun fichier
+de l’archive n’est extrait sur le NAS. Les redirections restent en HTTPS et
+ne transmettent pas le jeton d’authentification.
+
+Cette vérification utilise l’API GitHub authentifiée et TLS. Elle ne constitue
+pas une signature indépendante de GitHub et ne protège pas contre un compte
+autorisé qui publie lui-même du code malveillant. Une personne pouvant modifier
+uniquement une release ne peut pas lui substituer un autre manifeste accepté.
+Les actions officielles et les images de base sont épinglées par commit/digest.
+Leur mise à jour demande une revue et une nouvelle validation.
+
+Pour chaque projet, calculer les empreintes avec `sha256sum` sur les fichiers
+locaux relus, puis les copier dans `trusted_workflows`. Les clés sont les
+chemins complets `owner/repo/.github/workflows/fichier.yml`. La liste doit
+correspondre exactement au workflow appelant et aux workflows réutilisables
+qu’il exécute. `release_workflow` vaut `.github/workflows/nas-release.yml`
+et `release_branch` vaut `main` par défaut. Ne jamais approuver automatiquement
+des empreintes récupérées dans une release non vérifiée.
+
+Les artefacts Actions sont conservés 90 jours. Une release déjà vérifiée et
+enregistrée localement reste reconnue après expiration, tant que la politique
+locale reste identique. Une première installation, une perte de l’état local
+ou une nouvelle politique demande une preuve encore disponible, donc une
+nouvelle release si nécessaire. Une release encore en cours de publication
+est refusée temporairement et sera vérifiée au passage suivant. Les manifestes
+v1 ne sont plus admis. Une erreur de preuve ne lance aucun `docker pull`.
+L’artefact ne contient que le petit manifeste, pas les images Docker.
+
+Références officielles : [artefacts Actions et empreintes](https://docs.github.com/en/rest/actions/artifacts),
+[immuabilité des artefacts v4](https://github.com/actions/upload-artifact).
+
 ## Première mise en service
 
 1. Vérifier les versions de Python, Docker et Compose sur le NAS. Lire les noms
@@ -27,7 +67,13 @@ sa bibliothèque standard.
    Créer un dossier d’état local persistant avec accès limité à l’utilisateur
    de la tâche, séparé des volumes applicatifs.
 3. Pour un dépôt privé, déposer un jeton GitHub avec accès `Contents: read`
-   à ce dépôt dans le fichier indiqué par `github_token_file`. Utiliser le
+   et `Actions: read` à ce dépôt dans le fichier indiqué par `github_token_file`.
+   Le même jeton fine-grained peut sélectionner plusieurs projets du même
+   propriétaire. Ajouter les permissions à ce jeton existant suffit.
+   Il doit aussi lire le contenu de chaque dépôt privé fournissant un workflow
+   réutilisable de cette chaîne. Stamp App étant public, le calendrier n’a pas
+   besoin de l’ajouter à la sélection privée pour lire son workflow partagé.
+   Utiliser le
    compte de la tâche DSM pour ouvrir une session Docker sur GHCR avec un
    accès `read:packages`. Configurer la visibilité des paquets avant de lancer
    la première release. Garder les jetons hors de la configuration JSON.
@@ -71,12 +117,32 @@ deux fichiers du projet, hors bascule en cours.
    ports. Ajouter une entrée dans `projects.local` et donner à la tâche les
    droits de lecture sur les images et le dépôt. Chaque référence autorisée
    doit correspondre à `ghcr.io/<owner>/<repo>-<service>` en minuscules.
+   Renseigner aussi les empreintes `trusted_workflows` après revue des fichiers.
 3. Lancer le workflow de livraison. Contrôler la sortie DSM, le `state.json`
    du projet et le résultat des sondes.
 
 Le [calendrier](../deploy/examples/calendrier-avent-maman-2026/README.md) est un
 projet autonome à copier dans un dépôt de test. Il illustre le fichier d’images,
 le Compose et l’appel au workflow partagé.
+
+Le calendrier utilise un UID non privilégié, une racine en lecture seule,
+aucune capacité Linux, `no-new-privileges`, un `/tmp` temporaire et des limites
+de ressources et de journaux. Il écoute désormais sur `8080` dans le conteneur.
+Pour remplacer une première installation sur le port interne `80`, sauvegarder
+le Compose et l’état, installer manuellement la nouvelle image avec le nouveau
+Compose, sonder le service, puis archiver l’ancien état pour que le déployeur
+adopte cette version. En cas d’échec, restaurer ensemble ancien Compose,
+ancien état et ancienne image. Ne pas laisser un retour arrière automatique
+associer l’ancienne image au nouveau port interne.
+
+Garder les credentials, le script, les configurations Compose et l’état hors
+des montages applicatifs, dans des dossiers administrateur `0700` et des
+fichiers `0600`. Aucun socket Docker ni dossier du NAS n’est monté dans le
+calendrier. La CD consulte GitHub en sortie ; elle n’ouvre aucun port d’entrée
+pour recevoir des webhooks. Le site reste accessible sur son port applicatif.
+Le réseau bridge dédié ne bloque pas les sorties Internet ou l’accès aux
+services réseau du NAS. Ne pas publier le port sur Internet avant d’avoir
+validé séparément le pare-feu, les mises à jour DSM/Docker et l’exposition IPv6.
 
 ## Échec, suspension et migration
 
