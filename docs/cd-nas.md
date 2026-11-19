@@ -214,12 +214,12 @@ le NAS, en plus du retour arrière observé lors du premier essai.
 Sam confirme ensuite que la tâche DSM est activée toutes les dix minutes.
 Sa capture DSM affiche `Normal (0)` pour une exécution du 19 novembre à
 16:27:52–16:27:54, mais aucun journal, car le dossier de sortie n’est pas encore
-configuré. Cette capture ne permet pas de distinguer un lancement manuel
-d’un passage planifié. L’adoption manuelle de la release est validée ;
-une bascule vers la prochaine release et un échec
-de sonde avec retour arrière par le déployeur restent des scénarios distincts
-de cette adoption et du rollback du script de maintenance. Stamp App / l’issue
-#45 ne sont pas livrés par cette recette.
+configuré. Cette capture seule ne permettait pas de distinguer un lancement
+manuel d’un passage planifié. La fenêtre était initialement limitée à
+00:00–00:50 ; Sam l’a corrigée en 00:00–23:50 pour couvrir toute la journée.
+L’adoption manuelle de la release est validée. Le contrôle de la release
+suivante confirme ensuite la bascule automatique, comme décrit ci-dessous.
+Stamp App / l’issue #45 ne sont pas livrés par cette recette.
 
 Une nouvelle release de recette
 `nas-c704957f5c4e32e3cccbe87e9768d54e2a127c98` a été publiée le 19 novembre
@@ -228,12 +228,26 @@ Une nouvelle release de recette
 Elle apporte seulement une précision de documentation au calendrier ; le
 label OCI de révision crée une nouvelle image par digest, distincte de la
 release précédente. Le déployeur a accepté sa preuve Actions contre la vraie
-API GitHub avec les mêmes empreintes de workflows approuvées. La bascule
-automatique sur le NAS reste à constater, sans relancer manuellement la CD,
-en comparant l’état enregistré et la révision du conteneur réellement actif.
+API GitHub avec les mêmes empreintes de workflows approuvées.
+
+Après le passage automatique, Sam a fourni la sortie du contrôle en lecture
+seule : release enregistrée
+`nas-c704957f5c4e32e3cccbe87e9768d54e2a127c98`, révision du conteneur
+`c704957f5c4e32e3cccbe87e9768d54e2a127c98` et `DÉPLOIEMENT CONFIRMÉ`.
+Ce résultat exige un conteneur actif, la même image que l’état enregistré et
+aucune bascule en attente. Le circuit release GitHub → tâche DSM → nouvelle
+image du calendrier sur le NAS est donc validé, sans lancement manuel de la CD.
+
+L’issue #46 reste ouverte pour l’intégration et la première livraison contrôlée
+de Stamp App avant le #45. Les tests automatisés couvrent le refus d’une
+migration, le rollback sur sonde et l’indépendance entre projets. Sur NAS,
+le rollback du script de maintenance est observé ; un rollback déclenché par
+une sonde du déployeur et le précontrôle sur une copie SQLite restent à
+distinguer de cette preuve de bascule réussie.
 
 Pour cette installation, créer ou mettre à jour une seule tâche DSM `NAS-CD`,
-exécutée par `root`, tous les jours toutes les dix minutes. Ce compte correspond
+exécutée par `root`, tous les jours toutes les dix minutes, avec première
+exécution à `00:00` et dernière à `23:50`. Ce compte correspond
 aux droits des credentials et fichiers administrateur déjà installés. Utiliser
 le script suivant et activer l’enregistrement des sorties de la tâche :
 
