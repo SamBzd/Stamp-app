@@ -187,7 +187,7 @@ Actions `nas-manifest-1`. Le déployeur réel a accepté cette release en lectur
 seule contre l’API GitHub. Une substitution du digest dans le manifeste de
 release a été refusée face au véritable artefact Actions.
 
-Les 27 tests CD passent, dont six tests injectant des échecs dans la migration
+Les 33 tests CD passent, dont six tests injectant des échecs dans la migration
 manuelle (appels externes simulés, copies et restaurations réelles dans un
 dossier temporaire). `npm run check` et `docker compose config` passent.
 Les images backend/frontend et calendrier se construisent localement.
@@ -279,6 +279,58 @@ services réseau du NAS. Ne pas publier le port sur Internet avant d’avoir
 validé séparément le pare-feu, les mises à jour DSM/Docker et l’exposition IPv6.
 
 ## Échec, suspension et migration
+
+### Recette NAS isolée avant fusion
+
+[recette-nas-cd46.py](../deploy/maintenance/recette-nas-cd46.py) prépare deux
+essais sur le NAS sans raccorder la production ni modifier `projects.json`.
+Fournir explicitement les noms des conteneurs backend/frontend réellement
+actifs, relevés par `docker inspect`. Le script refuse un autre montage que
+`/data`, une base autre que `/data/app.db`, un service arrêté ou deux projets
+Compose différents. Exécuter une version figée dont l’empreinte a été vérifiée.
+
+Le premier essai ouvre la base réelle en lecture seule dans un conteneur
+temporaire sans réseau et en fait une copie cohérente par l’API backup SQLite.
+Seule la copie passe en journal DELETE pour permettre son examen sur montage
+en lecture seule. Le CLI `--require-current` relu est téléchargé à un commit
+fixe, contrôlé par SHA-256 et monté dans l’image backend déjà utilisée.
+Les helpers, dépendances et migrations sont inchangés entre le commit livré
+`6cc9817` et cette branche. Une migration factice est ajoutée uniquement au
+dossier de migrations de recette ; le CLI doit la refuser sans modifier la copie.
+Cela vérifie le nouveau précontrôle sur NAS avec l’image existante ; ce n’est
+pas une exécution de la future image Stamp App publiée par le nouveau workflow.
+
+Le second essai démarre un projet calendrier distinct sur un port loopback
+temporaire, avec l’image précédente et un état séparé. Il prend la véritable
+release `nas-c704957f5c4e32e3cccbe87e9768d54e2a127c98`, dont la preuve GitHub est
+vérifiée avant le test, et fige cette réponse uniquement dans le processus de
+recette. Une sonde locale répond 503 seulement pour l’image candidate, puis 200
+après restauration. Le déployeur doit rétablir l’image antérieure, enregistrer
+le rejet et laisser le conteneur intact au second passage.
+
+Les fixtures et la copie de données sont supprimées à la fin ; seul un reçu
+JSON de résultats sans données clientes reste dans le dossier administrateur.
+Les conteneurs Stamp en service doivent conserver leurs identifiants, images
+et dates de démarrage. Le conteneur SQLite temporaire garde ses limites de
+ressources Docker par défaut ; il est sans réseau, non root, sans capacités,
+avec racine et source réelles en lecture seule. Ces protections sont distinctes
+du profil RAM/CPU/nproc du calendrier de recette.
+
+La recette a été exécutée localement en Docker avec une base synthétique et
+une publication de test locale ; ces résultats ne sont pas des essais NAS.
+Les tests automatisés contrôlent aussi les sélections de conteneurs, le refus
+d’un CLI de mauvaise empreinte et le nettoyage après succès/échec. L’exécution
+par Sam sur le NAS reste requise avant d’y cocher ces scénarios.
+
+La première livraison Stamp App par le workflow de production n’est pas encore
+possible avant la fusion : ce workflow n’existe pas dans `main`, et GitHub
+exige la présence du workflow sur la branche par défaut pour
+[le déclenchement manuel](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
+La condition de Sam exigeant cette première livraison avant fusion n’est donc
+pas satisfaite. Aucun merge ni amorçage sur `main` n’est effectué sans résolution
+explicite de cet ordre d’opérations ; les essais isolés peuvent être faits avant.
+
+### Exploitation courante
 
 - `enabled: false` suspend uniquement le projet visé. `--project <nom>` limite
   une exécution à un projet. L’état, le verrou et la release rejetée sont propres
