@@ -135,6 +135,53 @@ adopte cette version. En cas d’échec, restaurer ensemble ancien Compose,
 ancien état et ancienne image. Ne pas laisser un retour arrière automatique
 associer l’ancienne image au nouveau port interne.
 
+La [mise à jour du calendrier initial du 19 novembre 2026](../deploy/maintenance/update-calendar-security-20261119.sh)
+est un script ponctuel destiné uniquement à l’installation décrite ci-dessus,
+dans `/volume1/docker/nas-cd`. Il fige la release du calendrier et les empreintes
+relues, vérifie la preuve de publication avant bascule, sauvegarde script,
+configuration, Compose et état, migre le port interne, puis adopte la nouvelle
+release. Il doit être exécuté manuellement en root, avec la tâche DSM désactivée
+et sans autre commande CD en cours. Le jeton commun doit déjà avoir
+`Actions: read`. Télécharger le script depuis un commit figé et comparer
+son empreinte fournie avec les instructions avant de l’exécuter.
+
+Une erreur après bascule tente la restauration du Compose, de l’état et des
+images précédents et signale si cette restauration échoue. Les sauvegardes
+restent dans le dossier `calendar-security-<date>-<pid>` affiché au démarrage.
+Une coupure électrique ne peut pas déclencher le traitement d’erreur du shell.
+Dans ce cas, garder la tâche désactivée, examiner cette sauvegarde et rétablir
+ensemble les fichiers et l’état avant de relancer Compose. Le script n’active
+aucune tâche DSM. Il conserve une publication IPv4 sur `0.0.0.0:8086`, à garder
+accessible uniquement depuis le LAN et Tailscale. Cette migration ponctuelle
+ne s’applique pas automatiquement aux autres projets.
+
+## Recette de sécurité du 19 novembre 2026
+
+Le workflow partagé et le déployeur durcis sont publiés au commit
+`61928f728b5bd99289e0e643b0590378007e4460`, avec
+[CI réussie](https://github.com/SamBzd/Stamp-app/actions/runs/44548274741).
+Le calendrier privé pointe vers ce workflow au commit
+`5a8847d4883cf6c5f9aab666c99e60871da697a4`. Sa
+[release de sécurité](https://github.com/SamBzd/calendrier-avent-maman-2026/actions/runs/44548360383)
+a réussi, validation et publication comprises, avec manifeste v2 et artefact
+Actions `nas-manifest-1`. Le déployeur réel a accepté cette release en lecture
+seule contre l’API GitHub. Une substitution du digest dans le manifeste de
+release a été refusée face au véritable artefact Actions.
+
+Les 24 tests CD passent, dont six tests injectant des échecs dans la migration
+manuelle (appels externes simulés, copies et restaurations réelles dans un
+dossier temporaire). `npm run check` et `docker compose config` passent.
+Les images backend/frontend et calendrier se construisent localement.
+Le calendrier démarre sous UID 101, répond en HTTP, dispose de zéro capacité
+effective et de `NoNewPrivs=1`, et refuse une écriture dans `/etc`.
+Deux revues indépendantes des correctifs et de la migration sont terminées.
+
+La mise à jour de sécurité sur le NAS et sa compatibilité effective avec
+Docker 20.10.3 / Compose 1.28.5 restent à confirmer par l’exécution de Sam.
+Le calendrier initial fonctionne déjà sur le NAS, mais cela ne prouve pas
+le déploiement de cette nouvelle release. La tâche DSM reste désactivée et
+Stamp App / l’issue #45 ne sont pas livrés par cette recette.
+
 Garder les credentials, le script, les configurations Compose et l’état hors
 des montages applicatifs, dans des dossiers administrateur `0700` et des
 fichiers `0600`. Aucun socket Docker ni dossier du NAS n’est monté dans le
