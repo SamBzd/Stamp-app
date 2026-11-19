@@ -155,6 +155,25 @@ aucune tâche DSM. Il conserve une publication IPv4 sur `0.0.0.0:8086`, à garde
 accessible uniquement depuis le LAN et Tailscale. Cette migration ponctuelle
 ne s’applique pas automatiquement aux autres projets.
 
+Le premier essai de Sam a confirmé le refus du quota CPU CFS sur le noyau
+Synology et la restauration automatique de l’ancienne version. `docker info`
+confirme `CPUShares=true`, `CPUCfsQuota=false`, `MemoryLimit=true`,
+`SwapLimit=true`, `PidsLimit=false`. Le script utilise donc une priorité CPU
+relative `cpu_shares: 128`, une limite RAM de 64 Mio et une limite Unix
+`nproc` soft/hard de 64, sans `cpus` ni `pids_limit`.
+Le contrôle mémoire/priorité est vérifié avant bascule ; `nproc` est vérifié
+dans Docker et dans `/proc/1/limits` après démarrage.
+
+La priorité CPU réduit le poids en cas de contention, sans plafond CPU strict.
+`nproc` compte les processus/threads du même UID Linux, y compris dans d’autres
+conteneurs avec UID 101 en l’absence de remappage utilisateur ; ce n’est pas
+une limite par conteneur. Le calendrier reste non root, sans capacités et ne
+peut pas augmenter sa limite dure. Un grand nombre de processus du même UID
+ailleurs peut empêcher son démarrage ; les sondes et la restauration restent
+actives. Le Compose de développement garde les limites cgroup pour les hôtes
+qui les supportent. Références : [priorité CPU relative](https://docs.docker.com/engine/containers/resource_constraints/)
+et [limite nproc par utilisateur](https://docs.docker.com/reference/cli/docker/container/run/#for-nproc-usage).
+
 ## Recette de sécurité du 19 novembre 2026
 
 Le workflow partagé et le déployeur durcis sont publiés au commit
@@ -168,13 +187,20 @@ Actions `nas-manifest-1`. Le déployeur réel a accepté cette release en lectur
 seule contre l’API GitHub. Une substitution du digest dans le manifeste de
 release a été refusée face au véritable artefact Actions.
 
-Les 24 tests CD passent, dont six tests injectant des échecs dans la migration
+Les 27 tests CD passent, dont six tests injectant des échecs dans la migration
 manuelle (appels externes simulés, copies et restaurations réelles dans un
 dossier temporaire). `npm run check` et `docker compose config` passent.
 Les images backend/frontend et calendrier se construisent localement.
 Le calendrier démarre sous UID 101, répond en HTTP, dispose de zéro capacité
 effective et de `NoNewPrivs=1`, et refuse une écriture dans `/etc`.
 Deux revues indépendantes des correctifs et de la migration sont terminées.
+Après le premier essai Synology, le profil sans CFS/cgroup PIDs a été testé
+localement sur le calendrier, avec HTTP 200, `NanoCpus=0`, `CpuShares=128`,
+RAM 64 Mio et `nproc` effectif 64/64. Une revue indépendante ciblée de cette
+adaptation est terminée. Le contrôle NAS atteste la configuration Docker et
+la limite effective `nproc` ; les valeurs UID/capacités/NNP du processus restent
+couvertes par la recette locale et la CI de l’image, pas par une lecture
+NAS de `/proc/1/status`.
 
 La mise à jour de sécurité sur le NAS et sa compatibilité effective avec
 Docker 20.10.3 / Compose 1.28.5 restent à confirmer par l’exécution de Sam.

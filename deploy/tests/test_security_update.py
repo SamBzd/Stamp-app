@@ -3,9 +3,11 @@
 External API/Python/Docker calls are stubs. Real file copies, moves, checksums
 and shell traps run in a temporary directory, never against a NAS.
 """
+import ast
 import hashlib
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 from tempfile import TemporaryDirectory
@@ -13,6 +15,47 @@ import unittest
 
 
 class SecurityUpdateTest(unittest.TestCase):
+    script = Path(__file__).parents[1] / 'maintenance/update-calendar-security-20261119.sh'
+
+    def embedded_node(self, kind, name):
+        body = re.findall(r"<<'PY'\n(.*?)\nPY", self.script.read_text(), re.S)[0]
+        for node in ast.parse(body).body:
+            if isinstance(node, kind):
+                if getattr(node, 'name', None) == name or (
+                    isinstance(node, ast.Assign) and any(getattr(target, 'id', None) == name for target in node.targets)
+                ):
+                    return ast.Module(body=[node], type_ignores=[])
+        self.fail('Embedded definition missing: ' + name)
+
+    def profile(self, info):
+        namespace = {}
+        exec(compile(self.embedded_node(ast.FunctionDef, 'resource_limits'), str(self.script), 'exec'), namespace)
+        return namespace['resource_limits'](info)
+
+    def test_synology_without_cfs_and_pids_uses_supported_controls(self):
+        info = {'CPUShares': True, 'CPUCfsQuota': False, 'MemoryLimit': True,
+                'SwapLimit': True, 'PidsLimit': False}
+        namespace = {'image': 'test-image', 'resources': self.profile(info)}
+        exec(compile(self.embedded_node(ast.Assign, 'compose'), str(self.script), 'exec'), namespace)
+        service = namespace['compose']['services']['web']
+        self.assertNotIn('cpus', service)
+        self.assertNotIn('pids_limit', service)
+        self.assertEqual(service['mem_limit'], '64m')
+        self.assertEqual(service['cpu_shares'], 128)
+        self.assertEqual(service['ulimits']['nproc'], {'soft': 64, 'hard': 64})
+        self.assertEqual(service['user'], '101:101')
+        self.assertEqual(service['cap_drop'], ['ALL'])
+
+    def test_missing_required_resource_support_refuses_profile(self):
+        for info in ({}, {'CPUShares': False, 'MemoryLimit': True},
+                     {'CPUShares': True, 'MemoryLimit': False}):
+            with self.subTest(info=info), self.assertRaises(SystemExit):
+                self.profile(info)
+
+    def test_embedded_python_remains_compatible_with_python38(self):
+        for body in re.findall(r"<<'PY'\n(.*?)\nPY", self.script.read_text(), re.S):
+            ast.parse(body, feature_version=(3, 8))
+
     def exercise(self, failure=""):
         with TemporaryDirectory() as temporary:
             root = Path(temporary)

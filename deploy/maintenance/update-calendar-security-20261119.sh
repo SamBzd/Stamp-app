@@ -67,6 +67,15 @@ from pathlib import Path
 
 base = Path('/volume1/docker/nas-cd')
 backup = Path(os.environ['UPDATE_BACKUP'])
+
+def resource_limits(info):
+    # This Synology kernel supports memory and CPU shares, not CFS or cgroup PIDs.
+    # Fail before any switch if the required supported controls are unavailable.
+    if info.get('MemoryLimit') is not True or info.get('CPUShares') is not True:
+        raise SystemExit('Limites mémoire ou priorité CPU non disponibles. Aucune bascule effectuée.')
+    return {'mem_limit': '64m', 'cpu_shares': 128,
+            'ulimits': {'nproc': {'soft': 64, 'hard': 64}}}
+
 spec = importlib.util.spec_from_file_location('nas_cd_next', str(backup / 'nas_cd.next.py'))
 cd = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(cd)
@@ -82,6 +91,7 @@ if state.get('pending') or not state.get('active'):
     raise SystemExit('État incomplet. Terminer la livraison précédente avant cette mise à jour.')
 old = cd.Project(name, settings, config['compose_command'], base / 'state' / name)
 old.wait_healthy(state['active']['images'])
+resources = resource_limits(json.loads(cd.run(['docker', 'info', '--format', '{{json .}}'], capture=True)))
 settings['trusted_workflows'] = {
     'SamBzd/calendrier-avent-maman-2026/.github/workflows/nas-release.yml': os.environ['CALLER_SHA256'],
     'SamBzd/calendrier-avent-maman-2026/.github/workflows/ci.yml': os.environ['CI_SHA256'],
@@ -98,13 +108,14 @@ compose = {'version': '2.4', 'services': {'web': {
     'user': '101:101', 'read_only': True, 'cap_drop': ['ALL'],
     'security_opt': ['no-new-privileges:true'],
     'tmpfs': ['/tmp:rw,noexec,nosuid,size=16m,mode=1777'],
-    'mem_limit': '64m', 'cpus': 0.50, 'pids_limit': 64,
+    **resources,
     'logging': {'driver': 'json-file', 'options': {'max-size': '1m', 'max-file': '3'}},
 }}}
 settings['enabled'] = True
 cd.save_json(backup / 'projects.next.json', config)
 cd.save_json(backup / 'compose.next.json', compose)
 print('Origine Actions, empreintes des workflows et image vérifiées.')
+print('Profil NAS : RAM 64 Mio, priorité CPU relative 128, nproc 64 par UID ; aucun plafond CPU strict.')
 PY
 
 docker-compose -p "$PROJECT" -f "$backup/compose.next.json" config --quiet
@@ -121,6 +132,7 @@ chmod 600 "$BASE/projects.json" "$BASE/nas_cd.py"
 /bin/python3 "$BASE/nas_cd.py" "$BASE/projects.json" --state-dir "$BASE/state" --project "$PROJECT"
 /bin/python3 - <<'PY'
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -134,14 +146,20 @@ assert item['Config']['User'] == '101:101'
 assert host['Privileged'] is False and host['ReadonlyRootfs'] is True
 assert host['CapDrop'] == ['ALL']
 assert any(option.startswith('no-new-privileges') for option in host['SecurityOpt'])
-assert host['Memory'] == 64 * 1024 * 1024 and host['PidsLimit'] == 64
-assert host['NanoCpus'] == 500000000
+assert host['Memory'] == 64 * 1024 * 1024
+assert host.get('PidsLimit') in (None, 0, -1)
+assert host['NanoCpus'] == 0 and host['CpuShares'] == 128
+limits = {limit['Name']: limit for limit in host['Ulimits']}
+assert limits['nproc']['Soft'] == 64 and limits['nproc']['Hard'] == 64
+effective = subprocess.check_output(['docker', 'exec', ids[0], 'cat', '/proc/1/limits'], universal_newlines=True)
+assert re.search(r'^Max processes\s+64\s+64\s+processes\s*$', effective, re.M)
 assert host['PortBindings'] == {'8080/tcp': [{'HostIp': '0.0.0.0', 'HostPort': '8086'}]}
 assert not any(mount['Type'] in ('bind', 'volume') for mount in item['Mounts'])
 state = json.loads((Path('/volume1/docker/nas-cd/state') / project / 'state.json').read_text())
 assert item['Config']['Image'] == state['active']['images']['web']
 assert state['active']['verification']['run_id'] > 0
 print('Conteneur vérifié : UID 101, lecture seule, capacités supprimées, privilèges et ressources limités.')
+print('CPU : priorité relative 128 sans plafond strict. Processus : limite Unix nproc 64 par UID.')
 print('Release active : ' + state['active']['tag_name'])
 PY
 echo 'Sécurité du calendrier mise à jour. La tâche automatique DSM reste désactivée.'
