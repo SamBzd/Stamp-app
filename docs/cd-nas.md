@@ -202,11 +202,44 @@ la limite effective `nproc` ; les valeurs UID/capacités/NNP du processus resten
 couvertes par la recette locale et la CI de l’image, pas par une lecture
 NAS de `/proc/1/status`.
 
-La mise à jour de sécurité sur le NAS et sa compatibilité effective avec
-Docker 20.10.3 / Compose 1.28.5 restent à confirmer par l’exécution de Sam.
-Le calendrier initial fonctionne déjà sur le NAS, mais cela ne prouve pas
-le déploiement de cette nouvelle release. La tâche DSM reste désactivée et
-Stamp App / l’issue #45 ne sont pas livrés par cette recette.
+Sam a exécuté le script corrigé et confirmé sa sortie sur le NAS le
+19 novembre 2026. La preuve Actions et les empreintes ont été acceptées,
+la nouvelle image démarrée et la release
+`nas-5a8847d4883cf6c5f9aab666c99e60871da697a4` adoptée dans l’état local.
+Les assertions de configuration Docker et de limite effective `nproc` passent.
+Le second passage du déployeur se termine sans redéploiement. La compatibilité
+de cette mise à jour avec Docker 20.10.3 / Compose 1.28.5 est donc vérifiée sur
+le NAS, en plus du retour arrière observé lors du premier essai.
+
+La tâche DSM reste désactivée au dernier retour de Sam. Son activation et
+l’observation d’un passage planifié restent à faire. L’adoption manuelle de
+la release est validée ; une bascule vers la prochaine release et un échec
+de sonde avec retour arrière par le déployeur restent des scénarios distincts
+de cette adoption et du rollback du script de maintenance. Stamp App / l’issue
+#45 ne sont pas livrés par cette recette.
+
+Pour cette installation, créer ou mettre à jour une seule tâche DSM `NAS-CD`,
+exécutée par `root`, tous les jours toutes les dix minutes. Ce compte correspond
+aux droits des credentials et fichiers administrateur déjà installés. Utiliser
+le script suivant et activer l’enregistrement des sorties de la tâche :
+
+```sh
+set -eu
+umask 077
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+export DOCKER_CONFIG=/volume1/docker/nas-cd/credentials/docker
+cd /volume1/docker/nas-cd
+/bin/python3 /volume1/docker/nas-cd/nas_cd.py \
+  /volume1/docker/nas-cd/projects.json \
+  --state-dir /volume1/docker/nas-cd/state
+echo 'CD OK'
+```
+
+Cette tâche traite tous les projets activés de la configuration ; l’ajout d’un
+projet ne demande pas de tâche supplémentaire. Exécuter une fois la tâche depuis
+DSM, puis vérifier un passage effectivement planifié, son code de sortie `0`
+et `CD OK`. Sans nouvelle release, aucune bascule n’est attendue. Référence :
+[création et contrôle des tâches DSM](https://kb.synology.com/en-af/DSM/tutorial/common_mistake_in_task_scheduler_script).
 
 Garder les credentials, le script, les configurations Compose et l’état hors
 des montages applicatifs, dans des dossiers administrateur `0700` et des
