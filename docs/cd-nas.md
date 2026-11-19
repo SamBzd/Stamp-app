@@ -187,7 +187,7 @@ Actions `nas-manifest-1`. Le déployeur réel a accepté cette release en lectur
 seule contre l’API GitHub. Une substitution du digest dans le manifeste de
 release a été refusée face au véritable artefact Actions.
 
-Les 33 tests CD passent, dont six tests injectant des échecs dans la migration
+Les 50 tests CD passent, dont six tests injectant des échecs dans la migration
 manuelle (appels externes simulés, copies et restaurations réelles dans un
 dossier temporaire). `npm run check` et `docker compose config` passent.
 Les images backend/frontend et calendrier se construisent localement.
@@ -322,13 +322,100 @@ Les tests automatisés contrôlent aussi les sélections de conteneurs, le refus
 d’un CLI de mauvaise empreinte et le nettoyage après succès/échec. L’exécution
 par Sam sur le NAS reste requise avant d’y cocher ces scénarios.
 
-La première livraison Stamp App par le workflow de production n’est pas encore
-possible avant la fusion : ce workflow n’existe pas dans `main`, et GitHub
-exige la présence du workflow sur la branche par défaut pour
-[le déclenchement manuel](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
-La condition de Sam exigeant cette première livraison avant fusion n’est donc
-pas satisfaite. Aucun merge ni amorçage sur `main` n’est effectué sans résolution
-explicite de cet ordre d’opérations ; les essais isolés peuvent être faits avant.
+Sam a confirmé `RECETTE NAS RÉUSSIE` le 19 novembre 2026 : précontrôle sur
+copie SQLite, rejet d’une migration factice, rollback du déployeur isolé puis
+non-réessai sont vérifiés sur le NAS. Les conteneurs Stamp sont inchangés.
+Cette preuve ne constitue pas encore un raccordement ni une livraison Stamp.
+
+Le workflow de production étant absent de `main`, GitHub ne permettait pas
+encore [son déclenchement manuel](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).
+Un lancement `workflow_dispatch` de la CI déjà enregistrée a en revanche été
+vérifié depuis `codex/nas-cd`. Une entrée provisoire `publish-nas-rehearsal`
+dans cette CI publie uniquement après `check`, sur cette ref exacte et sur
+demande booléenne explicite. Les droits d’écriture sont limités au job éditeur.
+Cette entrée est à retirer avant la fusion ; `main` reste inchangé pendant
+la recette. Elle ne remplace pas le futur workflow de production.
+
+La release Stamp `nas-21c57bfda56c49bae8132a6e13c84a363eb3c3a0` a ainsi été
+publiée par [Actions 44584924158](https://github.com/SamBzd/Stamp-app/actions/runs/44584924158),
+avec frontend et backend du même commit, CI réussie et preuve vérifiée contre
+l’API réelle. Aucun #45 ni changement de schéma n’est inclus.
+
+### Première livraison Stamp contrôlée avant fusion
+
+[connect-stamp-rehearsal.py](../deploy/maintenance/connect-stamp-rehearsal.py)
+exige le reçu privé root de la recette NAS réussie, les noms réels des
+conteneurs et l’empreinte du Compose relu. Le propriétaire du Compose et de ses
+deux dossiers parents doit être root ou membre du groupe NAS `administrators`,
+sans écriture groupe/autres ; le driver le vérifie avant toute bascule. Une
+modification concurrente par un administrateur déjà autorisé reste hors de
+ce contrôle : ne pas lancer une autre maintenance en parallèle. Le script conserve le Compose à son
+emplacement original pour préserver les chemins relatifs du montage SQLite.
+
+Le driver vérifie la release authentique de branche avec le graphe approuvé
+`ci.yml` + `nas-publish.yml`, tire les images et effectue une nouvelle sauvegarde
+cohérente. Cette fois, le précontrôle positif puis le refus de migration
+factice sur copie utilisent l’image backend candidate publiée. La sauvegarde
+privée persiste pour le retour arrière ; aucun fichier de données n’est copié
+dans Git ni affiché dans les sorties.
+
+Les migrations du garde proviennent d’un conteneur candidat créé mais jamais
+démarré, puis supprimé avec ses seuls volumes anonymes. Elles ne sont pas
+copiées depuis le conteneur de production. Une migration réelle nouvelle
+dans l’image candidate bloque donc également le précontrôle sur copie.
+
+Sous verrou du projet, l’état précédent est sauvegardé et Stamp est déclaré
+avec `enabled: false` et le marqueur `controlled_release` avant la bascule.
+La tâche DSM ignore ce projet suspendu, même si le driver s’interrompt avant
+d’avoir écrit un `pending`. Elle ne peut donc pas choisir une autre release
+pour cette première livraison. Le driver emploie sa configuration activée
+privée et sa réponse GitHub authentifiée figée.
+
+Le déployeur conserve le montage SQLite et applique la paire prévue. Un échec
+de contrôle après bascule déclenche une compensation vers l’état précédent ;
+le projet reste suspendu. Après tous les contrôles, l’activation dans la
+configuration globale est le dernier point de commit. Une coupure électrique
+avant ce point laisse volontairement la première livraison suspendue pour
+examen humain, sans reprise automatique vers une release non contrôlée.
+
+Pour abandonner une transaction interrompue, le mode explicite
+`--rollback-backup /chemin/du/stamp-before-cd46-...` du même driver restaure
+seulement les images connues de cette transaction, sans chercher de release.
+Il exige le projet encore suspendu avec ce marqueur, le Compose inchangé et
+refuse une image tierce ou un projet déjà activé. Il conserve les données
+actuelles et la suspension ; il ne restaure pas automatiquement la copie DB.
+
+Les tests du driver couvrent reçu, hash Compose, échec du garde, redémarrage
+concurrent, échec d’inscription, bascule interrompue et contrôles post-bascule.
+Une [réplique Docker locale](../deploy/tests/integration/README.md) sur données synthétiques valide aussi la paire
+backend/frontend, le montage relatif et la persistance d’une cliente fictive.
+Ces essais locaux ne sont pas présentés comme une livraison NAS.
+
+Le canal initial explicite utilise `release_workflow=.github/workflows/ci.yml`
+et `release_branch=codex/nas-cd`. Après livraison NAS confirmée, retirer l’entrée
+temporaire, fusionner selon l’autorisation conditionnelle de Sam, puis préparer
+la transition vers `nas-release.yml` / `main` avec les trois empreintes
+approuvées. Ne pas présenter le canal de recette comme la livraison depuis main.
+
+La version préparée du driver possède l’empreinte SHA-256
+`b88d1355e0cf3365ee24a2502f80a8ffa4d0119ce4fae3dd0eb8bd6735293456`.
+Télécharger uniquement le fichier du commit explicitement approuvé, dans le
+dossier administrateur, puis vérifier cette empreinte avant exécution root :
+
+```sh
+sudo curl --fail --show-error --location \
+  'https://raw.githubusercontent.com/SamBzd/Stamp-app/COMMIT_APPROUVE/deploy/maintenance/connect-stamp-rehearsal.py' \
+  --output /volume1/docker/nas-cd/connect-stamp-rehearsal.py
+printf '%s\n' \
+  'b88d1355e0cf3365ee24a2502f80a8ffa4d0119ce4fae3dd0eb8bd6735293456  /volume1/docker/nas-cd/connect-stamp-rehearsal.py' \
+  | sudo sha256sum --check
+sudo chmod 600 /volume1/docker/nas-cd/connect-stamp-rehearsal.py
+```
+
+Remplacer `COMMIT_APPROUVE` par le SHA immuable donné avec la procédure, jamais
+par un nom de branche. La commande d’exécution doit fournir les conteneurs
+relevés, le reçu NAS réussi, l’empreinte réelle du Compose et le commit de
+release prévu. Aucun lancement du driver root ne doit précéder ces vérifications.
 
 ### Exploitation courante
 
