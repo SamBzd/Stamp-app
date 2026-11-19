@@ -211,12 +211,26 @@ Le second passage du déployeur se termine sans redéploiement. La compatibilit�
 de cette mise à jour avec Docker 20.10.3 / Compose 1.28.5 est donc vérifiée sur
 le NAS, en plus du retour arrière observé lors du premier essai.
 
-La tâche DSM reste désactivée au dernier retour de Sam. Son activation et
-l’observation d’un passage planifié restent à faire. L’adoption manuelle de
-la release est validée ; une bascule vers la prochaine release et un échec
+Sam confirme ensuite que la tâche DSM est activée toutes les dix minutes.
+Sa capture DSM affiche `Normal (0)` pour une exécution du 19 novembre à
+16:27:52–16:27:54, mais aucun journal, car le dossier de sortie n’est pas encore
+configuré. Cette capture ne permet pas de distinguer un lancement manuel
+d’un passage planifié. L’adoption manuelle de la release est validée ;
+une bascule vers la prochaine release et un échec
 de sonde avec retour arrière par le déployeur restent des scénarios distincts
 de cette adoption et du rollback du script de maintenance. Stamp App / l’issue
 #45 ne sont pas livrés par cette recette.
+
+Une nouvelle release de recette
+`nas-c704957f5c4e32e3cccbe87e9768d54e2a127c98` a été publiée le 19 novembre
+à 16:30:41, heure de Paris, par
+[l’exécution Actions 44555449992](https://github.com/SamBzd/calendrier-avent-maman-2026/actions/runs/44555449992).
+Elle apporte seulement une précision de documentation au calendrier ; le
+label OCI de révision crée une nouvelle image par digest, distincte de la
+release précédente. Le déployeur a accepté sa preuve Actions contre la vraie
+API GitHub avec les mêmes empreintes de workflows approuvées. La bascule
+automatique sur le NAS reste à constater, sans relancer manuellement la CD,
+en comparant l’état enregistré et la révision du conteneur réellement actif.
 
 Pour cette installation, créer ou mettre à jour une seule tâche DSM `NAS-CD`,
 exécutée par `root`, tous les jours toutes les dix minutes. Ce compte correspond
