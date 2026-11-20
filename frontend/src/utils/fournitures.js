@@ -2,12 +2,15 @@ export const FOURNITURE_STATES = ['À traiter', 'Commandé', 'Disponible', 'Exp�
 
 export const FOURNITURE_TYPE_LABELS = {
   papier_collection: 'Papier de collection',
+  papier_cartonne: 'Papier cartonné',
   ruban: 'Ruban',
   papier_special: 'Papier spécial',
   embellissement: 'Embellissement',
 };
 
-export const fournitureGroupKey = group => JSON.stringify([group.type, group.nom, group.etat]);
+export const fournitureGroupKey = group => JSON.stringify([group.type, group.nom, group.format_type ?? null, group.etat]);
+
+export const fournitureName = group => group.format_type ? `${group.nom} · Format ${group.format_type}` : group.nom;
 
 export function workflowColumns(groupes = []) {
   return FOURNITURE_STATES.map((etat, index) => ({
@@ -27,7 +30,8 @@ export function validMoveQuantity(value, maximum) {
 }
 
 function sameGroup(group, mutation, etat) {
-  return group.type === mutation.type && group.nom === mutation.nom && group.etat === etat;
+  return group.type === mutation.type && group.nom === mutation.nom
+    && (group.format_type ?? null) === (mutation.format_type ?? null) && group.etat === etat;
 }
 
 export function applyWorkflowMove(workflow, mutation) {
@@ -49,8 +53,7 @@ export function applyWorkflowMove(workflow, mutation) {
     return [group];
   });
   if (!targetFound) groupes.push({
-    type: mutation.type,
-    nom: mutation.nom,
+    ...source,
     etat: mutation.etat_cible,
     quantite: mutation.quantite,
   });

@@ -14,6 +14,19 @@ implémentation, sans prétendre être déjà présentes dans le schéma ou le c
 La proposition de modèle cible et de contrat API est documentée dans
 [catalogue-model-proposal.md](catalogue-model-proposal.md).
 
+## Évolution #45 de cette branche
+
+La migration `0005_papiers_collection.sql` ajoute le marqueur serveur
+`commandes.papier_collection_inclus` (0 pour l’existant, 1 pour les nouveaux
+kits créés par l’application). Les feuilles de collection utilisent les noms
+historisés de `commande_collections` et `commandes.format_type` : une feuille
+par ligne, jamais doublée. Le marqueur reste inchangé à l’édition.
+Les unités et alertes de fournitures distinguent `papier_collection` (format
+A/B/C requis) et `papier_cartonne` (sans format). Les anciennes unités de type
+`papier_collection` sont converties en `papier_cartonne` sans backfill ni
+changement d’état. Voir [règle et migration #45](papiers-collection.md).
+Cette évolution n’est pas encore livrée sur le NAS.
+
 ## Entités principales
 
 - `clients` : coordonnées, préférences et points de fidélité.

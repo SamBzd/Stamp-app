@@ -32,3 +32,13 @@ commande kit n’est synchronisée qu’à son premier `PUT`. Les créations sui
 génèrent immédiatement leurs unités « À traiter ».
 L'initialisation d'une base neuve avec les seules clientes est décrite dans
 [la procédure d'import](../../docs/schema-import-clients.md).
+
+
+`0005_papiers_collection.sql` conserve les commandes existantes avec
+`papier_collection_inclus=0`. Les créations kit suivantes portent 1 et génèrent
+une feuille de collection par collection, identifiée par nom et format.
+Les anciennes fournitures `papier_collection` sont en réalité cartonnées :
+la migration les renomme `papier_cartonne`, y compris leurs alertes, sans
+changer identifiants, états, archives, relations, dates ni compteurs d’ID.
+Aucune feuille de collection n’est créée pour l’existant.
+Voir [la procédure de migration et la recette #45](../../docs/papiers-collection.md).

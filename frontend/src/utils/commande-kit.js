@@ -32,7 +32,7 @@ export function commandeTypeLabel(commande) {
 export function defaultKitForm() {
   return {
     client_id: '', catalogue_id: '', format_type: '', collections: [], ruban_id: '',
-    methode_paiement: '', date_commande: '', papier_supplementaire: false,
+    methode_paiement: '', date_commande: '', papier_supplementaire: false, papier_collection_inclus: true,
     produit_promo_texte: '', produit_promo_prix: '', autres_texte: '', autres_prix: '',
     prix_manuel: false, prix_manuel_euros: '',
   };
@@ -71,6 +71,15 @@ function initialPapers(collection, contribution, format) {
 
 export function allocatedPapers(line) {
   return line.papiers.reduce((sum, paper) => sum + (Number(paper.quantite_base) || 0), 0);
+}
+
+export function collectionPaperCount(form) {
+  return form.papier_collection_inclus ? form.collections.filter(line => line.collection_id).length : 0;
+}
+
+export function kitSheetCount(form) {
+  return form.collections.reduce((sum, line) => sum + allocatedPapers(line), 0)
+    * (form.papier_supplementaire ? 2 : 1) + collectionPaperCount(form);
 }
 
 export function allocationStatus(line) {
@@ -125,6 +134,8 @@ export function historicalComposition(commande) {
   const multiplier = commande.papier_supplementaire ? 2 : 1;
   return (commande.commande_collections || []).map(line => ({
     ...line,
+    papier_collection: commande.papier_collection_inclus
+      ? { nom: line.collection_nom, format_type: commande.format_type, quantite: 1 } : null,
     papiers: (commande.papiers_selectionnes || [])
       .filter(p => p.commande_collection_id === line.id)
       .map(p => ({ ...p, quantite_finale: p.quantite_base * multiplier })),
@@ -136,6 +147,7 @@ export function kitFormFromCommande(commande, catalogue) {
     ...defaultKitForm(), client_id: String(commande.client_id), catalogue_id: String(commande.catalogue_id),
     format_type: commande.format_type, methode_paiement: commande.methode_paiement || '',
     date_commande: commande.date_commande || '', papier_supplementaire: Boolean(commande.papier_supplementaire),
+    papier_collection_inclus: Boolean(commande.papier_collection_inclus),
     produit_promo_texte: commande.produit_promo_texte || '', produit_promo_prix: centsToInput(commande.produit_promo_prix_cents),
     autres_texte: commande.autres_texte || '', autres_prix: centsToInput(commande.autres_prix_cents),
     ruban_id: catalogue.rubans.length === 1 ? String(catalogue.rubans[0].id)

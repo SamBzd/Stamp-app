@@ -155,6 +155,7 @@ CREATE TABLE commandes (
  reglee INTEGER NOT NULL DEFAULT 0 CHECK (reglee IN (0,1)),
  created_at TEXT NOT NULL DEFAULT (datetime('now')),
  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+ papier_collection_inclus INTEGER NOT NULL DEFAULT 0 CHECK (papier_collection_inclus IN (0,1)),
  CHECK (type != 'kit' OR (
   catalogue_id IS NOT NULL AND catalogue_titre IS NOT NULL AND length(trim(catalogue_titre)) > 0
   AND format_type IS NOT NULL AND prix_format_cents IS NOT NULL AND prix_option_cents IS NOT NULL
@@ -208,8 +209,10 @@ CREATE INDEX ix_commande_rubans_ruban_id ON commande_rubans(ruban_id);
 CREATE TABLE fourniture_unites (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   commande_id INTEGER REFERENCES commandes(id) ON DELETE SET NULL,
-  type TEXT NOT NULL CHECK (type IN ('papier_collection','ruban','papier_special','embellissement')),
+  type TEXT NOT NULL CHECK (type IN ('papier_collection','papier_cartonne','ruban','papier_special','embellissement')),
   nom TEXT NOT NULL CHECK (length(trim(nom)) > 0),
+  format_type TEXT CHECK ((type = 'papier_collection' AND format_type IS NOT NULL AND format_type IN ('A','B','C'))
+    OR (type != 'papier_collection' AND format_type IS NULL)),
   etat TEXT NOT NULL DEFAULT 'À traiter'
     CHECK (etat IN ('À traiter','Commandé','Disponible','Expédié','Traité')),
   archive INTEGER NOT NULL DEFAULT 0 CHECK (archive IN (0,1)),
@@ -220,22 +223,24 @@ CREATE TABLE fourniture_unites (
     OR (archive = 1 AND etat = 'Traité' AND archived_at IS NOT NULL))
 );
 CREATE INDEX ix_fourniture_unites_commande ON fourniture_unites(commande_id);
-CREATE INDEX ix_fourniture_unites_kanban ON fourniture_unites(archive,type,nom,etat,id);
+CREATE INDEX ix_fourniture_unites_kanban ON fourniture_unites(archive,type,nom,format_type,etat,id);
 
 -- Les alertes survivent a l'archivage des unites et a la suppression de leur commande.
 CREATE TABLE fourniture_alertes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   unite_id INTEGER REFERENCES fourniture_unites(id) ON DELETE SET NULL,
   commande_id INTEGER REFERENCES commandes(id) ON DELETE SET NULL,
-  type TEXT NOT NULL CHECK (type IN ('papier_collection','ruban','papier_special','embellissement')),
+  type TEXT NOT NULL CHECK (type IN ('papier_collection','papier_cartonne','ruban','papier_special','embellissement')),
   nom TEXT NOT NULL CHECK (length(trim(nom)) > 0),
+  format_type TEXT CHECK ((type = 'papier_collection' AND format_type IS NOT NULL AND format_type IN ('A','B','C'))
+    OR (type != 'papier_collection' AND format_type IS NULL)),
   code TEXT NOT NULL CHECK (code IN ('surplus','ancien_besoin','commande_supprimee')),
   message TEXT NOT NULL CHECK (length(trim(message)) > 0),
   dedupe_key TEXT NOT NULL UNIQUE,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 CREATE INDEX ix_fourniture_alertes_public
-  ON fourniture_alertes(type,nom,code,created_at,id);
+  ON fourniture_alertes(type,nom,format_type,code,created_at,id);
 
 CREATE TRIGGER commandes_reglees_suppression
 BEFORE DELETE ON commandes WHEN OLD.reglee = 1

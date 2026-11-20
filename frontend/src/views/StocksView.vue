@@ -21,8 +21,8 @@
             <div><h2 id="workflow-alerts-title">Points d’attention</h2><p>Ces écarts proviennent de commandes modifiées ou supprimées.</p></div>
           </div>
           <ul>
-            <li v-for="alert in stocksStore.workflow.alertes" :key="JSON.stringify([alert.type, alert.nom, alert.code])">
-              <strong>{{ fournitureTypeLabel(alert.type) }} · {{ alert.nom }}</strong>
+            <li v-for="alert in stocksStore.workflow.alertes" :key="JSON.stringify([alert.type, alert.nom, alert.format_type, alert.code])">
+              <strong>{{ fournitureTypeLabel(alert.type) }} · {{ fournitureName(alert) }}</strong>
               <span>{{ alert.message }}<template v-if="alert.quantite > 1"> (×{{ alert.quantite }})</template></span>
             </li>
           </ul>
@@ -71,7 +71,7 @@
                   <span class="fourniture-type">{{ fournitureTypeLabel(group.type) }}</span>
                   <span class="fourniture-quantity" :aria-label="`${group.quantite} unités`">×{{ group.quantite }}</span>
                 </div>
-                <h3>{{ group.nom }}</h3>
+                <h3>{{ fournitureName(group) }}</h3>
                 <div v-if="group.etat === 'Traité'" class="fourniture-actions">
                   <button type="button" class="finish-button" :disabled="stocksStore.mutatingWorkflow" @click.stop="archiveGroup = group">Terminer</button>
                 </div>
@@ -128,7 +128,7 @@
 
     <Modal :is-open="Boolean(moveDialog)" title="Quantité à déplacer" max-width="460px" @close="closeMove">
       <form v-if="moveDialog" id="move-form" class="move-form" @submit.prevent="submitMove">
-        <p><strong>{{ fournitureTypeLabel(moveDialog.group.type) }} · {{ moveDialog.group.nom }}</strong></p>
+        <p><strong>{{ fournitureTypeLabel(moveDialog.group.type) }} · {{ fournitureName(moveDialog.group) }}</strong></p>
         <template v-if="!moveDialog.targetLocked"><label for="move-target">Déplacer vers</label><select id="move-target" v-model="moveDialog.target" :disabled="stocksStore.mutatingWorkflow"><option v-for="state in destinationStates" :key="state" :value="state">{{ state }}</option></select></template>
         <label for="move-quantity">Quantité à déplacer</label>
         <input id="move-quantity" v-model.number="moveDialog.quantite" type="number" inputmode="numeric" min="1" :max="moveDialog.group.quantite" :disabled="stocksStore.mutatingWorkflow" :aria-invalid="moveQuantityError" aria-describedby="move-quantity-help" />
@@ -153,7 +153,7 @@ import MonthPicker from '../components/MonthPicker.vue';
 import { formatBilanMonth } from '../utils/bilan';
 import { useStocksStore } from '../stores/stocks';
 import { formatMoney } from '../utils/commande-kit';
-import { FOURNITURE_STATES, fournitureGroupKey, fournitureTypeLabel, validMoveQuantity, workflowColumns } from '../utils/fournitures';
+import { FOURNITURE_STATES, fournitureGroupKey, fournitureTypeLabel, fournitureName, validMoveQuantity, workflowColumns } from '../utils/fournitures';
 
 const stocksStore = useStocksStore();
 const activeTab = ref('fournitures');
@@ -168,7 +168,7 @@ const selectedMois = ref(`${now.getFullYear()}-${String(now.getMonth() + 1).padS
 const columns = computed(() => workflowColumns(stocksStore.workflow?.groupes));
 const destinationStates = computed(() => FOURNITURE_STATES.filter(state => state !== moveDialog.value?.group.etat));
 const moveQuantityError = computed(() => moveDialog.value ? !validMoveQuantity(moveDialog.value.quantite, moveDialog.value.group.quantite) : false);
-const archiveMessage = computed(() => archiveGroup.value ? `Les ${archiveGroup.value.quantite} unité(s) de « ${archiveGroup.value.nom} » seront retirées durablement du tableau.` : '');
+const archiveMessage = computed(() => archiveGroup.value ? `Les ${archiveGroup.value.quantite} unité(s) de « ${fournitureName(archiveGroup.value)} » seront retirées durablement du tableau.` : '');
 
 const refreshWorkflow = () => stocksStore.fetchWorkflow();
 const showFeedback = (message) => window.dispatchEvent(new CustomEvent('toast', {
@@ -184,7 +184,7 @@ const submitMove = async () => {
   if (!moveDialog.value || moveQuantityError.value) return;
   const { group, target, quantite } = moveDialog.value;
   try {
-    await stocksStore.moveWorkflowGroup({ type: group.type, nom: group.nom, etat_source: group.etat, etat_cible: target, quantite });
+    await stocksStore.moveWorkflowGroup({ type: group.type, nom: group.nom, format_type: group.format_type, etat_source: group.etat, etat_cible: target, quantite });
     showFeedback(`${quantite} unité(s) déplacée(s) vers « ${target} ».`);
     moveDialog.value = null;
   } catch { mutationError.value = stocksStore.workflowError; }
@@ -193,7 +193,7 @@ const submitArchive = async () => {
   if (!archiveGroup.value) return;
   const group = archiveGroup.value;
   try {
-    await stocksStore.archiveWorkflowGroup({ type: group.type, nom: group.nom, quantite: group.quantite });
+    await stocksStore.archiveWorkflowGroup({ type: group.type, nom: group.nom, format_type: group.format_type, quantite: group.quantite });
     showFeedback(`${group.quantite} unité(s) terminée(s) et retirée(s) du tableau.`);
     archiveGroup.value = null;
   } catch { archiveGroup.value = null; }

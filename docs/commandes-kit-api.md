@@ -1,7 +1,7 @@
 # API commandes kits — issue #7
 
-Ce contrat concerne la future version, pas le NAS. Il utilise le schéma de
-l’issue #5 sans migration supplémentaire. L’interface commandes est intégrée
+Ce contrat décrit le code de cette branche. L’évolution #45 exige la migration
+v5 et reste non livrée : voir [règle, recette et migration](papiers-collection.md). L’interface commandes est intégrée
 en #9 : voir [le parcours et sa recette navigateur](commandes-ui.md).
 
 ## Création
@@ -58,9 +58,19 @@ snapshots fournis par le client HTTP sont refusés. Un kit est créé non régl�
   avec choix omis ou `null` autorisé. Deux rubans : `ruban_id` obligatoire et
   correspondant exactement à l’un des deux.
 - `papier_supplementaire` accepte booléen ou 0/1 et vaut 0 par défaut. L’option
-  coûte 350 centimes et double les quantités de papiers, sans doubler ruban,
+  coûte 350 centimes et double uniquement les quantités de papiers cartonnés, sans doubler ruban,
   papier spécial ni embellissement. Les snapshots conservent les quantités
   **de base** ; les stocks appliquent le multiplicateur.
+
+Depuis #45, une création kit ajoute automatiquement une feuille par collection,
+portant le nom historisé de cette collection et le format du kit. Cette feuille
+est incluse dans le prix de base et n’est jamais doublée. Le scalaire serveur
+`papier_collection_inclus` vaut 1 pour ces créations, 0 pour les commandes
+antérieures et les hors-kit. Il est retourné avec les autres scalaires, mais
+refusé dans les corps `POST` et `PUT`. L’édition conserve sa valeur, même en
+changeant de catalogue, de collections ou de format. La quantité de collection
+se déduit de ce marqueur et des snapshots `commande_collections` ; elle n’est
+pas une ligne de `papiers_selectionnes` (qui restent les papiers cartonnés).
 
 ## Prix et historique
 

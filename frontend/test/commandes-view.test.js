@@ -92,3 +92,15 @@ test('aucun résultat de recherche propose une sortie et conserve les contrôles
   assert.ok(html.includes('id="commande-client-search"'));
   assert.ok(!html.includes('<table'));
 });
+
+
+test('#45 : le détail distingue les deux papiers et utilise le nom et le format historiques', async () => {
+  const html = await renderCommande({ ...kit, papier_collection_inclus: 1 });
+  assert.ok(html.includes('Papier de collection'));
+  assert.ok(html.includes('Collection historique · Format A : 1 feuille'));
+  assert.ok(html.includes('Papier cartonné — Collection historique'));
+  assert.ok(html.includes('11 feuilles à préparer'));
+  const old = await renderCommande({ ...kit, papier_collection_inclus: 0 });
+  assert.ok(!old.includes('Papier de collection'));
+  assert.ok(old.includes('10 feuilles à préparer'));
+});

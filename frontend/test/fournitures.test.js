@@ -7,6 +7,7 @@ import {
   applyWorkflowMove,
   fournitureGroupKey,
   fournitureTypeLabel,
+  fournitureName,
   validMoveQuantity,
   workflowColumns,
 } from '../src/utils/fournitures.js';
@@ -20,7 +21,7 @@ test('le Kanban conserve les cinq états et range chaque pile sans la décompose
   assert.deepEqual(columns.map(column => column.etat), FOURNITURE_STATES);
   assert.deepEqual(columns.map(column => column.groupes.length), [1, 1, 0, 0, 0]);
   assert.strictEqual(columns[1].groupes[0], groupes[0]);
-  assert.equal(fournitureGroupKey(groupes[0]), '["ruban","Lin naturel","Commandé"]');
+  assert.equal(fournitureGroupKey(groupes[0]), '["ruban","Lin naturel",null,"Commandé"]');
   assert.equal(fournitureTypeLabel('papier_collection'), 'Papier de collection');
 });
 
@@ -63,4 +64,19 @@ test('la vue fournit glisser-déposer sans action de déplacement et réduction 
   assert.match(source, /duration: 5000/);
   assert.match(source, /prefers-reduced-motion: reduce/);
   assert.match(source, /role="tabpanel"/);
+});
+
+
+test('#45 : les groupes et mutations locales isolent le format sans perdre les quantités', () => {
+  const b = { type: 'papier_collection', nom: 'Jardin', format_type: 'B', etat: 'À traiter', quantite: 2 };
+  const c = { ...b, format_type: 'C', quantite: 1 };
+  assert.notEqual(fournitureGroupKey(b), fournitureGroupKey(c));
+  assert.equal(fournitureName(b), 'Jardin · Format B');
+  assert.equal(fournitureTypeLabel('papier_cartonne'), 'Papier cartonné');
+  const moved = applyWorkflowMove({ groupes: [b, c] }, { ...b, etat_source: 'À traiter', etat_cible: 'Traité', quantite: 1 });
+  assert.deepEqual(moved.groupes.map(group => [group.format_type, group.etat, group.quantite]), [
+    ['B', 'À traiter', 1], ['C', 'À traiter', 1], ['B', 'Traité', 1]
+  ]);
+  const archived = applyWorkflowArchive(moved, { type: b.type, nom: b.nom, format_type: 'B', quantite: 1 });
+  assert.deepEqual(archived.groupes, [{ ...b, quantite: 1 }, c]);
 });

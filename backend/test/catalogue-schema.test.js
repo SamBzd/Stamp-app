@@ -38,13 +38,13 @@ function seedKit(db) {
   `);
 }
 
-test('schéma neuf et migrations v1 vers v4 correspondent exactement', () => {
-  withDatabase(db => assertMigrationSchemaCompatible(db, 4));
+test('schéma neuf et migrations v1 vers v5 correspondent exactement', () => {
+  withDatabase(db => assertMigrationSchemaCompatible(db, 5));
   withDatabase(db => {
     db.exec(`INSERT INTO clients (nom,prenom,points_fidelite) VALUES ('Test','Cliente',3);
       INSERT INTO settings VALUES ('prix_A','35.25');`);
     applyMigrations(db);
-    assertMigrationSchemaCompatible(db, 4);
+    assertMigrationSchemaCompatible(db, 5);
     assert.equal(db.prepare('SELECT archive FROM clients').get().archive, 0);
     assert.equal(db.prepare('SELECT points_fidelite FROM clients').get().points_fidelite, 3);
     assert.equal(db.prepare("SELECT valeur FROM settings WHERE cle='prix_catalogue_A_cents'").get().valeur, 3525);
@@ -69,8 +69,8 @@ test('migration v3 conserve les papiers et associations d’une base v2', () => 
     });
     assert.equal(db.prepare('SELECT papier_cartonne_id FROM collection_papiers').get().papier_cartonne_id, 1);
     assertMigrationSchemaCompatible(db, 3);
-    assert.deepEqual(applyMigrations(db).map(migration => migration.version), [4]);
-    assertMigrationSchemaCompatible(db, 4);
+    assert.deepEqual(applyMigrations(db).map(migration => migration.version), [4, 5]);
+    assertMigrationSchemaCompatible(db, 5);
   } finally { db.close(); }
 });
 
