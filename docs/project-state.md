@@ -23,6 +23,13 @@ v5, des types Fournitures distincts et un regroupement par nom + format. Les kit
 antérieurs gardent leur règle initiale à l’édition. Cette préparation ne prouve
 aucune migration ni livraison NAS. Voir [règle, recette et mise en service](papiers-collection.md).
 
+## Palette #51 sur cette branche
+
+Sam valide Sauge d’origine le 20 novembre 2026 : vert historique, ivoire et
+beige doux. Cette branche l’applique aux couleurs communes et aux teintes
+résiduelles, en conservant le design et l’UX. Aucun déploiement de cette palette
+n’est attesté. Voir [la palette et la recette](ui/palette-sauge-origine.md).
+
 ## Cartographie des versions
 
 | Référence | Rôle | Autorité actuelle |

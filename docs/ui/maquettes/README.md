@@ -1,5 +1,7 @@
 # Maquettes de référence — Atelier prune/citron
 
+> Couleurs historiques : depuis le 20 novembre 2026, la [palette Sauge d’origine](../palette-sauge-origine.md) validée par Sam en #51 remplace la palette prune/citron. Les formes et les interactions actuelles restent inchangées.
+
 Copies figées des deux directions validées par Sam le 3 octobre 2026 :
 
 - [Fournitures](fournitures.html) : palette, bandeau, colonnes blanches,

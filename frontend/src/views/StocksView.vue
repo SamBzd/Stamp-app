@@ -246,7 +246,7 @@ onMounted(refreshWorkflow);
 .column-count { color: var(--atelier-counter); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
 .kanban-column-content { display: grid; align-content: start; gap: var(--spacing-3); padding: var(--spacing-3); }
 .fourniture-card { display: grid; gap: var(--spacing-3); min-width: 0; padding: var(--spacing-3); border: 0; border-radius: var(--atelier-card-radius); cursor: grab; transition: opacity var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast); }
-.fourniture-card:hover { box-shadow: 0 4px 12px rgb(108 75 96 / 13%), 0 1px 2px rgb(108 75 96 / 6%); }
+.fourniture-card:hover { box-shadow: 0 4px 12px rgb(93 112 82 / 13%), 0 1px 2px rgb(93 112 82 / 6%); }
 .fourniture-card:active { cursor: grabbing; }
 .fourniture-card-dragging { opacity: .45; }
 .fourniture-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--spacing-2); }

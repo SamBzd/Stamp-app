@@ -635,6 +635,7 @@ onMounted(async () => {
 .commande-open:focus-visible { outline-offset: -4px; }
 .commande-summary, .commande-metadata { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
 .client-name { font-size: var(--font-size-base); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.commande-open[aria-pressed="true"] .client-name { color: var(--text-primary); }
 .commande-list-status, .commande-metadata { color: var(--text-secondary); font-size: var(--font-size-xs); }
 .commande-list-reglee { color: var(--success-dark); }
 .commande-metadata > span { min-width: 0; overflow-wrap: anywhere; }

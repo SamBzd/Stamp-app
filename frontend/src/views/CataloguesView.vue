@@ -235,6 +235,7 @@ onUnmounted(() => { desktopMedia.removeEventListener('change', updateDesktopDeta
 .catalogue-list-workspace .catalogue-open:focus-visible { outline-offset: -4px; }
 .catalogue-item-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
 .catalogue-name { font-size: var(--font-size-base); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.catalogue-open[aria-pressed="true"] .catalogue-name { color: var(--text-primary); }
 .catalogue-list-status { font-size: var(--font-size-xs); color: var(--text-secondary); }
 .catalogue-list-status.published { color: var(--success-dark); }
 .catalogue-secondary { color: var(--text-secondary); font-size: var(--font-size-xs); }

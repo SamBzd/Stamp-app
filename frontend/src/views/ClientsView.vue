@@ -835,6 +835,7 @@ onMounted(async () => {
 .client-open:disabled { cursor: wait; }
 .client-summary, .client-contact { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
 .client-name { font-size: var(--font-size-base); font-weight: 600; color: var(--primary); overflow-wrap: anywhere; }
+.client-list-item.client-selected .client-name { color: var(--text-primary); }
 .client-city { min-width: 0; overflow-wrap: anywhere; }
 .client-city, .client-contact { font-size: var(--font-size-xs); color: var(--text-secondary); }
 .client-contact > span { min-width: 0; overflow-wrap: anywhere; }

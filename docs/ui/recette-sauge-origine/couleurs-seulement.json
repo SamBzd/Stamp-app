@@ -1,0 +1,42 @@
+[
+  {
+    "file": "frontend/src/components/Button.vue",
+    "color_only": true,
+    "structure_sha256": "0b893f43cd30bcfb123abb1529562bfdb7ebb95009882b67f960007cf360c58d"
+  },
+  {
+    "file": "frontend/src/components/Modal.vue",
+    "color_only": true,
+    "structure_sha256": "5e94c25d7abfdc3d6ec207fb9269647fbec005325c592a2e074b90cac61e0dfe"
+  },
+  {
+    "file": "frontend/src/style.css",
+    "color_only": true,
+    "structure_sha256": "6bf38c8ed147895d07431605d2fc574487fbf65587724d7db34b7f00964ff58d"
+  },
+  {
+    "file": "frontend/src/views/CataloguesView.vue",
+    "color_only": true,
+    "structure_sha256": "aabb7871b31de57f890ee09c1d62d50e23a8ce449fdd9aac149571a9741c4001"
+  },
+  {
+    "file": "frontend/src/views/ClientsView.vue",
+    "color_only": true,
+    "structure_sha256": "5297cf282d06bc846f524cd6b4e13ebebc0b8710e0f13a7fd216ebeece09aacb"
+  },
+  {
+    "file": "frontend/src/views/CommandesView.vue",
+    "color_only": true,
+    "structure_sha256": "18f918079d498d67a0ed25bc0139a76dca78089020a3b8cc14f9d36b73cd42b3"
+  },
+  {
+    "file": "frontend/src/views/PapiersView.vue",
+    "color_only": true,
+    "structure_sha256": "44102a20046fd931e5e060bef012d6997db12e961568d91bfcf5217a3249b351"
+  },
+  {
+    "file": "frontend/src/views/StocksView.vue",
+    "color_only": true,
+    "structure_sha256": "d3deb0e7e539282a242d64a6eeca07eb4e333ce62cdb85d5a6ecae00f98e559c"
+  }
+]

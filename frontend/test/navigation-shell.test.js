@@ -45,12 +45,13 @@ test('les paires de texte principales restent à un contraste AA', () => {
     const base = background.match(/[0-9a-f]{2}/gi).map(value => parseInt(value, 16));
     return `#${overlay.slice(0, 3).map((value, index) => Math.round(value * overlay[3] + base[index] * (1 - overlay[3])).toString(16).padStart(2, '0')).join('')}`;
   };
-  for (const [foreground, background] of [['--text-primary', '--bg-app'], ['--text-secondary', '--bg-app'], ['--primary', '--bg-primary'], ['--error-dark', '--bg-primary'], ['--primary-foreground', '--primary'], ['--primary-foreground', '--atelier-header'], ['--atelier-counter', '--atelier-header']]) {
+  for (const [foreground, background] of [['--text-primary', '--bg-app'], ['--text-secondary', '--bg-app'], ['--text-primary', '--surface-selected'], ['--text-secondary', '--surface-selected'], ['--primary', '--surface-hover'], ['--primary', '--bg-primary'], ['--error-dark', '--bg-primary'], ['--primary-foreground', '--primary'], ['--primary-foreground', '--atelier-header'], ['--atelier-counter', '--atelier-header']]) {
     assert.ok(ratio(readToken(foreground), readToken(background)) >= 4.5, `${foreground} sur ${background}`);
   }
   assert.ok(ratio(readToken('--border'), readToken('--card')) >= 3, 'bordure de champ sur blanc');
-  const glassOnCitron = composite(readRgba('--atelier-glass-veil'), readToken('--bg-app'));
-  assert.ok(ratio(readToken('--text-secondary'), glassOnCitron) >= 4.5, 'texte du dock sur verre composé');
-  assert.ok(ratio(readToken('--atelier-active-mark'), glassOnCitron) >= 3, 'repère actif sur verre composé');
-  assert.ok(ratio(readToken('--warning-dark'), composite(readRgba('--warning-light'), readToken('--card'))) >= 4.5, '--warning-dark sur --warning-light composé');
+  const glassOnBackground = composite(readRgba('--atelier-glass-veil'), readToken('--bg-app'));
+  assert.ok(ratio(readToken('--text-secondary'), glassOnBackground) >= 4.5, 'texte du dock sur verre composé');
+  assert.ok(ratio(readToken('--atelier-active-mark'), glassOnBackground) >= 3, 'repère actif sur verre composé');
+  const warningSurface = readToken('--warning-light') || composite(readRgba('--warning-light'), readToken('--card'));
+  assert.ok(ratio(readToken('--warning-dark'), warningSurface) >= 4.5, '--warning-dark sur --warning-light');
 });
