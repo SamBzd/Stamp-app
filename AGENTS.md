@@ -2,7 +2,7 @@
 
 ## Contexte
 
-Stamp App est une application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur un réseau local. La production est hébergée dans des conteneurs Docker sur un NAS Synology. Sam a confirmé le 20 novembre 2026 la première livraison contrôlée CD, release `nas-21c57bfda56c49bae8132a6e13c84a363eb3c3a0`. `main` reste la base de développement ; une tête de branche ne prouve pas un déploiement. La branche `production` conserve l’ancienne application pour le retour arrière. Le passage du canal CD de recette vers `main` reste à confirmer sur le NAS.
+Stamp App est une application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur un réseau local. La production est hébergée dans des conteneurs Docker sur un NAS Synology. Sam a confirmé le 20 novembre 2026 le déploiement automatique depuis `main`, release `nas-1780b9127cc2886528f9e10c25b03b1f520fa3ff`, après la première livraison contrôlée CD. `main` reste la base de développement ; une tête de branche ne prouve pas un déploiement. La branche `production` conserve l’ancienne application pour le retour arrière. Le #45 n’est pas livré.
 
 Lis [`docs/project-state.md`](docs/project-state.md) avant toute intervention. Le code de la branche examinée et son `db/schema.sql` restent les sources de vérité techniques de cette branche ; ils ne prouvent pas l'état des données ni de la configuration actuellement présentes sur le NAS.
 
