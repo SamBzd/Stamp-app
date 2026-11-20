@@ -2,13 +2,19 @@
 
 Application de gestion de clientes et de commandes utilisée par une seule personne depuis un Mac, sur le réseau local. La production est hébergée sur un NAS Synology avec Docker.
 
-> La branche `production` est le miroir du code présent sur le NAS. La branche `main` reprend la refonte v2 comme base de stabilisation ; elle n'est pas encore déployée.
+> La production utilise le circuit CD depuis `main`, validé le 20 novembre 2026 sur la release `nas-1780b9127cc2886528f9e10c25b03b1f520fa3ff`. La branche `production` conserve l'ancienne application pour le retour arrière. Une tête de branche ne prouve pas un déploiement.
 
 > Les bases SQLite locales ne sont pas versionnées. L'historique Git contient encore d'anciennes copies : ne le diffuse pas sans suivre les précautions décrites dans la [documentation d'exploitation](docs/operations.md).
 
 ## État du dépôt
 
-`main` constitue désormais la base commune pour stabiliser la refonte v2 avant son futur déploiement. Ses commandes de développement ne constituent pas la procédure d'exploitation du NAS. Consulte [l'état des versions](docs/project-state.md) avant toute intervention.
+`main` est la base de développement et de publication des releases NAS. Ses commandes de développement ne constituent pas la procédure d'exploitation du NAS. Consulte [l'état des versions](docs/project-state.md) avant toute intervention.
+
+## Livrer sur le NAS
+
+Après fusion dans `main`, lancer **Actions → Livrer Stamp App sur le NAS → Run workflow** sur `main`. Le workflow valide la CI, construit les images et publie la release. La tâche DSM la détecte au prochain passage, toutes les dix minutes, puis télécharge et démarre les images. Ce délai commence à la publication, pas au push, et s'ajoute aux temps de construction et de déploiement.
+
+Un push ou un merge seul ne déploie rien. Vérifier ensuite la version réellement active et les sondes sur le NAS. Une migration SQLite requise bloque la bascule ; un échec des sondes déclenche une tentative de retour aux images précédentes. Voir le [mode d'emploi et les contrôles](docs/cd-nas.md#livrer-une-modification-courante).
 
 ## Développer `main` en local
 
