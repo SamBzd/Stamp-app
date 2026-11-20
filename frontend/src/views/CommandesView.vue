@@ -218,13 +218,17 @@
                   class="collection-chip"
                 >
                   {{ cc.collection_nom }}
-                  <span class="chip-count">{{ cc.nb_feuilles }} de base → {{ cc.nb_feuilles * (selectedCommande.papier_supplementaire ? 2 : 1) }} à préparer</span>
+                  <span class="chip-count">{{ cc.nb_feuilles }} cartonnées de base → {{ cc.nb_feuilles * (selectedCommande.papier_supplementaire ? 2 : 1) + (cc.papier_collection ? 1 : 0) }} feuilles à préparer</span>
                 </span>
               </div>
             </div>
 
             <div v-for="cc in kitComposition" :key="`papers-${cc.id}`" class="detail-papiers">
-              <span class="detail-label">Papiers — {{ cc.collection_nom }}</span>
+              <template v-if="cc.papier_collection">
+                <span class="detail-label">Papier de collection</span>
+                <span class="papier-chip">{{ cc.papier_collection.nom }} · Format {{ cc.papier_collection.format_type }} : {{ cc.papier_collection.quantite }} feuille</span>
+              </template>
+              <span class="detail-label">Papier cartonné — {{ cc.collection_nom }}</span>
               <div class="papiers-list">
                 <span
                   v-for="p in cc.papiers"
@@ -235,6 +239,7 @@
                 </span>
               </div>
             </div>
+            <p v-if="kitComposition.length">{{ kitComposition.reduce((sum, cc) => sum + cc.papiers.reduce((total, p) => total + p.quantite_finale, 0) + (cc.papier_collection ? 1 : 0), 0) }} feuilles à préparer</p>
           </div>
 
           <!-- Infos hors kit -->

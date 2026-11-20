@@ -46,7 +46,7 @@ async function api(route, method = 'GET', body, status = 200) {
   return result;
 }
 
-async function fixture({ paperIds, paperNames, rubanName, specialName, embellishmentName } = {}) {
+async function fixture({ paperIds, paperNames, rubanName, specialName, embellishmentName, collectionNames } = {}) {
   const suffix = ++sequence;
   const client = await api('/clients', 'POST', { nom: `Workflow ${suffix}`, prenom: `Cliente ${suffix}` }, 201);
   let catalogue = await api('/catalogues', 'POST', {
@@ -56,7 +56,7 @@ async function fixture({ paperIds, paperNames, rubanName, specialName, embellish
   }, 201);
   const resolvedPaperIds = paperIds || [];
   for (let index = 0; index < 2; index += 1) {
-    const collection = await api(`/catalogues/${catalogue.id}/collections`, 'POST', { nom: `Collection ${suffix}-${index}` }, 201);
+    const collection = await api(`/catalogues/${catalogue.id}/collections`, 'POST', { nom: collectionNames?.[index] ?? `Collection ${suffix}-${index}` }, 201);
     if (!resolvedPaperIds[index]) {
       resolvedPaperIds[index] = (await api('/papiers-cartonnes', 'POST', {
         nom: paperNames?.[index] ?? `Papier ${suffix}-${index}`
@@ -91,8 +91,8 @@ function replacement(body) {
   return data;
 }
 
-function group(workflow, type, nom, etat = 'À traiter') {
-  return workflow.groupes.find(item => item.type === type && item.nom === nom && item.etat === etat);
+function group(workflow, type, nom, etat = 'À traiter', format = null) {
+  return workflow.groupes.find(item => item.type === type && item.nom === nom && item.etat === etat && item.format_type === format);
 }
 
 test('création : chaque type et quantité devient une unité persistante et les catalogues sont regroupés', async () => {
@@ -112,8 +112,8 @@ test('création : chaque type et quantité devient une unité persistante et les
   await api('/commandes', 'POST', firstBody, 201);
 
   let workflow = await api('/fournitures');
-  assert.equal(group(workflow, 'papier_collection', names.papers[0]).quantite, 4);
-  assert.equal(group(workflow, 'papier_collection', names.papers[1]).quantite, 6);
+  assert.equal(group(workflow, 'papier_cartonne', names.papers[0]).quantite, 4);
+  assert.equal(group(workflow, 'papier_cartonne', names.papers[1]).quantite, 6);
   assert.equal(group(workflow, 'ruban', names.ribbon).quantite, 1);
   assert.equal(group(workflow, 'papier_special', names.special).quantite, 1);
   assert.equal(group(workflow, 'embellissement', names.embellishment).quantite, 1);
@@ -127,8 +127,8 @@ test('création : chaque type et quantité devient une unité persistante et les
   });
   await api('/commandes', 'POST', payload(second), 201);
   workflow = await api('/fournitures');
-  assert.equal(group(workflow, 'papier_collection', names.papers[0]).quantite, 6);
-  assert.equal(group(workflow, 'papier_collection', names.papers[1]).quantite, 9);
+  assert.equal(group(workflow, 'papier_cartonne', names.papers[0]).quantite, 6);
+  assert.equal(group(workflow, 'papier_cartonne', names.papers[1]).quantite, 9);
   assert.equal(group(workflow, 'ruban', names.ribbon).quantite, 2);
   assert.equal(group(workflow, 'papier_special', names.special).quantite, 2);
   assert.equal(group(workflow, 'embellissement', names.embellishment).quantite, 2);
@@ -147,33 +147,33 @@ test('déplacements partiels/complets : les plus anciennes unités bougent atomi
   await api('/commandes', 'POST', payload(f), 201);
   const beforeIds = db.prepare(`
     SELECT id FROM fourniture_unites
-    WHERE type='papier_collection' AND nom=? ORDER BY id
+    WHERE type='papier_cartonne' AND nom=? ORDER BY id
   `).all(materialName).map(row => row.id);
 
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1
   });
   assert.deepEqual(db.prepare(`
-    SELECT id FROM fourniture_unites WHERE type='papier_collection' AND nom=? AND etat='Commandé'
+    SELECT id FROM fourniture_unites WHERE type='papier_cartonne' AND nom=? AND etat='Commandé'
   `).all(materialName).map(row => row.id), [beforeIds[0]]);
 
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'Commandé', etat_cible: 'À traiter', quantite: 1
   });
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'À traiter', etat_cible: 'Traité', quantite: 2
   });
-  assert.equal(group(await api('/fournitures'), 'papier_collection', materialName, 'Traité').quantite, 2);
+  assert.equal(group(await api('/fournitures'), 'papier_cartonne', materialName, 'Traité').quantite, 2);
 
-  const snapshot = db.prepare(`SELECT id,etat,archive FROM fourniture_unites WHERE type='papier_collection' AND nom=? ORDER BY id`).all(materialName);
+  const snapshot = db.prepare(`SELECT id,etat,archive FROM fourniture_unites WHERE type='papier_cartonne' AND nom=? ORDER BY id`).all(materialName);
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'À traiter', etat_cible: 'Disponible', quantite: 1
   }, 409);
-  assert.deepEqual(db.prepare(`SELECT id,etat,archive FROM fourniture_unites WHERE type='papier_collection' AND nom=? ORDER BY id`).all(materialName), snapshot);
+  assert.deepEqual(db.prepare(`SELECT id,etat,archive FROM fourniture_unites WHERE type='papier_cartonne' AND nom=? ORDER BY id`).all(materialName), snapshot);
 });
 
 test('archivage traité : masquage définitif et aucune régénération lors d’une resynchronisation', async () => {
@@ -181,18 +181,18 @@ test('archivage traité : masquage définitif et aucune régénération lors d�
   const f = await fixture({ paperNames: [materialName, `Papier archive secondaire ${++sequence}`] });
   const body = payload(f);
   const order = await api('/commandes', 'POST', body, 201);
-  await api('/fournitures/archivage', 'POST', { type: 'papier_collection', nom: materialName, quantite: 1 }, 409);
+  await api('/fournitures/archivage', 'POST', { type: 'papier_cartonne', nom: materialName, quantite: 1 }, 409);
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'À traiter', etat_cible: 'Traité', quantite: 1
   });
-  await api('/fournitures/archivage', 'POST', { type: 'papier_collection', nom: materialName, quantite: 1 });
-  assert.equal(group(await api('/fournitures'), 'papier_collection', materialName, 'Traité'), undefined);
-  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=?').get(order.id, 'papier_collection', materialName).count, 2);
+  await api('/fournitures/archivage', 'POST', { type: 'papier_cartonne', nom: materialName, quantite: 1 });
+  assert.equal(group(await api('/fournitures'), 'papier_cartonne', materialName, 'Traité'), undefined);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=?').get(order.id, 'papier_cartonne', materialName).count, 2);
 
   await api(`/commandes/${order.id}`, 'PUT', replacement(body));
-  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=?').get(order.id, 'papier_collection', materialName).count, 2);
-  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=? AND archive=1').get(order.id, 'papier_collection', materialName).count, 1);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=?').get(order.id, 'papier_cartonne', materialName).count, 2);
+  assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=? AND type=? AND nom=? AND archive=1').get(order.id, 'papier_cartonne', materialName).count, 1);
 });
 
 test('modification : pending ajusté, états engagés conservés, ancienne identité et surplus alertés', async () => {
@@ -201,7 +201,7 @@ test('modification : pending ajusté, états engagés conservés, ancienne ident
   const body = payload(f, { papier_supplementaire: true });
   const order = await api('/commandes', 'POST', body, 201);
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: oldName,
+    type: 'papier_cartonne', nom: oldName,
     etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 3
   });
 
@@ -222,7 +222,7 @@ test('suppression : pending retiré, engagé anonymisé et alerte persistante ex
   const f = await fixture({ paperNames: [materialName, `Papier suppression secondaire ${++sequence}`] });
   const order = await api('/commandes', 'POST', payload(f), 201);
   await api('/fournitures/deplacement', 'PATCH', {
-    type: 'papier_collection', nom: materialName,
+    type: 'papier_cartonne', nom: materialName,
     etat_source: 'À traiter', etat_cible: 'Expédié', quantite: 1
   });
   const deletion = await api(`/commandes/${order.id}`, 'DELETE');
@@ -230,7 +230,7 @@ test('suppression : pending retiré, engagé anonymisé et alerte persistante ex
   assert.deepEqual(deletion.workflow_avertissements.map(item => [item.code, item.quantite]), [
     ['commande_supprimee', 1]
   ]);
-  assert.deepEqual(db.prepare('SELECT commande_id,etat FROM fourniture_unites WHERE type=? AND nom=?').all('papier_collection', materialName), [
+  assert.deepEqual(db.prepare('SELECT commande_id,etat FROM fourniture_unites WHERE type=? AND nom=?').all('papier_cartonne', materialName), [
     { commande_id: null, etat: 'Expédié' }
   ]);
 
@@ -265,6 +265,7 @@ test('migration sans backfill et première modification d’une ancienne command
   const body = payload(f);
   const order = await api('/commandes', 'POST', body, 201);
   db.prepare('DELETE FROM fourniture_unites WHERE commande_id=?').run(order.id);
+  db.prepare('UPDATE commandes SET papier_collection_inclus=0 WHERE id=?').run(order.id);
   assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=?').get(order.id).count, 0);
   await api(`/commandes/${order.id}`, 'PUT', replacement(body));
   assert.equal(db.prepare('SELECT COUNT(*) AS count FROM fourniture_unites WHERE commande_id=?').get(order.id).count, 7);
@@ -306,4 +307,104 @@ test('atomicité : un échec de génération annule aussi la commande', async ()
   } finally {
     db.exec('DROP TRIGGER fail_order_update');
   }
+});
+
+test('#45 : A/B/C ajoutent une feuille par collection sans doubler ni surfacturer cette feuille', async () => {
+  const f = await fixture();
+  for (const format of ['A', 'B', 'C']) {
+    for (const option of [false, true]) {
+      const body = payload(f, { format_type: format, papier_supplementaire: option });
+      if (format === 'C') body.commande_collections = [{
+        collection_id: f.catalogue.collections[0].id, nb_feuilles: 5,
+        papiers: [{ papier_cartonne_id: f.paperIds[0], quantite_base: 5 }]
+      }];
+      const order = await api('/commandes', 'POST', body, 201);
+      assert.equal(order.papier_collection_inclus, 1);
+      assert.equal(order.prix_applique_cents, f.catalogue[`prix_${format}_cents`] + (option ? 350 : 0));
+      const units = db.prepare("SELECT type,nom,format_type FROM fourniture_unites WHERE commande_id=? AND type IN ('papier_collection','papier_cartonne')").all(order.id);
+      const sheets = units.filter(unit => unit.type === 'papier_collection');
+      assert.equal(sheets.length, format === 'C' ? 1 : 2);
+      assert.deepEqual(sheets.map(unit => [unit.nom, unit.format_type]),
+        f.catalogue.collections.slice(0, format === 'C' ? 1 : 2).map(collection => [collection.nom, format]));
+      assert.equal(units.length, (option ? 10 : 5) + sheets.length);
+      assert.equal(units.filter(unit => unit.type === 'papier_cartonne').every(unit => unit.format_type === null), true);
+      assert.equal((await api(`/commandes/${order.id}`)).papier_collection_inclus, 1);
+    }
+  }
+  await api('/commandes', 'POST', { ...payload(f), papier_collection_inclus: 0 }, 400);
+});
+
+test('#45 : regroupement inter-catalogues par nom et format, déplacements et archivage isolent les formats', async () => {
+  const names = [`Jardin ${++sequence}`, `Ciel ${sequence}`];
+  const f = await fixture({ collectionNames: names });
+  const other = await fixture({ collectionNames: names });
+  const b = payload(f, { format_type: 'B' });
+  const bOrder = await api('/commandes', 'POST', b, 201);
+  await api('/commandes', 'POST', payload(other, { format_type: 'B' }), 201);
+  const c = payload(f, { format_type: 'C', commande_collections: [{
+    collection_id: f.catalogue.collections[0].id, nb_feuilles: 5,
+    papiers: [{ papier_cartonne_id: f.paperIds[0], quantite_base: 5 }]
+  }] });
+  await api('/commandes', 'POST', c, 201);
+  let workflow = await api('/fournitures');
+  assert.equal(group(workflow, 'papier_collection', names[0], 'À traiter', 'B').quantite, 2);
+  assert.equal(group(workflow, 'papier_collection', names[0], 'À traiter', 'C').quantite, 1);
+  const mutation = { type: 'papier_collection', nom: names[0], etat_source: 'À traiter', etat_cible: 'Traité', quantite: 1 };
+  await api('/fournitures/deplacement', 'PATCH', mutation, 400);
+  await api('/fournitures/deplacement', 'PATCH', { ...mutation, format_type: 'D' }, 400);
+  await api('/fournitures/deplacement', 'PATCH', { ...mutation, type: 'papier_cartonne', format_type: 'B' }, 400);
+  await api('/fournitures/deplacement', 'PATCH', { ...mutation, format_type: 'B' });
+  await api('/fournitures/archivage', 'POST', { type: 'papier_collection', nom: names[0], format_type: 'C', quantite: 1 }, 409);
+  await api('/fournitures/archivage', 'POST', { type: 'papier_collection', nom: names[0], format_type: 'B', quantite: 1 });
+  await api(`/commandes/${bOrder.id}`, 'PUT', replacement(b));
+  workflow = await api('/fournitures');
+  assert.equal(group(workflow, 'papier_collection', names[0], 'À traiter', 'B').quantite, 1);
+  assert.equal(group(workflow, 'papier_collection', names[0], 'À traiter', 'C').quantite, 1);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM fourniture_unites WHERE commande_id=? AND type='papier_collection' AND nom=?").get(bOrder.id, names[0]).n, 1);
+});
+
+test('#45 : changer de format puis de collection réconcilie sans doublon et conserve les besoins engagés', async () => {
+  const f = await fixture();
+  const body = payload(f, { format_type: 'B' });
+  const order = await api('/commandes', 'POST', body, 201);
+  const garden = f.catalogue.collections[0];
+  await api('/fournitures/deplacement', 'PATCH', { type: 'papier_collection', nom: garden.nom,
+    format_type: 'B', etat_source: 'À traiter', etat_cible: 'Commandé', quantite: 1 });
+  const next = replacement(payload(f, { format_type: 'C', commande_collections: [{
+    collection_id: garden.id, nb_feuilles: 5, papiers: [{ papier_cartonne_id: f.paperIds[0], quantite_base: 5 }]
+  }] }));
+  const updated = await api(`/commandes/${order.id}`, 'PUT', next);
+  assert.deepEqual(updated.workflow_avertissements, [{ type: 'papier_collection', nom: garden.nom,
+    format_type: 'B', code: 'ancien_besoin', message: 'Un besoin engagé ne correspond plus à la commande modifiée.', quantite: 1 }]);
+  await api(`/commandes/${order.id}`, 'PUT', next);
+  let sheets = db.prepare("SELECT nom,format_type,etat FROM fourniture_unites WHERE commande_id=? AND type='papier_collection' ORDER BY id").all(order.id);
+  assert.deepEqual(sheets, [{ nom: garden.nom, format_type: 'B', etat: 'Commandé' }, { nom: garden.nom, format_type: 'C', etat: 'À traiter' }]);
+  next.commande_collections = [{ collection_id: f.catalogue.collections[1].id, nb_feuilles: 5,
+    papiers: [{ papier_cartonne_id: f.paperIds[1], quantite_base: 5 }] }];
+  await api(`/commandes/${order.id}`, 'PUT', next);
+  await api(`/commandes/${order.id}`, 'PUT', next);
+  sheets = db.prepare("SELECT nom,format_type,etat FROM fourniture_unites WHERE commande_id=? AND type='papier_collection' ORDER BY id").all(order.id);
+  assert.deepEqual(sheets, [{ nom: garden.nom, format_type: 'B', etat: 'Commandé' }, { nom: f.catalogue.collections[1].nom, format_type: 'C', etat: 'À traiter' }]);
+  const deletion = await api(`/commandes/${order.id}`, 'DELETE');
+  assert.equal(deletion.workflow_avertissements[0].format_type, 'B');
+  assert.equal((await api('/fournitures')).alertes.some(alert => alert.type === 'papier_collection' && alert.nom === garden.nom && alert.format_type === 'B' && alert.code === 'commande_supprimee'), true);
+});
+
+test('#45 : une ancienne commande reste sans feuille de collection après édition, même en changeant de catalogue', async () => {
+  const f = await fixture();
+  const order = await api('/commandes', 'POST', payload(f), 201);
+  // Fixture d'une commande antérieure à v5, sans toucher à une base utilisateur.
+  db.prepare('UPDATE commandes SET papier_collection_inclus=0 WHERE id=?').run(order.id);
+  db.prepare("DELETE FROM fourniture_unites WHERE commande_id=? AND type='papier_collection'").run(order.id);
+  const other = await fixture();
+  const next = replacement(payload(other, { format_type: 'C', commande_collections: [{
+    collection_id: other.catalogue.collections[0].id, nb_feuilles: 5,
+    papiers: [{ papier_cartonne_id: other.paperIds[0], quantite_base: 5 }]
+  }] }));
+  const changed = await api(`/commandes/${order.id}`, 'PUT', next);
+  assert.equal(changed.papier_collection_inclus, 0);
+  assert.equal(db.prepare("SELECT count(*) AS n FROM fourniture_unites WHERE commande_id=? AND type='papier_collection'").get(order.id).n, 0);
+  await api(`/commandes/${order.id}`, 'PUT', { ...next, papier_collection_inclus: 1 }, 400);
+  const horsKit = await api('/commandes', 'POST', { type: 'hors_kit', client_id: f.client.id, montant: 12 }, 201);
+  assert.equal(db.prepare('SELECT count(*) AS n FROM fourniture_unites WHERE commande_id=?').get(horsKit.id).n, 0);
 });

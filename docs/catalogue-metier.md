@@ -131,3 +131,14 @@ Les décisions de conception complémentaires sont fixées dans la
 [proposition de modèle](catalogue-model-proposal.md) : modification d’une
 commande non réglée, correction manuelle explicite du prix, retour au brouillon
 d’un catalogue devenu incomplet, archivage des données et contrat API.
+
+
+## Feuilles de collection — #45
+
+Pour les kits créés après mise en service de v5, chaque collection sélectionnée
+ajoute une feuille au nom de cette collection, au format A/B/C du kit. Elle est
+incluse dans le prix du format et n’est pas doublée par l’option à 3,50 €.
+A/B contiennent donc 7 feuilles de collection et cartonnées réunies (12 avec
+option) ; C en contient 6 (11 avec option). Ces totaux excluent papier spécial,
+ruban et embellissement. Les anciens kits gardent leur règle initiale à l’édition.
+Voir [le contrat détaillé et la recette](papiers-collection.md).

@@ -16,6 +16,13 @@
   prouvent pas un déploiement. Le canal permanent `nas-release.yml` / `main`
   est validé sur le NAS. Le #45 n’est pas livré.
 
+## Préparation #45 sur cette branche
+
+La feuille de collection est implémentée pour les nouveaux kits, avec la migration
+v5, des types Fournitures distincts et un regroupement par nom + format. Les kits
+antérieurs gardent leur règle initiale à l’édition. Cette préparation ne prouve
+aucune migration ni livraison NAS. Voir [règle, recette et mise en service](papiers-collection.md).
+
 ## Cartographie des versions
 
 | Référence | Rôle | Autorité actuelle |

@@ -16,9 +16,10 @@
               <p>{{ catalogueDetail.titre }} · Format {{ form.format_type }}</p>
               <div v-for="(line, index) in form.collections" :key="index" class="summary-collection">
                 <strong>{{ collectionName(line) || 'Collection à choisir' }}</strong>
-                <ul><li v-for="paper in line.papiers.filter(p => Number(p.quantite_base) > 0)" :key="paper.papier_cartonne_id">{{ paperName(index, paper.papier_cartonne_id) }} : {{ paper.quantite_base * multiplier }} feuille{{ paper.quantite_base * multiplier > 1 ? 's' : '' }}</li></ul>
+                <p v-if="form.papier_collection_inclus && line.collection_id">Papier de collection · {{ collectionName(line) }} · Format {{ form.format_type }} : 1 feuille</p>
+                <ul><li v-for="paper in line.papiers.filter(p => Number(p.quantite_base) > 0)" :key="paper.papier_cartonne_id">Papier cartonné · {{ paperName(index, paper.papier_cartonne_id) }} : {{ paper.quantite_base * multiplier }} feuille{{ paper.quantite_base * multiplier > 1 ? 's' : '' }}</li></ul>
               </div>
-              <p>{{ totalAllocated * multiplier }} feuilles à préparer</p>
+              <p>{{ kitSheetCount(form) }} feuilles à préparer</p>
               <p class="price-line">Total à enregistrer <strong>{{ formatMoney(pricing.applied) }}</strong></p>
               <p v-if="form.prix_manuel" class="hint">Prix manuel</p>
             </template>
@@ -26,6 +27,7 @@
         </aside>
         <div class="form-main">
         <p v-if="commande" class="notice">L’édition recalcule le prix et la composition depuis le catalogue actuel. L’ancien prix {{ formatMoney(commande.prix_applique_cents) }} ({{ commande.prix_origine }}) n’est pas reconduit automatiquement.</p>
+        <p v-if="commande && !form.papier_collection_inclus" class="hint">Ce kit antérieur conserve sa composition sans papier de collection.</p>
         <p v-if="commande?.reglee" class="notice">Cette commande est réglée et ne peut plus être modifiée.</p>
         <section>
           <h3>1. Cliente et catalogue</h3>
@@ -90,6 +92,7 @@
           <div v-if="catalogueDetail.rubans.length === 2" class="field"><label :for="id('ruban_id')">Ruban *</label><select :id="id('ruban_id')" v-model="form.ruban_id" :aria-invalid="Boolean(errors.ruban_id)"><option value="" disabled>Choisir un ruban…</option><option v-for="ruban in catalogueDetail.rubans" :key="ruban.id" :value="String(ruban.id)">{{ ruban.nom }}</option></select><p v-if="errors.ruban_id" class="field-error">{{ errors.ruban_id }}</p></div>
           <p v-else-if="catalogueDetail.rubans.length" class="hint">Ruban : {{ catalogueDetail.rubans[0].nom }}</p>
           <label class="check"><input v-model="form.papier_supplementaire" type="checkbox" /> Doubler les papiers (+3,50 €)</label>
+          <p class="hint">L’option double uniquement les papiers cartonnés.<template v-if="form.papier_collection_inclus"> Le papier de collection reste à un exemplaire par collection, inclus dans le prix du kit.</template></p>
           <div v-for="category in supplementCategories" :key="category.key" class="extras-row">
             <div class="field"><label :for="id(`${category.key}_texte`)">{{ category.label }} — libellé</label><input :id="id(`${category.key}_texte`)" v-model="form[`${category.key}_texte`]" type="text" :aria-invalid="Boolean(errors[`${category.key}_texte`])" /><p v-if="errors[`${category.key}_texte`]" class="field-error">{{ errors[`${category.key}_texte`] }}</p></div>
             <div class="field"><label :for="id(`${category.key}_prix`)">Montant (€)</label><input :id="id(`${category.key}_prix`)" v-model="form[`${category.key}_prix`]" inputmode="decimal" placeholder="0,00" :aria-invalid="Boolean(errors[`${category.key}_prix`])" /><p v-if="errors[`${category.key}_prix`]" class="field-error">{{ errors[`${category.key}_prix`] }}</p></div>
@@ -120,7 +123,7 @@ import Button from './Button.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import { clientsAPI, cataloguesAPI } from '../services/api';
 import { useCommandesStore } from '../stores/commandes';
-import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
+import { PAYMENTS, defaultKitForm, availableFormats, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitFormFromCommande, kitPricing, kitSheetCount, prepareKitPayload, formatMoney, centsToInput } from '../utils/commande-kit';
 const props = defineProps({ isOpen: { type: Boolean, default: false },
   returnFocusId: { type: String, default: '' }, commande: { type: Object, default: null } });
 const emit = defineEmits(['close', 'saved']);
@@ -259,7 +262,7 @@ input:disabled, select:disabled, .unavailable { opacity: .55; cursor: not-allowe
   .form-body { grid-template-columns: minmax(0, 1fr); }
   .form-main { grid-column: 1; grid-row: 2; }
   .summary-column { display: contents; }
-  .summary-column .summary { display: none; }
+  .summary-column .summary { grid-column: 1; grid-row: 3; }
   .footer-status { display: block; }
 }
 @media (max-width: 640px) {

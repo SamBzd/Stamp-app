@@ -1,19 +1,19 @@
 const db = require('./connection');
 const v = require('./source-validation');
 
-const TYPES = ['papier_collection', 'ruban', 'papier_special', 'embellissement'];
+const TYPES = ['papier_collection', 'papier_cartonne', 'ruban', 'papier_special', 'embellissement'];
 const STATES = ['À traiter', 'Commandé', 'Disponible', 'Expédié', 'Traité'];
 const PENDING = STATES[0];
 const TREATED = STATES.at(-1);
 
-function materialKey(type, nom) {
-  return JSON.stringify([type, nom]);
+function materialKey(type, nom, format = null) {
+  return JSON.stringify([type, nom, format]);
 }
 
-function addRequirement(requirements, type, nom, quantity) {
+function addRequirement(requirements, type, nom, quantity, format = null) {
   if (!nom || !quantity) return;
-  const key = materialKey(type, nom);
-  const current = requirements.get(key) || { type, nom, quantity: 0 };
+  const key = materialKey(type, nom, format);
+  const current = requirements.get(key) || { type, nom, format_type: format, quantity: 0 };
   current.quantity += quantity;
   requirements.set(key, current);
 }
@@ -22,8 +22,11 @@ function requirementsFromKit(kit) {
   const requirements = new Map();
   const multiplier = kit.scalars.papier_supplementaire ? 2 : 1;
   for (const collection of kit.composition) {
+    if (kit.scalars.papier_collection_inclus) {
+      addRequirement(requirements, 'papier_collection', collection.collection_nom, 1, kit.scalars.format_type);
+    }
     for (const paper of collection.papiers) {
-      addRequirement(requirements, 'papier_collection', paper.papier_nom, paper.quantite_base * multiplier);
+      addRequirement(requirements, 'papier_cartonne', paper.papier_nom, paper.quantite_base * multiplier);
     }
   }
   if (kit.ruban) addRequirement(requirements, 'ruban', kit.ruban.ruban_nom, 1);
@@ -35,8 +38,8 @@ function requirementsFromKit(kit) {
 function groupWarnings(rows) {
   const grouped = new Map();
   for (const row of rows) {
-    const key = JSON.stringify([row.type, row.nom, row.code, row.message]);
-    const warning = grouped.get(key) || { type: row.type, nom: row.nom, code: row.code, message: row.message, quantite: 0 };
+    const key = JSON.stringify([row.type, row.nom, row.format_type, row.code, row.message]);
+    const warning = grouped.get(key) || { type: row.type, nom: row.nom, format_type: row.format_type, code: row.code, message: row.message, quantite: 0 };
     warning.quantite += 1;
     grouped.set(key, warning);
   }
@@ -46,18 +49,18 @@ function groupWarnings(rows) {
 function persistAlert(unit, commandeId, code, message) {
   db.prepare(`
     INSERT OR IGNORE INTO fourniture_alertes(
-      unite_id,commande_id,type,nom,code,message,dedupe_key
-    ) VALUES (?,?,?,?,?,?,?)
-  `).run(unit.id, commandeId, unit.type, unit.nom, code, message, `unite:${unit.id}:${code}`);
-  return { type: unit.type, nom: unit.nom, code, message };
+      unite_id,commande_id,type,nom,format_type,code,message,dedupe_key
+    ) VALUES (?,?,?,?,?,?,?,?)
+  `).run(unit.id, commandeId, unit.type, unit.nom, unit.format_type, code, message, `unite:${unit.id}:${code}`);
+  return { type: unit.type, nom: unit.nom, format_type: unit.format_type, code, message };
 }
 
 function insertUnits(commandeId, requirement, quantity) {
   const insert = db.prepare(`
-    INSERT INTO fourniture_unites(commande_id,type,nom) VALUES (?,?,?)
+    INSERT INTO fourniture_unites(commande_id,type,nom,format_type) VALUES (?,?,?,?)
   `);
   for (let index = 0; index < quantity; index += 1) {
-    insert.run(commandeId, requirement.type, requirement.nom);
+    insert.run(commandeId, requirement.type, requirement.nom, requirement.format_type);
   }
 }
 
@@ -65,14 +68,14 @@ function insertUnits(commandeId, requirement, quantity) {
 function synchronizeCommande(commandeId, kit) {
   const desired = requirementsFromKit(kit);
   const current = db.prepare(`
-    SELECT id,type,nom,etat,archive
+    SELECT id,type,nom,format_type,etat,archive
     FROM fourniture_unites
     WHERE commande_id=?
     ORDER BY id
   `).all(commandeId);
   const byMaterial = new Map();
   for (const unit of current) {
-    const key = materialKey(unit.type, unit.nom);
+    const key = materialKey(unit.type, unit.nom, unit.format_type);
     if (!byMaterial.has(key)) byMaterial.set(key, []);
     byMaterial.get(key).push(unit);
   }
@@ -110,7 +113,7 @@ function synchronizeCommande(commandeId, kit) {
 // Doit être appelée avant le DELETE de la commande, dans sa transaction.
 function detachCommande(commandeId) {
   const units = db.prepare(`
-    SELECT id,type,nom,etat,archive
+    SELECT id,type,nom,format_type,etat,archive
     FROM fourniture_unites
     WHERE commande_id=?
     ORDER BY id
@@ -134,18 +137,18 @@ function detachCommande(commandeId) {
 
 function workflow() {
   const groupes = db.prepare(`
-    SELECT type,nom,etat,COUNT(*) AS quantite
+    SELECT type,nom,format_type,etat,COUNT(*) AS quantite
     FROM fourniture_unites
     WHERE archive=0
-    GROUP BY type,nom,etat
-    ORDER BY type,nom,CASE etat
+    GROUP BY type,nom,format_type,etat
+    ORDER BY type,nom,format_type,CASE etat
       WHEN 'À traiter' THEN 1 WHEN 'Commandé' THEN 2 WHEN 'Disponible' THEN 3
       WHEN 'Expédié' THEN 4 WHEN 'Traité' THEN 5 END
   `).all();
   const alertes = db.prepare(`
-    SELECT type,nom,code,message,COUNT(*) AS quantite,MIN(created_at) AS creee_le
+    SELECT type,nom,format_type,code,message,COUNT(*) AS quantite,MIN(created_at) AS creee_le
     FROM fourniture_alertes
-    GROUP BY type,nom,code,message
+    GROUP BY type,nom,format_type,code,message
     ORDER BY MIN(id)
   `).all();
   return { groupes, alertes };
@@ -155,23 +158,27 @@ function validateGroupMutation(data, allowedFields) {
   v.fields(data, allowedFields);
   if (!TYPES.includes(data.type)) v.invalid(`type doit être l'un de : ${TYPES.join(', ')}`);
   const nom = v.name(data.nom);
+  const format = data.format_type ?? null;
+  if (data.type === 'papier_collection' ? !['A', 'B', 'C'].includes(format) : format !== null) {
+    v.invalid('format_type doit être A, B ou C pour un papier de collection, et null sinon');
+  }
   if (!Number.isSafeInteger(data.quantite) || data.quantite <= 0) {
     v.invalid('quantite doit être un entier strictement positif');
   }
-  return { type: data.type, nom, quantite: data.quantite };
+  return { type: data.type, nom, format_type: format, quantite: data.quantite };
 }
 
 const move = db.transaction(data => {
-  const mutation = validateGroupMutation(data, ['type', 'nom', 'etat_source', 'etat_cible', 'quantite']);
+  const mutation = validateGroupMutation(data, ['type', 'nom', 'format_type', 'etat_source', 'etat_cible', 'quantite']);
   if (!STATES.includes(data.etat_source) || !STATES.includes(data.etat_cible)) {
     v.invalid(`Les états valides sont : ${STATES.join(', ')}`);
   }
   if (data.etat_source === data.etat_cible) v.invalid('etat_source et etat_cible doivent être différents');
   const units = db.prepare(`
     SELECT id FROM fourniture_unites
-    WHERE archive=0 AND type=? AND nom=? AND etat=?
+    WHERE archive=0 AND type=? AND nom=? AND format_type IS ? AND etat=?
     ORDER BY id LIMIT ?
-  `).all(mutation.type, mutation.nom, data.etat_source, mutation.quantite);
+  `).all(mutation.type, mutation.nom, mutation.format_type, data.etat_source, mutation.quantite);
   if (units.length !== mutation.quantite) v.invalid('Quantité indisponible dans le groupe source', 409);
   const ids = units.map(unit => unit.id);
   db.prepare(`
@@ -182,12 +189,12 @@ const move = db.transaction(data => {
 });
 
 const archive = db.transaction(data => {
-  const mutation = validateGroupMutation(data, ['type', 'nom', 'quantite']);
+  const mutation = validateGroupMutation(data, ['type', 'nom', 'format_type', 'quantite']);
   const units = db.prepare(`
     SELECT id FROM fourniture_unites
-    WHERE archive=0 AND type=? AND nom=? AND etat=?
+    WHERE archive=0 AND type=? AND nom=? AND format_type IS ? AND etat=?
     ORDER BY id LIMIT ?
-  `).all(mutation.type, mutation.nom, TREATED, mutation.quantite);
+  `).all(mutation.type, mutation.nom, mutation.format_type, TREATED, mutation.quantite);
   if (units.length !== mutation.quantite) v.invalid('Quantité traitée insuffisante pour l’archivage', 409);
   const ids = units.map(unit => unit.id);
   db.prepare(`

@@ -192,3 +192,13 @@ retirées. Les erreurs, limites et règles métier restent identiques.
 
 Le champ Date de commande du kit et son calendrier déplié prennent toute la
 largeur du formulaire principal, sur une ligne sous le paiement.
+
+
+## Papier de collection — #45
+
+Les nouveaux kits affichent dans le résumé de création/édition et le détail une
+feuille au nom de chaque collection, au format du kit, distincte des papiers
+cartonnés. Les totaux sont 7/6 feuilles pour A-B/C, ou 12/11 avec l’option. Les
+anciens kits restent sans cette feuille. Sous 900 px, le résumé est consultable
+après les champs, afin de garder les quantités disponibles en fenêtre étroite.
+Voir [le contrat #45](papiers-collection.md) et [la recette locale](ui/recette-issue45/README.md).

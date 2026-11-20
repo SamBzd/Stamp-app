@@ -33,7 +33,8 @@ sa bibliothèque standard.
 Une CI en échec empêche la publication par ce workflow. Une preuve de release
 non approuvée est refusée avant téléchargement. Si une migration SQLite est
 requise, le précontrôle bloque la bascule et conserve la version actuelle ;
-suivre la procédure de migration explicite plus bas. Si les sondes échouent
+suivre la procédure de migration explicite plus bas. Pour le #45, voir
+[la préparation spécifique à la migration v5](papiers-collection.md#mise-en-service). Si les sondes échouent
 après la bascule, la CD tente de rétablir les images précédentes et enregistre
 la release rejetée, sans la relancer automatiquement au passage suivant.
 Consulter la sortie DSM et l'état du projet pour confirmer le résultat.

@@ -462,7 +462,8 @@ test('le script de démarrage initialise une base neuve avec son historique', ()
       { version: 1, name: 'main_baseline' },
       { version: 2, name: 'catalogue_target' },
       { version: 3, name: 'papiers_library' },
-      { version: 4, name: 'workflow_fournitures' }
+      { version: 4, name: 'workflow_fournitures' },
+      { version: 5, name: 'papiers_collection' }
     ]);
   } finally {
     database.close();
@@ -492,7 +493,7 @@ test('le démarrage refuse une base versionnée dont le schéma a été dégrad�
   assert.notEqual(restart.status, 0);
   assert.match(
     restart.stderr,
-    /ne correspond pas exactement au schéma déclaré en version 4/
+    /ne correspond pas exactement au schéma déclaré en version 5/
   );
 });
 
@@ -529,6 +530,6 @@ test('le démarrage refuse une base qui ne contient plus que son historique de m
   assert.notEqual(restart.status, 0);
   assert.match(
     restart.stderr,
-    /ne correspond pas exactement au schéma déclaré en version 4/
+    /ne correspond pas exactement au schéma déclaré en version 5/
   );
 });

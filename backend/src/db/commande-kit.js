@@ -114,6 +114,7 @@ function buildKit(data, existing = null) {
   return {
     scalars: {
       catalogue_id: catalogue.id, catalogue_titre: catalogue.titre, format_type: data.format_type,
+      papier_collection_inclus: existing ? existing.papier_collection_inclus : 1,
       papier_supplementaire: option, prix_format_cents: formatPrice, prix_option_cents: optionPrice,
       prix_applique_cents: manual ? cents(data.prix_applique_cents, 'prix_applique_cents') : automaticPrice,
       prix_origine: manual ? 'manuelle' : 'automatique',

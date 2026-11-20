@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition } from '../src/utils/commande-kit.js';
+import { moneyToCents, centsToInput, formatMoney, commandeTypeLabel, availableFormats, defaultKitForm, selectKitFormat, selectKitCollection, setKitContribution, allocatedPapers, allocationStatus, canAdjustPaperQuantity, adjustPaperQuantity, kitPricing, prepareKitPayload, kitFormFromCommande, historicalComposition, kitSheetCount, collectionPaperCount } from '../src/utils/commande-kit.js';
 
 function catalogue(counts = [1, 1], rubans = 0) {
   return {
@@ -221,4 +221,38 @@ test('un changement de catalogue en édition n’autorise pas un brouillon étra
   const cat = catalogue([1]); const form = filled(cat, 'C');
   const other = { ...cat, id: 11, statut: 'brouillon' }; form.catalogue_id = '11';
   assert.ok(prepareKitPayload(form, other, { originalCatalogueId: cat.id }).errors.format_type);
+});
+
+
+test('#45 : le récapitulatif compte les feuilles de collection sans les doubler', () => {
+  const cat = catalogue();
+  for (const format of ['A', 'B', 'C']) {
+    const form = filled(cat, format);
+    assert.equal(collectionPaperCount(form), format === 'C' ? 1 : 2);
+    assert.equal(kitSheetCount(form), format === 'C' ? 6 : 7);
+    const basePrice = kitPricing(form, cat).applied;
+    form.papier_supplementaire = true;
+    assert.equal(kitSheetCount(form), format === 'C' ? 11 : 12);
+    assert.equal(kitPricing(form, cat).applied, basePrice + 350);
+    assert.equal('papier_collection_inclus' in prepareKitPayload(form, cat).payload, false);
+  }
+});
+
+test('#45 : édition et historique conservent la règle propre à chaque kit', () => {
+  const cat = catalogue();
+  for (const included of [0, 1]) {
+    const order = { client_id: 1, catalogue_id: cat.id, format_type: 'C', papier_supplementaire: 1,
+      papier_collection_inclus: included, methode_paiement: 'virement',
+      commande_collections: [{ id: 50, collection_id: cat.collections[0].id, collection_nom: 'Nom historique', nb_feuilles: 5 }],
+      papiers_selectionnes: [{ commande_collection_id: 50, papier_cartonne_id: cat.collections[0].papiers[0].id, nom: 'Rouge historique', quantite_base: 5 }] };
+    const composition = historicalComposition(order);
+    assert.deepEqual(composition[0].papier_collection, included ? { nom: 'Nom historique', format_type: 'C', quantite: 1 } : null);
+    assert.equal(composition[0].papiers[0].quantite_finale, 10);
+    const form = kitFormFromCommande(order, cat);
+    assert.equal(kitSheetCount(form), included ? 11 : 10);
+    selectKitFormat(form, 'B');
+    form.collections.forEach((_, i) => selectKitCollection(form, cat, i, String(cat.collections[i].id)));
+    assert.equal(kitSheetCount(form), included ? 12 : 10);
+    assert.equal('papier_collection_inclus' in prepareKitPayload(form, cat, { originalCatalogueId: cat.id }).payload, false);
+  }
 });
