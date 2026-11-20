@@ -13,6 +13,35 @@ Le workflow construit pour `linux/amd64`, l’architecture du NAS relevée lors
 de la livraison initiale. Le déployeur utilise Python 3.8 ou plus récent et
 sa bibliothèque standard.
 
+## Livrer une modification courante
+
+1. Pousser les changements et les fusionner dans `main`.
+2. Dans **GitHub → Actions → Livrer Stamp App sur le NAS**, choisir
+   **Run workflow**, sélectionner `main` et lancer le workflow.
+3. Attendre la réussite de la CI, de la construction des images et de la
+   publication de la release `nas-<commit>`. Le workflow crée lui-même cette
+   release et son manifeste ; un push ou un merge seul ne livre rien.
+4. La tâche DSM commune consulte les releases toutes les dix minutes, chaque
+   jour de `00:00` à `23:50`. Après publication et validation du workflow,
+   attendre son prochain passage, puis le téléchargement et le démarrage.
+   Les dix minutes sont l'intervalle de détection, pas le délai total depuis
+   le push ; une indisponibilité réseau ou un contrôle refusé peut le prolonger.
+5. Contrôler la release active dans l'état du projet, les images et révisions
+   des deux conteneurs, puis les sondes de l'interface et de l'API. Une CI verte
+   ou une release publiée ne prouve pas à elle seule le déploiement sur le NAS.
+
+Une CI en échec empêche la publication par ce workflow. Une preuve de release
+non approuvée est refusée avant téléchargement. Si une migration SQLite est
+requise, le précontrôle bloque la bascule et conserve la version actuelle ;
+suivre la procédure de migration explicite plus bas. Si les sondes échouent
+après la bascule, la CD tente de rétablir les images précédentes et enregistre
+la release rejetée, sans la relancer automatiquement au passage suivant.
+Consulter la sortie DSM et l'état du projet pour confirmer le résultat.
+
+Le calendrier suit le même rythme avec son propre workflow
+**Livrer le calendrier sur le NAS** et sa propre configuration. Il n'a pas
+de migration SQLite. La tâche DSM traite les projets déclarés séparément.
+
 ## Contrôle de publication et limites de confiance
 
 Le manifeste v2 contient l’identifiant de l’exécution Actions et de sa tentative.
