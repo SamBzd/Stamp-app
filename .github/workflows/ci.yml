@@ -2,12 +2,6 @@ name: Validation
 
 on:
   workflow_call:
-  workflow_dispatch:
-    inputs:
-      publish-nas-rehearsal:
-        description: Publier la recette Stamp avant fusion du 46
-        type: boolean
-        default: false
   push:
     branches:
       - main
@@ -62,15 +56,3 @@ jobs:
 
       - name: Vérifier le déploiement NAS
         run: python3 -B -m unittest discover -s deploy/tests
-
-  # Temporary pre-merge entry point. Remove this job before merging #46.
-  publish-nas-rehearsal:
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/codex/nas-cd' && inputs.publish-nas-rehearsal
-    needs: check
-    permissions:
-      contents: write
-      packages: write
-    uses: ./.github/workflows/nas-publish.yml
-    with:
-      images-file: .github/nas-images.json
-      release-branch: codex/nas-cd

@@ -397,6 +397,22 @@ temporaire, fusionner selon l’autorisation conditionnelle de Sam, puis prépar
 la transition vers `nas-release.yml` / `main` avec les trois empreintes
 approuvées. Ne pas présenter le canal de recette comme la livraison depuis main.
 
+Sam a confirmé le 20 novembre 2026 la première livraison contrôlée réussie,
+le raccordement de Stamp à la tâche DSM et la release active
+`nas-21c57bfda56c49bae8132a6e13c84a363eb3c3a0`. Cette sortie est émise après
+les gardes sur copie avec la candidate, la bascule du déployeur, les sondes,
+la vérification du montage et le commit d’activation. Les deux conditions de
+fusion demandées par Sam sont remplies. L’entrée CI de recette est retirée
+avant fusion. Le workflow permanent reste `nas-release.yml` depuis `main`.
+
+La transition du projet NAS vers ce canal permanent reste distincte du merge.
+La release de branche sera classée prérelease de recette, afin qu’elle ne
+soit plus une candidate à un nouveau déploiement. Cela ne supprime ni ses
+images, ni ses artefacts, ni les références déjà actives sur le NAS. Le projet
+peut alors adopter la politique `nas-release.yml` / `main` sans basculer sur
+une release étrangère à cette politique. Une nouvelle publication depuis main
+et son passage planifié doivent ensuite être constatés avant de clôturer #46.
+
 La version préparée du driver possède l’empreinte SHA-256
 `b88d1355e0cf3365ee24a2502f80a8ffa4d0119ce4fae3dd0eb8bd6735293456`.
 Télécharger uniquement le fichier du commit explicitement approuvé, dans le

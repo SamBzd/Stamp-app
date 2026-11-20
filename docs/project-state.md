@@ -5,26 +5,39 @@
 - L'application est utilisée par une seule personne depuis un Mac, dans Chrome.
 - Elle est accessible uniquement sur le réseau local.
 - Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
-- La branche `production` est le miroir du code actuellement présent sur le NAS.
+- Le 20 novembre 2026, Sam confirme Stamp en service sur la release contrôlée
+  `nas-21c57bfda56c49bae8132a6e13c84a363eb3c3a0`, publiée depuis la branche du #46.
+- La branche `production` conserve l’ancienne application pour le retour arrière.
 - Les copies SQLite locales sont ignorées par Git et ne représentent pas les données de production.
-- La v2 n'a jamais été déployée, mais son travail est conservé et repris comme fondation de `main`.
-- `main` est la base commune de stabilisation et ne représente pas encore la production.
+- La version stabilisée a été livrée initialement le 14 octobre 2026 depuis
+  `6cc9817`, puis adoptée par le circuit CD lors de cette livraison contrôlée.
+- `main` est la base de développement ; une tête de branche ou un merge ne
+  prouvent pas un déploiement. Le passage du canal de recette au canal `main`
+  reste à confirmer sur le NAS. Le #45 n’est pas livré.
 
 ## Cartographie des versions
 
 | Référence | Rôle | Autorité actuelle |
 |---|---|---|
-| `production` | Code déployé sur le NAS | Référence pour l'application en service |
-| `main` | Refonte v2 reprise et à stabiliser | Référence pour le développement futur |
+| Release `nas-21c57bf…` | Images Stamp confirmées actives par Sam | Référence du dernier déploiement contrôlé |
+| `production` | Ancienne application conservée | Référence de retour arrière historique |
+| `main` | Base de développement et workflow permanent CD | Une fusion ne déclenche aucune bascule |
 | archive de `v2` | État de la refonte avant son adoption par `main` | Référence historique uniquement |
 | `db/dev.db` locale | Base vide générée pour le développement | Référence de développement uniquement |
 | `db/app.db` et sa sauvegarde locales | Copies obsolètes ignorées par Git | Ne pas utiliser pour déduire l'état de production |
 
 ## Ce que la documentation permet d'affirmer
 
-L'architecture et les constats techniques décrits ici proviennent principalement de `main`, issue de la v2. Ils décrivent la future base applicative, pas nécessairement le comportement du NAS. Les détails exacts du déploiement et des données réelles devront être contrôlés avant toute migration.
+La dernière livraison est attestée par la sortie NAS fournie par Sam. Le
+calendrier de test et les recettes réelles SQLite/sonde sont validés : voir
+[la recette CD](cd-nas.md). Les copies locales ne prouvent pas l’état des
+données de production ; toute migration demande ses propres contrôles.
 
-## Informations encore ouvertes
+## Chronologie historique avant livraison
+
+Les éléments ci-dessous sont conservés comme historique de préparation. Les
+mentions de version non livrée ou de bascule encore ouverte décrivent leur
+date d’origine et ne remplacent pas la situation confirmée ci-dessus.
 
 - Les règles métier, le modèle cible et le contrat API proposés pour les
   catalogues et kits ont été confirmés avec Sam le 16 septembre 2026 : voir
