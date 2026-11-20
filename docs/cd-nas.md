@@ -238,8 +238,9 @@ Ce résultat exige un conteneur actif, la même image que l’état enregistré 
 aucune bascule en attente. Le circuit release GitHub → tâche DSM → nouvelle
 image du calendrier sur le NAS est donc validé, sans lancement manuel de la CD.
 
-L’issue #46 reste ouverte pour l’intégration et la première livraison contrôlée
-de Stamp App avant le #45. Les tests automatisés couvrent le refus d’une
+À ce stade de la recette calendrier, l’issue #46 restait ouverte pour
+l’intégration et la première livraison contrôlée de Stamp App avant le #45.
+Les tests automatisés couvrent le refus d’une
 migration, le rollback sur sonde et l’indépendance entre projets. Sur NAS,
 le rollback du script de maintenance est observé ; un rollback déclenché par
 une sonde du déployeur et le précontrôle sur une copie SQLite restent à
@@ -405,13 +406,35 @@ la vérification du montage et le commit d’activation. Les deux conditions de
 fusion demandées par Sam sont remplies. L’entrée CI de recette est retirée
 avant fusion. Le workflow permanent reste `nas-release.yml` depuis `main`.
 
-La transition du projet NAS vers ce canal permanent reste distincte du merge.
-La release de branche sera classée prérelease de recette, afin qu’elle ne
-soit plus une candidate à un nouveau déploiement. Cela ne supprime ni ses
-images, ni ses artefacts, ni les références déjà actives sur le NAS. Le projet
-peut alors adopter la politique `nas-release.yml` / `main` sans basculer sur
-une release étrangère à cette politique. Une nouvelle publication depuis main
-et son passage planifié doivent ensuite être constatés avant de clôturer #46.
+La PR #47 est fusionnée dans `main` au commit
+`1780b9127cc2886528f9e10c25b03b1f520fa3ff`. La release de branche est classée
+prérelease de recette, sans suppression de ses images ni de ses artefacts.
+Sam a ensuite confirmé le passage de la politique NAS à `nas-release.yml` /
+`main`, avec sauvegarde de la configuration et sans redémarrage à cette étape.
+
+La [publication Actions depuis main](https://github.com/SamBzd/Stamp-app/actions/runs/44724573845)
+a réussi : tests applicatifs, build frontend, configuration Docker et 50 tests
+du déployeur, puis publication des deux images. La vérification indépendante
+par `latest_release` contre la vraie API GitHub a accepté les trois empreintes
+de workflows approuvées, le run réussi et l’artefact immuable correspondant.
+
+Après le passage automatique, Sam a confirmé le 20 novembre 2026 :
+
+```text
+backend : image et révision confirmées
+frontend : image et révision confirmées
+Release : nas-1780b9127cc2886528f9e10c25b03b1f520fa3ff
+DÉPLOIEMENT MAIN CONFIRMÉ — sondes OK, montage SQLite conservé
+```
+
+Ce contrôle en lecture seule exige le canal `main`, cette release active sans
+bascule en attente, la preuve Actions enregistrée, les deux conteneurs actifs
+avec les identifiants d’images attendus et les labels de révision du commit,
+les sondes HTTP réussies et le montage SQLite de production conservé en lecture
+et écriture. Il ne constitue pas une comparaison du contenu des données clientes.
+Le circuit permanent GitHub → tâche DSM → Stamp App est validé ; le #45 n’est
+pas livré. Les essais NAS sur copie SQLite et sur sonde 503 restent les recettes
+isolées décrites plus haut, distinctes des tests automatisés.
 
 La version préparée du driver possède l’empreinte SHA-256
 `b88d1355e0cf3365ee24a2502f80a8ffa4d0119ce4fae3dd0eb8bd6735293456`.

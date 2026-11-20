@@ -5,21 +5,22 @@
 - L'application est utilisée par une seule personne depuis un Mac, dans Chrome.
 - Elle est accessible uniquement sur le réseau local.
 - Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
-- Le 20 novembre 2026, Sam confirme Stamp en service sur la release contrôlée
-  `nas-21c57bfda56c49bae8132a6e13c84a363eb3c3a0`, publiée depuis la branche du #46.
+- Le 20 novembre 2026, Sam confirme Stamp en service sur la release
+  `nas-1780b9127cc2886528f9e10c25b03b1f520fa3ff`, publiée depuis `main` puis
+  déployée par la tâche DSM, après la livraison contrôlée de branche `nas-21c57bf…`.
 - La branche `production` conserve l’ancienne application pour le retour arrière.
 - Les copies SQLite locales sont ignorées par Git et ne représentent pas les données de production.
 - La version stabilisée a été livrée initialement le 14 octobre 2026 depuis
   `6cc9817`, puis adoptée par le circuit CD lors de cette livraison contrôlée.
 - `main` est la base de développement ; une tête de branche ou un merge ne
-  prouvent pas un déploiement. Le passage du canal de recette au canal `main`
-  reste à confirmer sur le NAS. Le #45 n’est pas livré.
+  prouvent pas un déploiement. Le canal permanent `nas-release.yml` / `main`
+  est validé sur le NAS. Le #45 n’est pas livré.
 
 ## Cartographie des versions
 
 | Référence | Rôle | Autorité actuelle |
 |---|---|---|
-| Release `nas-21c57bf…` | Images Stamp confirmées actives par Sam | Référence du dernier déploiement contrôlé |
+| Release `nas-1780b912…` | Images Stamp confirmées actives par Sam | Dernier déploiement automatique depuis `main` |
 | `production` | Ancienne application conservée | Référence de retour arrière historique |
 | `main` | Base de développement et workflow permanent CD | Une fusion ne déclenche aucune bascule |
 | archive de `v2` | État de la refonte avant son adoption par `main` | Référence historique uniquement |
