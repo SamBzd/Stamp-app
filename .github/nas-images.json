@@ -1,0 +1,4 @@
+{
+  "backend": { "context": ".", "dockerfile": "backend/Dockerfile" },
+  "frontend": { "context": ".", "dockerfile": "frontend/Dockerfile" }
+}

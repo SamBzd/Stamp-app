@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Calendrier de l’Avent – Maman 2026</title>
+  <link rel="stylesheet" href="calendar.css">
+  <script src="calendar.js" defer></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="season">Décembre 2026</p>
+      <h1>Calendrier de l’Avent<br>pour Maman</h1>
+      <p id="availability">Les cases s’ouvrent jour après jour, du 1er au 24 décembre.</p>
+    </header>
+    <ol id="days" class="days" aria-label="Les 24 jours de l’Avent"></ol>
+    <noscript>Active JavaScript pour afficher les 24 cases.</noscript>
+  </main>
+  <dialog aria-labelledby="day-title">
+    <h2 id="day-title"></h2>
+    <p id="surprise"></p>
+    <form method="dialog"><button>Fermer</button></form>
+  </dialog>
+</body>
+</html>

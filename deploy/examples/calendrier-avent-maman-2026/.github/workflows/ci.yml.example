@@ -1,0 +1,35 @@
+name: Vérifier le calendrier
+
+on:
+  workflow_call:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - run: node --check calendar.js
+      - run: docker compose config --quiet
+      - name: Vérifier le conteneur durci
+        run: |
+          trap 'docker compose down' EXIT
+          docker compose up -d --build
+          curl --fail --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:8086/ -o /tmp/calendar.html
+          grep -q 'calendar.js' /tmp/calendar.html
+          test "$(docker compose exec -T web id -u)" = 101
+          docker compose exec -T web sh -c 'grep -Eq "^CapEff:[[:space:]]+0+$" /proc/1/status && grep -Eq "^NoNewPrivs:[[:space:]]+1$" /proc/1/status'
+          if docker compose exec -T web sh -c 'touch /etc/readonly-check'; then
+            echo '::error::Le système de fichiers racine est accessible en écriture.'
+            exit 1
+          fi

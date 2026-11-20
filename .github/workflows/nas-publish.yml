@@ -1,0 +1,124 @@
+name: Publier une release Docker pour le NAS
+
+on:
+  workflow_call:
+    inputs:
+      images-file:
+        description: JSON qui associe chaque service à son Dockerfile et à son contexte
+        required: true
+        type: string
+      release-branch:
+        description: Branche autorisée pour les releases de production
+        default: main
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      packages: write
+    steps:
+      - name: Vérifier la branche et le déclencheur
+        env:
+          RELEASE_BRANCH: ${{ inputs.release-branch }}
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" != workflow_dispatch || "$GITHUB_REF" != "refs/heads/$RELEASE_BRANCH" ]]; then
+            echo "::error::Lancer ce workflow manuellement depuis $RELEASE_BRANCH."
+            exit 1
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Vérifier que ce commit peut être publié
+        id: release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="nas-$GITHUB_SHA"
+          if release=$(gh release view "$tag" --repo "$GITHUB_REPOSITORY" --json isDraft); then
+            if jq -e '.isDraft' <<< "$release" >/dev/null; then
+              echo "::error::Un brouillon $tag existe déjà. Vérifie-le avant de relancer la publication."
+              exit 1
+            fi
+            echo "Ce commit a déjà une release publiée."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Construire et publier les images
+        if: steps.release.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGES_FILE: ${{ inputs.images-file }}
+        run: |
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          docker buildx create --use --driver docker-container \
+            --driver-opt image=moby/buildkit:buildx-stable-1@sha256:c5f8862f52499773af85bc07695b2379ef08e8002352b0df2c4864c91d78dabe
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import subprocess
+          from tempfile import TemporaryDirectory
+
+          repository = os.environ["GITHUB_REPOSITORY"]
+          commit = os.environ["GITHUB_SHA"]
+          definitions = json.loads(Path(os.environ["IMAGES_FILE"]).read_text())
+          if not isinstance(definitions, dict) or not definitions:
+              raise SystemExit("Un service Docker au minimum est requis.")
+          images = {}
+          with TemporaryDirectory() as directory:
+              metadata = Path(directory) / "image.json"
+              for service, definition in definitions.items():
+                  if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", service):
+                      raise SystemExit(f"Nom de service invalide : {service}")
+                  image = f"ghcr.io/{repository.lower()}-{service}"
+                  subprocess.run([
+                      "docker", "buildx", "build", "--push",
+                      "--platform", "linux/amd64", "--provenance=false", "--sbom=false",
+                      "--metadata-file", str(metadata),
+                      "--label", f"org.opencontainers.image.source=https://github.com/{repository}",
+                      "--label", f"org.opencontainers.image.revision={commit}",
+                      "--tag", f"{image}:{commit}",
+                      "--file", definition["dockerfile"], "--", definition["context"],
+                  ], check=True)
+                  digest = json.loads(metadata.read_text())["containerimage.digest"]
+                  if not re.fullmatch(r"sha256:[a-f0-9]{64}", digest):
+                      raise SystemExit(f"Digest absent ou invalide pour {service}.")
+                  images[service] = f"{image}@{digest}"
+          manifest = {"version": 2, "repository": repository, "commit": commit, "images": images,
+                      "publication": {"run_id": int(os.environ["GITHUB_RUN_ID"]),
+                                      "run_attempt": int(os.environ["GITHUB_RUN_ATTEMPT"])}}
+          Path(os.environ["RUNNER_TEMP"], "nas-release.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+
+      - name: Conserver le manifeste de cette exécution
+        if: steps.release.outputs.publish == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: nas-manifest-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/nas-release.json
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 90
+
+      - name: Publier la release avec son manifeste
+        if: steps.release.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_BRANCH: ${{ inputs.release-branch }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/$RELEASE_BRANCH" --jq '.object.sha')
+          if [[ "$head" != "$GITHUB_SHA" ]]; then
+            echo "::error::La branche a avancé. Relance la livraison pour la tête actuelle."
+            exit 1
+          fi
+          gh release create "nas-$GITHUB_SHA" "$RUNNER_TEMP/nas-release.json" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" --latest \
+            --title "Livraison NAS $GITHUB_SHA" --notes "Images Docker vérifiées pour $GITHUB_SHA."

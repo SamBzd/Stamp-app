@@ -1,0 +1,55 @@
+:root {
+  color-scheme: dark;
+  --background: #101d1b;
+  --surface: #1d302a;
+  --text: #fff8e7;
+  --secondary: #d4d5bf;
+  --accent: #f1cb85;
+  --border: #687569;
+  font-family: "DM Sans", system-ui, sans-serif;
+  color: var(--text);
+  background: var(--background);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 56rem; margin: auto; padding: 3rem clamp(1rem, 5vw, 3rem); }
+header { margin-bottom: 2rem; }
+h1, h2 { font-family: "Baskervville", Georgia, serif; font-weight: 400; }
+h1 { font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1.02; margin: .75rem 0 1rem; }
+header p { color: var(--secondary); line-height: 1.6; }
+.season { color: var(--accent); letter-spacing: .15em; text-transform: uppercase; }
+.days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 6rem), 1fr));
+  gap: .65rem;
+  list-style: none;
+  padding: 0;
+}
+button {
+  color: inherit;
+  font: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: .45rem;
+  min-height: 2.75rem;
+  padding: .5rem .8rem;
+}
+.days button {
+  font: 1.55rem Georgia, serif;
+  aspect-ratio: 1.25;
+  width: 100%;
+}
+button:not(:disabled) { color: var(--accent); border-color: var(--accent); cursor: pointer; }
+button:not(:disabled):hover { background: #304236; }
+button:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+button:disabled { color: var(--secondary); }
+dialog {
+  width: min(90vw, 29rem);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: .65rem;
+  padding: 1.5rem;
+}
+dialog::backdrop { background: #0a100ed9; }
