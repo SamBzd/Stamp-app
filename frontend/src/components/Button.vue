@@ -136,7 +136,7 @@ const handleClick = (event) => {
 }
 
 .btn-primary:hover:not(.btn-disabled):not(.btn-loading) {
-  box-shadow: 0 6px 24px -4px rgba(108, 75, 96, 0.20);
+  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.20);
 }
 
 .btn-secondary {
@@ -171,11 +171,11 @@ const handleClick = (event) => {
 .btn-danger {
   background: var(--destructive);
   color: white;
-  box-shadow: 0 4px 20px -2px rgba(168, 84, 72, 0.20);
+  box-shadow: 0 4px 20px -2px rgba(161, 63, 52, 0.20);
 }
 
 .btn-danger:hover:not(.btn-disabled):not(.btn-loading) {
-  box-shadow: 0 6px 24px -4px rgba(168, 84, 72, 0.35);
+  box-shadow: 0 6px 24px -4px rgba(161, 63, 52, 0.35);
 }
 
 .btn-success {
@@ -185,7 +185,7 @@ const handleClick = (event) => {
 }
 
 .btn-success:hover:not(.btn-disabled):not(.btn-loading) {
-  box-shadow: 0 6px 24px -4px rgba(108, 75, 96, 0.20);
+  box-shadow: 0 6px 24px -4px rgba(93, 112, 82, 0.20);
 }
 
 /* === States === */

@@ -1,8 +1,12 @@
-# Identité UI — Atelier prune / citron
+# Identité UI — Atelier Sauge d’origine
 
-Direction visuelle validée par Sam le 3 octobre 2026 sur les maquettes
-Fournitures et Commandes. Cette fiche prépare la future interface de `main` ;
-elle ne décrit ni une réalisation terminée ni la production du NAS.
+Le 20 novembre 2026, Sam valide la palette **Sauge d’origine** et son application
+à toute l’interface en [issue #51](https://github.com/SamBzd/Stamp-app/issues/51).
+Cette décision remplace exclusivement les couleurs prune/citron des maquettes
+du 3 octobre. Le design et l’UX actuels sont conservés : disposition, dimensions,
+polices, formes, icônes, animations et interactions. Le contrat de couleurs actuel
+est [Sauge d’origine](palette-sauge-origine.md) ; les anciennes recettes restent
+historiques et ne prouvent aucune livraison de cette palette sur le NAS.
 
 Les valeurs ci-dessous sont relevées dans les maquettes validées. Leurs noms
 de tokens sont une proposition de formalisation, pas une nouvelle direction
@@ -24,8 +28,9 @@ le 9 octobre ; la suite est proposée dans le [cadrage du jalon 3](jalon3-cadrag
 - [Mode de consultation et limites](maquettes/README.md).
 
 Les contrats métier et routes de `main` priment sur le contenu fictif des
-maquettes. L’apparence validée prime sur les styles antérieurs beige/vert,
-les palettes rejetées et les recommandations génériques de skills.
+maquettes. La palette Sauge d’origine validée en #51 prime désormais sur leurs
+anciennes couleurs ; leur géométrie ne doit pas être réintroduite au détriment
+de l’interface actuelle.
 
 ## Intention
 
@@ -35,7 +40,7 @@ Limiter l’identité à trois familles de signatures communes :
 
 1. Lettrage créatif « Stamp App » et étiquettes découpées pour les titres et
    « Mon atelier ».
-2. Bandeau prune, fond citron clair et surfaces de travail blanches.
+2. Bandeau sauge, fond ivoire et surfaces de travail blanc cassé.
 3. Verre clair maîtrisé sur le dock et certaines cartes, sans filtrer le texte.
 
 À éviter : texture kraft généralisée, cartes-papiers inclinées, cadres
@@ -47,22 +52,22 @@ pas une exigence de la version validée.
 
 | Rôle | Valeur | Application |
 | --- | --- | --- |
-| Fond citron | `#FCF3CF` | Autour des zones de travail, à la place du gris |
-| Surface blanche | `#FFFFFF` | Colonnes, tableaux, détails, formulaires |
-| Prune douce | `#6C4B60` | Bandeau, titres secondaires, repères de marque |
-| Prune des en-têtes | `#745668` | En-têtes Kanban et tableau |
-| Texte principal | `#30232D` | Informations et valeurs importantes |
-| Texte secondaire | `#61505B` | Descriptions et métadonnées |
-| Texte sur prune | `#FFF8FC` | Libellés du bandeau et des en-têtes |
-| Jaune accent | `#E4B63C` | Étiquette « Mon atelier », trait du logo |
-| Jaune des compteurs | `#F6DA86` | Compteurs sur les en-têtes prune |
-| Or du repère actif | `#A67408` | Petit trait du dock, pas un fond opaque |
-| Citron doux | `#FFF8DE` | Rappel ponctuel et contrôles secondaires |
-| Prune de survol | `#F0E7ED` | Survol commun des lignes et des fiches |
-| Prune de sélection | `#E6D6E1` | Élément sélectionné avec trait prune à gauche |
-| Séparateur de tableau | `#EAE3E8` | Division discrète, pas contour de carte |
+| Fond ivoire | `#FDFCF8` | Autour des zones de travail |
+| Surface blanc cassé | `#FEFEFA` | Colonnes, listes, détails, formulaires |
+| Vert sauge | `#5D7052` | Bandeau, titres, actions, en-têtes et repère actif |
+| Texte principal | `#2C2C24` | Informations et valeurs importantes |
+| Texte secondaire | `#57594F` | Descriptions et métadonnées |
+| Texte sur sauge | `#FFFFFF` | Bandeau et actions principales |
+| Compteurs sur sauge | `#F3F4F1` | Compteurs des colonnes |
+| Accent beige | `#D8C8AE` | Étiquette « Mon atelier », trait du logo |
+| Beige doux | `#F0EBE5` | Surfaces secondaires et résumé |
+| Survol | `#F0F2EB` | Lignes et fiches |
+| Sélection | `#E3E8DA` | Élément sélectionné avec trait sauge |
+| Bordure de champ | `#8B917F` | Contours des contrôles |
+| Séparateur | `#E3E4D9` | Séparateurs fins |
 
-Sam a validé le 9 octobre 2026 la proposition prune de survol/sélection, pour
+Historique remplacé sur les couleurs par #51 : Sam avait validé le 9 octobre
+2026 la proposition prune de survol/sélection, pour
 mieux distinguer les lignes du fond citron. Cette décision remplace le citron
 de sélection des maquettes initiales ; leurs fichiers de référence restent
 historiques. Les tokens applicatifs dédiés sont `--surface-hover` et
@@ -76,18 +81,9 @@ ce détail : liste 1/4, formulaire 3/4, retour à 2/3–1/3 lorsqu’une autre f
 est choisie, transition douce et mouvement réduit respecté. Voir la
 [recette 3B.2](recette-jalon3b2/README.md).
 
-Le jaune ne devient pas une couleur de texte sur blanc. Les couleurs
-d’erreur, de succès et d’avertissement restent sémantiques, associées à un
-libellé ou une icône ; ne pas les remplacer indistinctement par la prune.
-
-Repères de contraste calculés sur aplats : texte secondaire/citron 6,72:1,
-blanc/prune douce 7,47:1, compteur jaune/en-tête prune 4,67:1,
-repère or/citron 3,68:1. Ces mesures ne valident pas à elles seules le verre,
-les bordures de champs ni tous les états interactifs : les contrôler sur
-leur fond réellement composé lors de l’implémentation. Pour les nouveaux états
-approuvés le 9 octobre : texte secondaire/survol prune 6,18:1, texte
-secondaire/sélection prune 5,37:1, repère prune/sélection 5,36:1, statut
-publié/sélection 7,17:1 (aplats).
+Les couleurs d’erreur, de succès, d’information et d’avertissement restent
+sémantiques, associées à un libellé ou une icône. Les contrastes de la nouvelle
+palette et les limites des preuves sont consignés dans [le contrat #51](palette-sauge-origine.md).
 
 ## Typographie
 
@@ -138,11 +134,11 @@ aucun chevauchement d’une carte, d’un bouton, d’un message ou du focus cla
 
 - Colonnes et panneaux blancs, bien délimités par leur surface et les
   espacements, sans gros cadre de couleur.
-- Tableau continu : séparateurs fins, survol prune pâle, sélection prune plus
-  soutenue et petit repère prune,
+- Tableau continu : séparateurs fins, survol sauge pâle, sélection sauge plus
+  soutenue et petit repère sauge,
   pas une carte en verre par cellule ou par ligne.
 - Cartes Kanban : relief léger, bord optique, voile blanc de référence 16 %,
-  contenu net ; ne pas teinter chaque carte en prune ou en jaune.
+  contenu net ; ne pas recolorer chaque carte avec un aplat de marque.
 - Dock : verre presque incolore, bord lumineux fin, transparence visible,
   icônes et textes lisibles ; aucun gros bouton actif contrasté. Sam a demandé
   son maintien fixe en bas de l’écran. Les détails et formulaires desktop vont
@@ -207,7 +203,7 @@ principale ou la présence du verre demande une comparaison expliquée avec Sam.
 
 Sam a autorisé l’harmonisation des champs, sélecteurs, confirmations, erreurs
 et notifications. Les contrôles utilisent les tokens communs : fond blanc,
-rayon 6 px, hauteur minimale 44 px, bord neutre et focus prune. Les champs de formulaire
+rayon 6 px, hauteur minimale 44 px, bord neutre et focus sauge. Les champs de formulaire
 sur écran étroit passent à 16 px de texte pour éviter le zoom automatique de saisie.
 Les erreurs gardent leur texte et leurs liens accessibles ; les sélecteurs
 et cases communes associent désormais leur erreur ou aide au contrôle.
@@ -216,7 +212,7 @@ Les notifications sont en haut à droite (en haut sur écran étroit), avec
 annonce accessible, fermeture clavier et pile défilante dégagée du dock.
 La [recette dédiée](recette-composants-communs/README.md) conserve les preuves.
 
-Les dates utilisent un calendrier commun blanc et prune, en semaine commençant
+Les dates utilisent un calendrier commun blanc cassé et sauge, en semaine commençant
 le lundi. Tout le contrôle déploie le calendrier dessous, dans le formulaire,
 en poussant la suite du contenu. Un second clic le replie. Il permet de choisir un jour,
 de changer directement de mois/année, de saisir JJ/MM/AAAA et d’effacer ou

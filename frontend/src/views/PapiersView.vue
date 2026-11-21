@@ -236,6 +236,7 @@ onMounted(loadPapers);
 .paper-row.paper-editing { background: var(--surface-selected); }
 .paper-summary { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; min-width: 0; }
 .paper-summary h3 { overflow-wrap: anywhere; font-size: var(--font-size-base); font-weight: 600; color: var(--primary); }
+.paper-row.paper-editing .paper-field label { color: var(--text-primary); }
 .paper-status { font-size: var(--font-size-xs); color: var(--text-secondary); }
 .paper-action { min-height: 44px; padding: 8px; border: 0; border-radius: 6px; background: transparent; color: var(--primary); font: inherit; font-size: var(--font-size-xs); cursor: pointer; }
 .paper-action:hover { background: var(--card); }

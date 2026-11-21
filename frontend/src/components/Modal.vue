@@ -111,7 +111,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(48, 35, 45, .35);
+  background: rgba(93, 112, 82, .35);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   display: flex;
@@ -125,7 +125,7 @@ onUnmounted(() => {
   background: var(--card);
   border-radius: var(--border-radius-xl);
   box-shadow: 
-    0 25px 50px -12px rgba(108, 75, 96, .20),
+    0 25px 50px -12px rgba(93, 112, 82, .20),
     0 0 0 1px var(--border-light);
   width: 100%;
   max-height: calc(100dvh - 48px);

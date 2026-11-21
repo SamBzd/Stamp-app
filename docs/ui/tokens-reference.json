@@ -1,31 +1,36 @@
 {
   "meta": {
     "status": "reference-documentaire-non-importee",
-    "direction": "atelier-prune-citron",
+    "direction": "atelier-sauge-origine",
     "validatedBy": "Sam",
-    "validatedOn": "2026-10-03",
+    "validatedOn": "2026-11-20",
     "theme": "light",
     "units": "Tailles en px CSS ; voile en pourcentage",
     "references": [
+      "palette-sauge-origine.md",
       "maquettes/sources/fournitures.fragment.html",
       "maquettes/sources/commandes.fragment.html"
     ],
-    "note": "Valeurs relevees dans les maquettes ; noms de tokens proposes. Aucun changement applicatif ou metier."
+    "note": "Couleurs Sauge d’origine validées par Sam le 20 novembre 2026. Géométrie documentaire historique conservée ; le code courant reste la référence de disposition. Aucun import applicatif.",
+    "issue": 51
   },
   "primitive": {
     "color": {
-      "citron": "#FCF3CF",
-      "white": "#FFFFFF",
-      "prune": "#6C4B60",
-      "pruneHeader": "#745668",
-      "ink": "#30232D",
-      "mutedInk": "#61505B",
-      "onPrune": "#FFF8FC",
-      "yellow": "#E4B63C",
-      "yellowCounter": "#F6DA86",
-      "goldMark": "#A67408",
-      "citronSelected": "#FFF8DE",
-      "tableSeparator": "#EAE3E8"
+      "ivory": "#FDFCF8",
+      "surface": "#FEFEFA",
+      "sage": "#5D7052",
+      "sageHeader": "#5D7052",
+      "ink": "#2C2C24",
+      "mutedInk": "#57594F",
+      "onSage": "#FFFFFF",
+      "beige": "#D8C8AE",
+      "headerCounter": "#F3F4F1",
+      "activeMark": "#5D7052",
+      "mutedSurface": "#F0EBE5",
+      "hoverSurface": "#F0F2EB",
+      "selectedSurface": "#E3E8DA",
+      "tableSeparator": "#E3E4D9",
+      "controlBorder": "#8B917F"
     },
     "typography": {
       "uiFamily": "-apple-system, BlinkMacSystemFont, system-ui, sans-serif",
@@ -55,20 +60,22 @@
     }
   },
   "semantic": {
-    "appBackground": "{primitive.color.citron}",
-    "workSurface": "{primitive.color.white}",
-    "brand": "{primitive.color.prune}",
-    "sectionHeader": "{primitive.color.pruneHeader}",
+    "appBackground": "{primitive.color.ivory}",
+    "workSurface": "{primitive.color.surface}",
+    "brand": "{primitive.color.sage}",
+    "sectionHeader": "{primitive.color.sageHeader}",
     "textPrimary": "{primitive.color.ink}",
     "textSecondary": "{primitive.color.mutedInk}",
-    "textOnBrand": "{primitive.color.onPrune}",
-    "accent": "{primitive.color.yellow}",
-    "counterOnHeader": "{primitive.color.yellowCounter}",
-    "activeNavigationMark": "{primitive.color.goldMark}",
-    "selectionSurface": "{primitive.color.citronSelected}",
+    "textOnBrand": "{primitive.color.onSage}",
+    "accent": "{primitive.color.beige}",
+    "counterOnHeader": "{primitive.color.headerCounter}",
+    "activeNavigationMark": "{primitive.color.activeMark}",
+    "selectionSurface": "{primitive.color.selectedSurface}",
     "tableDivider": "{primitive.color.tableSeparator}",
     "fontInterface": "{primitive.typography.uiFamily}",
-    "fontLogo": "{primitive.typography.logoFamily}"
+    "fontLogo": "{primitive.typography.logoFamily}",
+    "hoverSurface": "{primitive.color.hoverSurface}",
+    "controlBorder": "{primitive.color.controlBorder}"
   },
   "component": {
     "hero": {
@@ -94,14 +101,14 @@
       "referenceRowHeight": 63,
       "headerBackground": "{semantic.sectionHeader}",
       "selectionBackground": "{semantic.selectionSurface}",
-      "selectionMark": "{semantic.accent}",
+      "selectionMark": "{semantic.brand}",
       "divider": "{semantic.tableDivider}"
     },
     "dock": {
       "radius": "{primitive.radius.dock}",
       "activeMark": "{semantic.activeNavigationMark}",
       "foreground": "{semantic.textSecondary}",
-      "background": "Verre clair presque incolore, voir les sources figees ; pas une surface opaque prune",
+      "background": "Verre clair presque incolore, paramètres optiques et géométriques conservés",
       "cssFallbackBlur": 3,
       "cssFallbackSaturationPercent": 120
     }

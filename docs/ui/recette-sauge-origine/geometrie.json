@@ -1,0 +1,48 @@
+{
+  "reference": [
+    {
+      "height": 96,
+      "selector": ".atelier-header",
+      "width": 1280,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "height": 437,
+      "selector": ".commandes-list",
+      "width": 810.6640625,
+      "x": 24,
+      "y": 237
+    },
+    {
+      "height": 76,
+      "selector": ".atelier-dock",
+      "width": 477.984375,
+      "x": 401.0078125,
+      "y": 804
+    }
+  ],
+  "resultat": [
+    {
+      "height": 96,
+      "selector": ".atelier-header",
+      "width": 1280,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "height": 437,
+      "selector": ".commandes-list",
+      "width": 810.6640625,
+      "x": 24,
+      "y": 237
+    },
+    {
+      "height": 76,
+      "selector": ".atelier-dock",
+      "width": 477.984375,
+      "x": 401.0078125,
+      "y": 804
+    }
+  ]
+}
