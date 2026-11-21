@@ -1,5 +1,25 @@
 # Recette Docker locale de raccordement
 
+## Migrations SQLite automatiques
+
+La recette dédiée suivante n'utilise que des bases synthétiques et des projets
+Docker aléatoires ; elle ne contacte pas le NAS. Elle vérifie la migration v4→v5,
+la restauration réelle après sonde défaillante, une coupure avant activation,
+puis une coupure après réouverture avec une nouvelle saisie HTTP à préserver.
+Les métadonnées de publication sont des fixtures ; les tests de publication
+couvrent séparément les preuves GitHub. Les images locales sont conservées,
+les conteneurs, réseaux et données de recette sont retirés.
+Exécuter avec UID 1000 ou avec `sudo` ; la CI utilise `sudo` pour conserver
+les permissions réelles UID 1000 des données sans dépendre de l'UID du runner.
+
+```sh
+docker build -f backend/Dockerfile -t codex-stamp-cd-backend:local .
+docker build -f frontend/Dockerfile -t codex-stamp-cd-frontend:local .
+python3 -B deploy/tests/integration/check_sqlite_rollout.py
+```
+
+## Raccordement historique
+
 Ce contrôle utilise uniquement des données synthétiques et des ressources
 Docker au nom aléatoire. Il ne contacte aucun NAS et ne lit aucune base réelle.
 La réponse de publication est une fixture locale ; la preuve GitHub réelle

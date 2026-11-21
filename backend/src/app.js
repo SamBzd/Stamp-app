@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { getCorsOrigins } = require('./config');
+const { isMaintenanceActive } = require('./maintenance');
 
 const clientsRoutes = require('./routes/client');
 const cataloguesRoutes = require('./routes/catalogues');
@@ -22,11 +23,20 @@ if (corsOrigins.length > 0) {
     }
   }));
 }
-app.use(express.json());
-
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'backend up' });
+  res.json({ status: 'ok', message: 'backend up',
+    deploymentMaintenance: { supported: true, active: isMaintenanceActive() } });
 });
+
+app.use('/api', (req, res, next) => {
+  if (isMaintenanceActive()) {
+    return res.status(503).set('Retry-After', '30').json({
+      error: 'Mise à jour en cours. Réessaie dans quelques instants.'
+    });
+  }
+  next();
+});
+app.use(express.json());
 
 app.use('/api/clients', clientsRoutes);
 app.use('/api/catalogues', cataloguesRoutes);

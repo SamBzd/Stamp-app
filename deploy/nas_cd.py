@@ -367,6 +367,11 @@ class Project:
         }
         if not set(self.services) <= self.compose_services():
             raise DeploymentError("Un service déclaré est absent du fichier Compose.")
+        if state.get('maintenance'):
+            if not self.config.get('sqlite_migrations'):
+                raise DeploymentError('Maintenance SQLite interrompue : conserver sa configuration pour reprendre.')
+            from sqlite_cd import SqliteMaintenance
+            SqliteMaintenance(self, run, save_json, DeploymentError).recover(state)
         if state["pending"]:
             self.recover(state)
 
@@ -391,6 +396,18 @@ class Project:
         print(f"[{self.name}] Préparation de {candidate['tag_name']}.", flush=True)
         for image in candidate["images"].values():
             run(["docker", "pull", image], timeout=900)
+        if self.config.get('sqlite_migrations'):
+            from sqlite_cd import SqliteMaintenance
+            engine = SqliteMaintenance(self, run, save_json, DeploymentError)
+            containers = engine.containers()
+            source = engine.layout(containers)
+            # Statut JSON : distinguer une migration requise d'une base invalide.
+            probe = {'source': source, 'backup': str(self.state_file.parent),
+                'container': 'stamp-cd-status-' + self.name, 'candidate': candidate}
+            (self.state_file.parent / 'data').mkdir(mode=0o700, exist_ok=True)
+            if engine.helper(probe, 'status')['pending']:
+                engine.deploy(state, candidate)
+                return
         preflight = self.config.get("preflight")
         if preflight:
             try:
@@ -450,6 +467,10 @@ def validate(name, config):
     preflight = config.get("preflight")
     if preflight and preflight["service"] not in images:
         raise DeploymentError("Le service du contrôle de compatibilité ne fait pas partie de la release.")
+    sqlite = config.get('sqlite_migrations')
+    if sqlite is not None and (not isinstance(sqlite, dict)
+        or sqlite.get('service') not in images or sqlite.get('database_path') != '/data/app.db'):
+        raise DeploymentError('sqlite_migrations exige un service déclaré et database_path=/data/app.db.')
 
 
 def main():
@@ -487,7 +508,7 @@ def main():
                 except BlockingIOError:
                     continue
                 Project(name, settings, command, directory).deploy(args.retry)
-        except (DeploymentError, OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+        except (DeploymentError, OSError, ValueError, KeyError, TypeError, AttributeError, ImportError) as error:
             # urllib errors can contain signed asset URLs. Report their status only.
             if isinstance(error, HTTPError):
                 error = f"requête HTTP en échec ({error.code})"

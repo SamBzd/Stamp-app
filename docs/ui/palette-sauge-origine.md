@@ -5,6 +5,10 @@ palettes sur les mêmes écrans Commandes, formulaire kit et Fournitures. Il
 autorise son application à toutes les couleurs de l’application, sans changement
 de design ni d’UX. [Issue #51](https://github.com/SamBzd/Stamp-app/issues/51).
 
+Le 21 novembre 2026, les images sont livrées sur le NAS avec la release
+`nas-f76400d846d6c56011efa06995335f71cf2bb098`. Sam vérifie ensuite
+l'environnement de production et confirme son bon fonctionnement.
+
 ## Contrat de couleurs
 
 | Rôle | Token applicatif | Valeur |
