@@ -1,7 +1,10 @@
 # Papier de collection — #45
 
-Cette branche prépare la règle suivante ; aucune livraison ni migration NAS
-n’est attestée par ce document.
+Sam confirme le 21 novembre 2026 la livraison de cette règle et de SQLite v5
+sur le NAS, release `nas-f76400d846d6c56011efa06995335f71cf2bb098`.
+Essai sur copie, migration réelle, conservation des données et sondes réussis.
+Sam confirme ensuite le bon fonctionnement après vérification en production,
+sans détailler individuellement tous les scénarios de recette ci-dessous.
 
 ## Règle et données
 

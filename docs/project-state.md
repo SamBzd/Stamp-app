@@ -5,36 +5,45 @@
 - L'application est utilisée par une seule personne depuis un Mac, dans Chrome.
 - Elle est accessible uniquement sur le réseau local.
 - Elle est hébergée dans des conteneurs Docker sur un NAS Synology.
-- Le 20 novembre 2026, Sam confirme Stamp en service sur la release
-  `nas-1780b9127cc2886528f9e10c25b03b1f520fa3ff`, publiée depuis `main` puis
-  déployée par la tâche DSM, après la livraison contrôlée de branche `nas-21c57bf…`.
+- Le 21 novembre 2026, Sam confirme Stamp en service sur la release
+  `nas-f76400d846d6c56011efa06995335f71cf2bb098` : #45 et palette Sauge.
+  L'essai sur copie puis la migration réelle v4→v5 ont réussi ; intégrité,
+  relations, données et compteurs sont conservés. Les deux images sont en
+  service, les sondes API/interface passent et la CD Stamp est réactivée.
+  Sauvegarde v4, état CD et références des anciennes images sont conservés sur
+  le NAS ; les chemins privés restent dans les notes opérationnelles locales.
+  Sam a ensuite vérifié l'application sur l'environnement de production et
+  confirme son bon fonctionnement. Cette confirmation ne détaille pas chaque
+  scénario de la recette métier.
 - La branche `production` conserve l’ancienne application pour le retour arrière.
 - Les copies SQLite locales sont ignorées par Git et ne représentent pas les données de production.
 - La version stabilisée a été livrée initialement le 14 octobre 2026 depuis
   `6cc9817`, puis adoptée par le circuit CD lors de cette livraison contrôlée.
 - `main` est la base de développement ; une tête de branche ou un merge ne
   prouvent pas un déploiement. Le canal permanent `nas-release.yml` / `main`
-  est validé sur le NAS. Le #45 n’est pas livré.
+  est validé sur le NAS. La migration v5 a exigé une maintenance explicite ;
+  son automatisation est en préparation, pas encore installée sur le NAS.
 
-## Préparation #45 sur cette branche
+## Livraison #45
 
 La feuille de collection est implémentée pour les nouveaux kits, avec la migration
 v5, des types Fournitures distincts et un regroupement par nom + format. Les kits
-antérieurs gardent leur règle initiale à l’édition. Cette préparation ne prouve
-aucune migration ni livraison NAS. Voir [règle, recette et mise en service](papiers-collection.md).
+antérieurs gardent leur règle initiale à l’édition. La migration et la livraison
+NAS sont confirmées ci-dessus. Voir [règle, recette et mise en service](papiers-collection.md).
 
 ## Palette #51 sur cette branche
 
 Sam valide Sauge d’origine le 20 novembre 2026 : vert historique, ivoire et
 beige doux. Cette branche l’applique aux couleurs communes et aux teintes
-résiduelles, en conservant le design et l’UX. Aucun déploiement de cette palette
-n’est attesté. Voir [la palette et la recette](ui/palette-sauge-origine.md).
+résiduelles, en conservant le design et l’UX. Les images sont livrées et Sam
+confirme le fonctionnement sur l'environnement de production.
+Voir [la palette et la recette](ui/palette-sauge-origine.md).
 
 ## Cartographie des versions
 
 | Référence | Rôle | Autorité actuelle |
 |---|---|---|
-| Release `nas-1780b912…` | Images Stamp confirmées actives par Sam | Dernier déploiement automatique depuis `main` |
+| Release `nas-f76400d…` | Images Stamp confirmées actives par Sam, SQLite v5 | Maintenance contrôlée puis CD réactivée |
 | `production` | Ancienne application conservée | Référence de retour arrière historique |
 | `main` | Base de développement et workflow permanent CD | Une fusion ne déclenche aucune bascule |
 | archive de `v2` | État de la refonte avant son adoption par `main` | Référence historique uniquement |

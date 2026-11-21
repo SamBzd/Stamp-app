@@ -61,8 +61,24 @@ test('GET /api/health confirme le démarrage de l’API', async () => {
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
     status: 'ok',
-    message: 'backend up'
+    message: 'backend up',
+    deploymentMaintenance: { supported: true, active: false }
   });
+});
+
+test('la maintenance persistante bloque les accès métier, puis les rétablit sans redémarrer', async () => {
+  const { getMaintenancePath } = require('../src/maintenance');
+  fs.writeFileSync(getMaintenancePath(), 'maintenance de test');
+  try {
+    for (const method of ['GET', 'POST', 'PUT', 'DELETE']) {
+      const response = await fetch(`${baseUrl}/api/clients`, { method });
+      assert.equal(response.status, 503, method);
+      assert.equal(response.headers.get('retry-after'), '30');
+    }
+    const health = await (await fetch(`${baseUrl}/api/health`)).json();
+    assert.deepEqual(health.deploymentMaintenance, { supported: true, active: true });
+  } finally { fs.unlinkSync(getMaintenancePath()); }
+  assert.equal((await fetch(`${baseUrl}/api/clients`)).status, 200);
 });
 
 test('GET /api/clients utilise la base SQLite temporaire', async () => {

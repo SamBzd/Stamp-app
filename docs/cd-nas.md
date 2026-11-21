@@ -488,6 +488,12 @@ release prévu. Aucun lancement du driver root ne doit précéder ces vérificat
 
 ### Exploitation courante
 
+L'[automatisation des migrations SQLite](cd-migrations-sqlite.md) est préparée
+sur cette branche, avec une activation explicite après installation du backend
+compatible et des deux fichiers du déployeur. Elle n'est pas encore active
+sur le NAS. Les consignes ci-dessous restent celles des projets sans option
+`sqlite_migrations`.
+
 - `enabled: false` suspend uniquement le projet visé. `--project <nom>` limite
   une exécution à un projet. L’état, le verrou et la release rejetée sont propres
   à chaque projet. Les autres déploiements continuent si un projet échoue.

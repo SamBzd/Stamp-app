@@ -13,6 +13,10 @@
         "SamBzd/Stamp-app/.github/workflows/nas-publish.yml": "REPLACE_WITH_REVIEWED_FILE_SHA256"
       },
       "require_existing": true,
+      "sqlite_migrations": {
+        "service": "backend",
+        "database_path": "/data/app.db"
+      },
       "images": {
         "backend": "ghcr.io/sambzd/stamp-app-backend",
         "frontend": "ghcr.io/sambzd/stamp-app-frontend"

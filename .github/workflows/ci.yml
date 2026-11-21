@@ -21,7 +21,7 @@ jobs:
   check:
     name: Tests, build et configuration Docker
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 20
 
     steps:
       - name: Récupérer le code
@@ -56,3 +56,9 @@ jobs:
 
       - name: Vérifier le déploiement NAS
         run: python3 -B -m unittest discover -s deploy/tests
+
+      - name: Vérifier les migrations et reprises sur Docker
+        run: |
+          docker build -f backend/Dockerfile -t codex-stamp-cd-backend:local .
+          docker build -f frontend/Dockerfile -t codex-stamp-cd-frontend:local .
+          sudo python3 -B deploy/tests/integration/check_sqlite_rollout.py
